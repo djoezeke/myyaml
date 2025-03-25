@@ -1,6 +1,23 @@
+#ifndef DJOEZEKE_YAMLFY_H
+#define DJOEZEKE_YAMLFY_H
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
+#include <ctype.h>
+
+#define YAMLFY_VERSION_MAJOR 0
+#define YAMLFY_VERSION_MINOR 1
+#define YAMLFY_VERSION_PATCH 0
+
+#define YAMLFY_DEBUG
+
+#ifdef YAMLFY_DEBUG
+#endif // YAMLFY_DEBUG
+
+#pragma region STRUCTURES
 
 // Define YAML value types
 typedef enum
@@ -40,12 +57,6 @@ inline const char *to_string(YamlType t)
 // Forward declaration of Yaml
 typedef struct Yaml Yaml;
 
-bool yaml_to_bool(Yaml *yaml);
-double yaml_to_double(Yaml *yaml);
-int yaml_to_int(Yaml *yaml);
-char *yaml_to_string(Yaml *yaml);
-void *yaml_to_null(Yaml *yaml);
-
 // Define a YAML key-value pair for mappings
 typedef struct
 {
@@ -72,6 +83,38 @@ struct Yaml
         } mapping_value;
     } data;
 };
+
+#pragma endregion // STRUCTURES
+
+#pragma region DECLARATIONS
+
+bool yaml_to_bool(Yaml *yaml);
+double yaml_to_double(Yaml *yaml);
+int yaml_to_int(Yaml *yaml);
+char *yaml_to_string(Yaml *yaml);
+void *yaml_to_null(Yaml *yaml);
+Yaml *yaml_create_scalar(const char *scalar_value);
+Yaml *yaml_create_sequence();
+void yaml_sequence_add(Yaml *sequence, Yaml *item);
+Yaml *yaml_create_mapping();
+void yaml_mapping_add(Yaml *mapping, const char *key, Yaml *value);
+void yaml_print(Yaml *value, int indent);
+void yaml_pretty_print(Yaml *value, int indent);
+void yaml_free(Yaml *value);
+char *read_file(const char *filename);
+const char *skip_whitespace(const char *str);
+Yaml *parse_scalar(const char **str);
+Yaml *parse_sequence(const char **str);
+Yaml *parse_mapping(const char **str);
+Yaml *parse_yaml(const char **str);
+Yaml *read_yaml_file(const char *filename);
+void append_to_buffer(char **buffer, size_t *size, const char *format, ...);
+void yaml_pretty_print_to_string(Yaml *value, int indent, char **buffer, size_t *size);
+int write_string_to_file(const char *filename, const char *content);
+
+#pragma endregion // DECLARATIONS
+
+#pragma region DEFINATIONS
 
 // Function to create a YAML scalar value
 Yaml *yaml_create_scalar(const char *scalar_value)
@@ -217,10 +260,6 @@ void yaml_free(Yaml *value)
     free(value);
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 // Function to read the contents of a file into a string
 char *read_file(const char *filename)
 {
@@ -249,7 +288,6 @@ char *read_file(const char *filename)
     fclose(file);
     return content;
 }
-#include <ctype.h>
 
 // Function to skip whitespace characters
 const char *skip_whitespace(const char *str)
@@ -271,9 +309,6 @@ Yaml *parse_scalar(const char **str)
     scalar_value[length] = '\0';
     return yaml_create_scalar(scalar_value);
 }
-
-// Function to parse a YAML value
-Yaml *parse_yaml(const char **str);
 
 // Function to parse a sequence
 Yaml *parse_sequence(const char **str)
@@ -338,80 +373,6 @@ Yaml *read_yaml_file(const char *filename)
     free(content);
     return root;
 }
-// Helper function to append formatted text to a string buffer
-void append_to_buffer(char **buffer, size_t *size, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    size_t needed = vsnprintf(NULL, 0, format, args) + 1;
-    va_end(args);
-
-    *buffer = (char *)realloc(*buffer, *size + needed);
-    va_start(args, format);
-    vsnprintf(*buffer + *size, needed, format, args);
-    va_end(args);
-
-    *size += needed - 1;
-}
-
-// Function to pretty print a YAML value to a string
-void yaml_pretty_print_to_string(Yaml *value, int indent, char **buffer, size_t *size)
-{
-    for (int i = 0; i < indent; i++)
-        append_to_buffer(buffer, size, "  ");
-    switch (value->type)
-    {
-    case SCALAR:
-        append_to_buffer(buffer, size, "%s\n", value->data.scalar_value);
-        break;
-    case SEQUENCE:
-        for (size_t i = 0; i < value->data.sequence_value.size; i++)
-        {
-            for (int j = 0; j < indent; j++)
-                append_to_buffer(buffer, size, "  ");
-            append_to_buffer(buffer, size, "- ");
-            yaml_pretty_print_to_string(value->data.sequence_value.items[i], indent + 1, buffer, size);
-        }
-        break;
-    case MAPPING:
-        for (size_t i = 0; i < value->data.mapping_value.size; i++)
-        {
-            for (int j = 0; j < indent; j++)
-                append_to_buffer(buffer, size, "  ");
-            append_to_buffer(buffer, size, "%s: ", value->data.mapping_value.items[i]->key);
-            yaml_pretty_print_to_string(value->data.mapping_value.items[i]->value, indent + 1, buffer, size);
-        }
-        break;
-    }
-}
-
-int main()
-{
-    // Create a YAML mapping
-    Yaml *root = yaml_create_mapping();
-    yaml_mapping_add(root, "name", yaml_create_scalar("John Doe"));
-    yaml_mapping_add(root, "age", yaml_create_scalar("30"));
-
-    // Create a YAML sequence and add it to the mapping
-    Yaml *hobbies = yaml_create_sequence();
-    yaml_sequence_add(hobbies, yaml_create_scalar("reading"));
-    yaml_sequence_add(hobbies, yaml_create_scalar("swimming"));
-    yaml_sequence_add(hobbies, yaml_create_scalar("coding"));
-    yaml_mapping_add(root, "hobbies", hobbies);
-
-    // Print the YAML value
-    yaml_print(root, 0);
-
-    // Pretty print the YAML value
-    yaml_pretty_print(root, 0);
-
-    // Free the YAML value
-    yaml_free(root);
-
-    return 0;
-}
-
-#include <stdarg.h>
 
 // Helper function to append formatted text to a string buffer
 void append_to_buffer(char **buffer, size_t *size, const char *format, ...)
@@ -474,3 +435,7 @@ int write_string_to_file(const char *filename, const char *content)
     fclose(file);
     return 0;
 }
+
+#pragma endregion // DEFINATIONS
+
+#endif // DJOEZEKE_YAMLFY_H
