@@ -1,5 +1,93 @@
+/**
+ * @file myyaml.h
+ * @brief YAML parser library header for C/C++.
+ * @details This header provides all public API, types, macros, and configuration for YAML and supports both C and C++ usage.
+ * @author Sackey Ezekiel Etrue (djoezeke)
+ * @date Thur 02 12:26:15 Oct GMT 2025
+ * @version 0.1.0
+ * @see https://www.github.com/djoezeke/myyaml
+ * @copyright Copyright (c) 2025 Sackey Ezekiel Etrue
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Usage:
+ * @code
+ *  #include <myyaml.h>
+ * @endcode
+ *
+ * Index of this file:
+ *  [SECTION] Header mess
+ *  [SECTION] Configurable macros
+ *  [SECTION] Function Macros
+ *  [SECTION] Imports/Exports
+ *  [SECTION] Data Structures
+ *  [SECTION] C Only Functions
+ *  [SECTION] C++ Only Classes
+ *
+ *
+ * Resources:
+ * - Homepage ................... https://github.com/djoezeke/myyaml
+ * - Releases & changelog ....... https://github.com/djoezeke/myyaml/releases
+ * - Issues & support ........... https://github.com/djoezeke/myyaml/issues
+ *
+ */
+
 #ifndef DJOEZEKE_YAMLFY_H
 #define DJOEZEKE_YAMLFY_H
+
+/**
+ * @defgroup version Version Information
+ * @brief Macros for library versioning.
+ * @{
+ */
+
+/**
+ * @def MYTOML_VERSION_MAJOR
+ * @brief Major version number of the library.
+ */
+#define MYTOML_VERSION_MAJOR 0
+
+/**
+ * @def MYTOML_VERSION_MINOR
+ * @brief Minor version number of the library.
+ */
+#define MYTOML_VERSION_MINOR 1
+
+/**
+ * @def MYTOML_VERSION_PATCH
+ * @brief Patch version number of the library.
+ */
+#define MYTOML_VERSION_PATCH 0
+
+/**
+ * @def MYTOML_VERSION
+ * @brief Library version string in the format @c "X.Y.Z",
+ * where @c X is the major version number, @c Y is a minor version
+ * number, and @c Z is the patch version number.
+ */
+#define MYTOML_VERSION "0.1.0"
+
+/** @} */
+
+//-----------------------------------------------------------------------------
+// [SECTION] Header mess
+//-----------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,16 +96,22 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#define YAMLFY_VERSION_MAJOR 0
-#define YAMLFY_VERSION_MINOR 1
-#define YAMLFY_VERSION_PATCH 0
-
 #define YAMLFY_DEBUG
 
 #ifdef YAMLFY_DEBUG
 #endif // YAMLFY_DEBUG
 
 #pragma region STRUCTURES
+
+//-----------------------------------------------------------------------------
+// [SECTION] Data Structures
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup basic Basic Types
+ * @brief Core types and data structures for YAML.
+ * @{
+ */
 
 // Define YAML value types
 typedef enum
@@ -31,28 +125,6 @@ typedef enum
     DOUBLE,
     STRING,
 } YamlType;
-
-inline const char *to_string(YamlType t)
-{
-    switch (t)
-    {
-    case SEQUENCE:
-        return "SEQUENCE";
-    case MAPPING:
-        return "MAPPING";
-    case NIL:
-        return "NULL";
-    case BOOLEAN:
-        return "BOOLEAN";
-    case INTEGER:
-        return "INTEGER";
-    case DOUBLE:
-        return "DOUBLE";
-    case STRING:
-        return "STRING";
-    default: // LCOV_EXCL_LINE
-    }
-}
 
 // Forward declaration of Yaml
 typedef struct Yaml Yaml;
@@ -83,6 +155,8 @@ struct Yaml
         } mapping_value;
     } data;
 };
+
+/** @} */
 
 #pragma endregion // STRUCTURES
 
@@ -434,6 +508,28 @@ int write_string_to_file(const char *filename, const char *content)
     fprintf(file, "%s", content);
     fclose(file);
     return 0;
+}
+
+inline const char *to_string(YamlType t)
+{
+    switch (t)
+    {
+    case SEQUENCE:
+        return "SEQUENCE";
+    case MAPPING:
+        return "MAPPING";
+    case NIL:
+        return "NULL";
+    case BOOLEAN:
+        return "BOOLEAN";
+    case INTEGER:
+        return "INTEGER";
+    case DOUBLE:
+        return "DOUBLE";
+    case STRING:
+        return "STRING";
+    default: // LCOV_EXCL_LINE
+    }
 }
 
 #pragma endregion // DEFINATIONS
