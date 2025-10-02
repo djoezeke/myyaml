@@ -1,4 +1,4 @@
-#include "../yamlfy.h"
+#include "../myyaml.h"
 
 int main()
 {
