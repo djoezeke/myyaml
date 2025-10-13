@@ -2,6 +2,6 @@ prefix=@CMAKE_INSTALL_PREFIX@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
-Description: A C/C++ library for Toml
+Description: A C/C++ library for Yaml
 Version: @PROJECT_VERSION@
 Cflags: -I${includedir}

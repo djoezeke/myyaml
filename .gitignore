@@ -1,3 +1,6 @@
 /build*
 /.vscode/
 /.vs/
+READMEE.md
+**.hxx
+**.cxx
