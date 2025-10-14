@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
       if (!done) count++;
     }
 
+    // yaml_document_get_node(&document)
     yaml_parser_delete(&parser);
 
     assert(!fclose(file));
