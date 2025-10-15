@@ -1,12 +1,11 @@
-#define FRIUT_IMPLEMENTATION
-#include "fruit.h"
-
-#include "../myyaml.h"
-
+#define FRUIT_IMPLEMENTATION
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../myyaml.h"
+#include "fruit.h"
 
 /* Set environment variable DEBUG=1 to enable debug output. */
 int debug = 0;
@@ -51,8 +50,10 @@ struct parser_state {
  * Convert a yaml boolean string to a boolean value (true|false).
  */
 int get_boolean(const char *string, bool *value) {
-  char *t[] = {"y", "Y", "yes", "Yes", "YES", "true", "True", "TRUE", "on", "On", "ON", NULL};
-  char *f[] = {"n", "N", "no", "No", "NO", "false", "False", "FALSE", "off", "Off", "OFF", NULL};
+  char *t[] = {"y",    "Y",    "yes", "Yes", "YES", "true",
+               "True", "TRUE", "on",  "On",  "ON",  NULL};
+  char *f[] = {"n",     "N",     "no",  "No",  "NO",  "false",
+               "False", "FALSE", "off", "Off", "OFF", NULL};
   char **p;
 
   for (p = t; *p; p++) {
@@ -88,7 +89,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_STREAM;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -102,7 +104,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_STOP; /* All done. */
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -116,7 +119,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_STREAM;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -136,7 +140,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_STREAM;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -150,7 +155,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_SECTION;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -164,7 +170,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FLIST;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -195,7 +202,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FVALUES;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -211,7 +219,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -227,7 +236,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -239,7 +249,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -250,7 +261,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_VVALUES;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -264,7 +276,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_FKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -292,7 +305,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_VVALUES;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -308,7 +322,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_VKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -324,7 +339,8 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
           s->state = STATE_VKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -333,13 +349,15 @@ int consume_event(struct parser_state *s, YamlEvent *event) {
       switch (event->type) {
         case YAML_SCALAR_EVENT:
           if (get_boolean((char *)event->data.scalar.value, &s->v.seedless)) {
-            fprintf(stderr, "Invalid boolean string value: %s\n", (char *)event->data.scalar.value);
+            fprintf(stderr, "Invalid boolean string value: %s\n",
+                    (char *)event->data.scalar.value);
             return FAILURE;
           }
           s->state = STATE_VKEY;
           break;
         default:
-          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type, s->state);
+          fprintf(stderr, "Unexpected event %d in state %d.\n", event->type,
+                  s->state);
           return FAILURE;
       }
       break;
@@ -355,7 +373,7 @@ int main(int argc, char *argv[]) {
   enum status status;
   struct parser_state state;
   YamlParser parser;
-  FILE *file = fopen("../yaml/file.yml", "rb");
+  FILE *file = fopen("file.yml", "rb");
 
   if (getenv("DEBUG")) {
     debug = 1;
@@ -385,9 +403,11 @@ int main(int argc, char *argv[]) {
 
   /* Output the parsed data. */
   for (struct Fruit_t *f = state.flist; f; f = f->next) {
-    printf("Fruit_t: name=%s, color=%s, count=%d\n", f->name, f->color, f->count);
+    printf("Fruit_t: name=%s, color=%s, count=%d\n", f->name, f->color,
+           f->count);
     for (struct Variety_t *v = f->varieties; v; v = v->next) {
-      printf("  Variety_t: name=%s, color=%s, seedless=%s\n", v->name, v->color, v->seedless ? "true" : "false");
+      printf("  Variety_t: name=%s, color=%s, seedless=%s\n", v->name, v->color,
+             v->seedless ? "true" : "false");
     }
   }
   code = EXIT_SUCCESS;

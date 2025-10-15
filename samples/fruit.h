@@ -2,6 +2,7 @@
 #define MYYAML_FRUIT_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct Variety_t {
   struct Variety_t *next;
@@ -30,7 +31,8 @@ void bail(const char *msg);
 void *bail_alloc(size_t size);
 char *bail_strdup(const char *s);
 
-void add_fruit(Fruit_t **fruits, char *name, char *color, int count, Variety_t *varieties);
+void add_fruit(Fruit_t **fruits, char *name, char *color, int count,
+               Variety_t *varieties);
 void add_variety(Variety_t **Variety_t, char *name, char *color, bool seedless);
 
 void destroy_fruits(Fruit_t **fruits);
@@ -88,7 +90,8 @@ char *bail_strdup(const char *s) {
   return c;
 }
 
-void add_fruit(Fruit_t **fruits, char *name, char *color, int count, Variety_t *varieties) {
+void add_fruit(Fruit_t **fruits, char *name, char *color, int count,
+               Variety_t *varieties) {
   /* Create Fruit_t object. */
   Fruit_t *f = bail_alloc(sizeof(*f));
   f->name = bail_strdup(name);
@@ -108,7 +111,8 @@ void add_fruit(Fruit_t **fruits, char *name, char *color, int count, Variety_t *
   }
 }
 
-void add_variety(Variety_t **varieties, char *name, char *color, bool seedless) {
+void add_variety(Variety_t **varieties, char *name, char *color,
+                 bool seedless) {
   /* Create Variety_t object. */
   Variety_t *v = bail_alloc(sizeof(*v));
   v->name = bail_strdup(name);
