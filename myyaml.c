@@ -535,77 +535,6 @@
    (token).data.tag_directive.prefix = (token_prefix))
 
 /*
- * Event initializers.
- */
-#define EVENT_INIT(event, event_type, event_start_mark, event_end_mark) \
-  (memset(&(event), 0, sizeof(YamlEvent)), (event).type = (event_type), \
-   (event).start_mark = (event_start_mark),                             \
-   (event).end_mark = (event_end_mark))
-
-#define STREAM_START_EVENT_INIT(event, event_encoding, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_STREAM_START_EVENT, (start_mark), (end_mark)),   \
-   (event).data.stream_start.encoding = (event_encoding))
-
-#define STREAM_END_EVENT_INIT(event, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_STREAM_END_EVENT, (start_mark), (end_mark)))
-
-#define DOCUMENT_START_EVENT_INIT(                                            \
-    event, event_version_directive, event_tag_directives_start,               \
-    event_tag_directives_end, event_implicit, start_mark, end_mark)           \
-  (EVENT_INIT((event), YAML_DOCUMENT_START_EVENT, (start_mark), (end_mark)),  \
-   (event).data.document_start.version_directive = (event_version_directive), \
-   (event).data.document_start.tag_directives.start =                         \
-       (event_tag_directives_start),                                          \
-   (event).data.document_start.tag_directives.end =                           \
-       (event_tag_directives_end),                                            \
-   (event).data.document_start.implicit = (event_implicit))
-
-#define DOCUMENT_END_EVENT_INIT(event, event_implicit, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_DOCUMENT_END_EVENT, (start_mark), (end_mark)),   \
-   (event).data.document_end.implicit = (event_implicit))
-
-#define ALIAS_EVENT_INIT(event, event_anchor, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_ALIAS_EVENT, (start_mark), (end_mark)), \
-   (event).data.alias.anchor = (event_anchor))
-
-#define SCALAR_EVENT_INIT(event, event_anchor, event_tag, event_value,    \
-                          event_length, event_plain_implicit,             \
-                          event_quoted_implicit, event_style, start_mark, \
-                          end_mark)                                       \
-  (EVENT_INIT((event), YAML_SCALAR_EVENT, (start_mark), (end_mark)),      \
-   (event).data.scalar.anchor = (event_anchor),                           \
-   (event).data.scalar.tag = (event_tag),                                 \
-   (event).data.scalar.value = (event_value),                             \
-   (event).data.scalar.length = (event_length),                           \
-   (event).data.scalar.plain_implicit = (event_plain_implicit),           \
-   (event).data.scalar.quoted_implicit = (event_quoted_implicit),         \
-   (event).data.scalar.style = (event_style))
-
-#define SEQUENCE_START_EVENT_INIT(event, event_anchor, event_tag,            \
-                                  event_implicit, event_style, start_mark,   \
-                                  end_mark)                                  \
-  (EVENT_INIT((event), YAML_SEQUENCE_START_EVENT, (start_mark), (end_mark)), \
-   (event).data.sequence_start.anchor = (event_anchor),                      \
-   (event).data.sequence_start.tag = (event_tag),                            \
-   (event).data.sequence_start.implicit = (event_implicit),                  \
-   (event).data.sequence_start.style = (event_style))
-
-#define SEQUENCE_END_EVENT_INIT(event, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_SEQUENCE_END_EVENT, (start_mark), (end_mark)))
-
-#define MAPPING_START_EVENT_INIT(event, event_anchor, event_tag,            \
-                                 event_implicit, event_style, start_mark,   \
-                                 end_mark)                                  \
-  (EVENT_INIT((event), YAML_MAPPING_START_EVENT, (start_mark), (end_mark)), \
-   (event).data.mapping_start.anchor = (event_anchor),                      \
-   (event).data.mapping_start.tag = (event_tag),                            \
-   (event).data.mapping_start.implicit = (event_implicit),                  \
-   (event).data.mapping_start.style = (event_style))
-
-#define MAPPING_END_EVENT_INIT(event, start_mark, end_mark) \
-  (EVENT_INIT((event), YAML_MAPPING_END_EVENT, (start_mark), (end_mark)))
-
-/*
  * Document initializer.
  */
 
@@ -4372,8 +4301,13 @@ static int yaml_parser_parse_stream_start(YamlParser *parser,
   }
 
   parser->state = YAML_PARSE_IMPLICIT_DOCUMENT_START_STATE;
-  STREAM_START_EVENT_INIT(*event, token->data.stream_start.encoding,
-                          token->start_mark, token->start_mark);
+
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_STREAM_START_EVENT;
+  event->start_mark = token->start_mark;
+  event->end_mark = token->start_mark;
+  event->data.stream_start.encoding = token->data.stream_start.encoding;
+
   SKIP_TOKEN(parser);
 
   return MYYAML_SUCCESS;
@@ -4419,9 +4353,18 @@ static int yaml_parser_parse_document_start(YamlParser *parser,
       return MYYAML_FAILURE;
     if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE))
       return MYYAML_FAILURE;
+
     parser->state = YAML_PARSE_BLOCK_NODE_STATE;
-    DOCUMENT_START_EVENT_INIT(*event, NULL, NULL, NULL, 1, token->start_mark,
-                              token->start_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_DOCUMENT_START_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->start_mark;
+    event->data.document_start.version_directive = NULL;
+    event->data.document_start.tag_directives.start = NULL;
+    event->data.document_start.tag_directives.end = NULL;
+    event->data.document_start.implicit = 1;
+
     return MYYAML_SUCCESS;
   }
 
@@ -4434,7 +4377,9 @@ static int yaml_parser_parse_document_start(YamlParser *parser,
                                         &tag_directives.start,
                                         &tag_directives.end))
       return MYYAML_FAILURE;
+
     token = PEEK_TOKEN(parser);
+
     if (!token) goto error;
     if (token->type != YAML_DOCUMENT_START_TOKEN) {
       yaml_parser_set_parser_error(
@@ -4445,11 +4390,20 @@ static int yaml_parser_parse_document_start(YamlParser *parser,
       goto error;
     parser->state = YAML_PARSE_DOCUMENT_CONTENT_STATE;
     end_mark = token->end_mark;
-    DOCUMENT_START_EVENT_INIT(*event, version_directive, tag_directives.start,
-                              tag_directives.end, 0, start_mark, end_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_DOCUMENT_START_EVENT;
+    event->start_mark = start_mark;
+    event->end_mark = end_mark;
+    event->data.document_start.version_directive = version_directive;
+    event->data.document_start.tag_directives.start = tag_directives.start;
+    event->data.document_start.tag_directives.end = tag_directives.end;
+    event->data.document_start.implicit = 0;
+
     SKIP_TOKEN(parser);
     version_directive = NULL;
     tag_directives.start = tag_directives.end = NULL;
+
     return MYYAML_SUCCESS;
   }
 
@@ -4457,7 +4411,11 @@ static int yaml_parser_parse_document_start(YamlParser *parser,
 
   else {
     parser->state = YAML_PARSE_END_STATE;
-    STREAM_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_STREAM_END_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->end_mark;
+
     SKIP_TOKEN(parser);
     return MYYAML_SUCCESS;
   }
@@ -4530,7 +4488,12 @@ static int yaml_parser_parse_document_end(YamlParser *parser,
   }
 
   parser->state = YAML_PARSE_DOCUMENT_START_STATE;
-  DOCUMENT_END_EVENT_INIT(*event, implicit, start_mark, end_mark);
+
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_DOCUMENT_END_EVENT;
+  event->start_mark = start_mark;
+  event->end_mark = end_mark;
+  event->data.document_end.implicit = implicit;
 
   return MYYAML_SUCCESS;
 }
@@ -4567,12 +4530,12 @@ static int yaml_parser_parse_document_end(YamlParser *parser,
 
 static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
                                   int block, int indentless_sequence) {
-  YamlToken *token;
-  YamlChar_t *anchor = NULL;
+  YamlMark start_mark, end_mark, tag_mark;
   YamlChar_t *tag_handle = NULL;
   YamlChar_t *tag_suffix = NULL;
+  YamlChar_t *anchor = NULL;
   YamlChar_t *tag = NULL;
-  YamlMark start_mark, end_mark, tag_mark;
+  YamlToken *token;
   int implicit;
 
   token = PEEK_TOKEN(parser);
@@ -4580,8 +4543,13 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
 
   if (token->type == YAML_ALIAS_TOKEN) {
     parser->state = POP(parser, parser->states);
-    ALIAS_EVENT_INIT(*event, token->data.alias.value, token->start_mark,
-                     token->end_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_ALIAS_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->start_mark;
+    event->data.alias.anchor = token->data.alias.value;
+
     SKIP_TOKEN(parser);
     return MYYAML_SUCCESS;
   }
@@ -4661,9 +4629,16 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
     if (indentless_sequence && token->type == YAML_BLOCK_ENTRY_TOKEN) {
       end_mark = token->end_mark;
       parser->state = YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE;
-      SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
-                                YAML_BLOCK_SEQUENCE_STYLE, start_mark,
-                                end_mark);
+
+      memset((event), 0, sizeof(YamlEvent));
+      event->type = YAML_SEQUENCE_START_EVENT;
+      event->start_mark = start_mark;
+      event->end_mark = end_mark;
+      event->data.sequence_start.anchor = anchor;
+      event->data.sequence_start.tag = tag;
+      event->data.sequence_start.implicit = implicit;
+      event->data.sequence_start.style = YAML_BLOCK_SEQUENCE_STYLE;
+
       return MYYAML_SUCCESS;
     } else {
       if (token->type == YAML_SCALAR_TOKEN) {
@@ -4677,10 +4652,19 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
           quoted_implicit = 1;
         }
         parser->state = POP(parser, parser->states);
-        SCALAR_EVENT_INIT(*event, anchor, tag, token->data.scalar.value,
-                          token->data.scalar.length, plain_implicit,
-                          quoted_implicit, token->data.scalar.style, start_mark,
-                          end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_SCALAR_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.scalar.anchor = anchor;
+        event->data.scalar.tag = tag;
+        event->data.scalar.value = token->data.scalar.value;
+        event->data.scalar.length = token->data.scalar.length;
+        event->data.scalar.plain_implicit = plain_implicit,
+        event->data.scalar.quoted_implicit = quoted_implicit;
+        event->data.scalar.style = token->data.scalar.style;
+
         SKIP_TOKEN(parser);
         return MYYAML_SUCCESS;
       } else if (token->type == YAML_FLOW_SEQUENCE_START_TOKEN) {
@@ -4691,9 +4675,16 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
         }
         end_mark = token->end_mark;
         parser->state = YAML_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE;
-        SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
-                                  YAML_FLOW_SEQUENCE_STYLE, start_mark,
-                                  end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_SEQUENCE_START_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.sequence_start.anchor = anchor;
+        event->data.sequence_start.tag = tag;
+        event->data.sequence_start.implicit = implicit;
+        event->data.sequence_start.style = YAML_FLOW_SEQUENCE_STYLE;
+
         return MYYAML_SUCCESS;
       } else if (token->type == YAML_FLOW_MAPPING_START_TOKEN) {
         if (!STACK_LIMIT(parser, parser->indents,
@@ -4703,9 +4694,18 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
         }
         end_mark = token->end_mark;
         parser->state = YAML_PARSE_FLOW_MAPPING_FIRST_KEY_STATE;
-        MAPPING_START_EVENT_INIT(*event, anchor, tag, implicit,
-                                 YAML_FLOW_MAPPING_STYLE, start_mark, end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_MAPPING_START_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.mapping_start.anchor = anchor;
+        event->data.mapping_start.tag = tag;
+        event->data.mapping_start.implicit = implicit;
+        event->data.mapping_start.style = YAML_FLOW_MAPPING_STYLE;
+
         return MYYAML_SUCCESS;
+
       } else if (block && token->type == YAML_BLOCK_SEQUENCE_START_TOKEN) {
         if (!STACK_LIMIT(parser, parser->indents,
                          MAX_NESTING_LEVEL - parser->flow_level)) {
@@ -4714,9 +4714,16 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
         }
         end_mark = token->end_mark;
         parser->state = YAML_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE;
-        SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
-                                  YAML_BLOCK_SEQUENCE_STYLE, start_mark,
-                                  end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_SEQUENCE_START_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.sequence_start.anchor = anchor;
+        event->data.sequence_start.tag = tag;
+        event->data.sequence_start.implicit = implicit;
+        event->data.sequence_start.style = YAML_BLOCK_SEQUENCE_STYLE;
+
         return MYYAML_SUCCESS;
       } else if (block && token->type == YAML_BLOCK_MAPPING_START_TOKEN) {
         if (!STACK_LIMIT(parser, parser->indents,
@@ -4726,9 +4733,16 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
         }
         end_mark = token->end_mark;
         parser->state = YAML_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE;
-        MAPPING_START_EVENT_INIT(*event, anchor, tag, implicit,
-                                 YAML_BLOCK_MAPPING_STYLE, start_mark,
-                                 end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_MAPPING_START_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.mapping_start.anchor = anchor;
+        event->data.mapping_start.tag = tag;
+        event->data.mapping_start.implicit = implicit;
+        event->data.mapping_start.style = YAML_BLOCK_MAPPING_STYLE;
+
         return MYYAML_SUCCESS;
       } else if (anchor || tag) {
         YamlChar_t *value = YAML_MALLOC(1);
@@ -4738,8 +4752,19 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event,
         }
         value[0] = '\0';
         parser->state = POP(parser, parser->states);
-        SCALAR_EVENT_INIT(*event, anchor, tag, value, 0, implicit, 0,
-                          YAML_PLAIN_SCALAR_STYLE, start_mark, end_mark);
+
+        memset((event), 0, sizeof(YamlEvent));
+        event->type = YAML_SCALAR_EVENT;
+        event->start_mark = start_mark;
+        event->end_mark = end_mark;
+        event->data.scalar.anchor = anchor;
+        event->data.scalar.tag = tag;
+        event->data.scalar.value = token->data.scalar.value;
+        event->data.scalar.length = 0;
+        event->data.scalar.plain_implicit = implicit,
+        event->data.scalar.quoted_implicit = 0;
+        event->data.scalar.style = YAML_PLAIN_SCALAR_STYLE;
+
         return MYYAML_SUCCESS;
       } else {
         yaml_parser_set_parser_error_context(
@@ -4800,7 +4825,12 @@ static int yaml_parser_parse_block_sequence_entry(YamlParser *parser,
   else if (token->type == YAML_BLOCK_END_TOKEN) {
     parser->state = POP(parser, parser->states);
     (void)POP(parser, parser->marks);
-    SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_SEQUENCE_END_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->end_mark;
+
     SKIP_TOKEN(parser);
     return MYYAML_SUCCESS;
   }
@@ -4845,7 +4875,12 @@ static int yaml_parser_parse_indentless_sequence_entry(YamlParser *parser,
 
   else {
     parser->state = POP(parser, parser->states);
-    SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->start_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_SEQUENCE_END_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->start_mark;
+
     return MYYAML_SUCCESS;
   }
 }
@@ -4894,7 +4929,12 @@ static int yaml_parser_parse_block_mapping_key(YamlParser *parser,
   else if (token->type == YAML_BLOCK_END_TOKEN) {
     parser->state = POP(parser, parser->states);
     (void)POP(parser, parser->marks);
-    MAPPING_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+
+    memset((event), 0, sizeof(YamlEvent));
+    event->type = YAML_MAPPING_END_EVENT;
+    event->start_mark = token->start_mark;
+    event->end_mark = token->end_mark;
+
     SKIP_TOKEN(parser);
     return MYYAML_SUCCESS;
   }
@@ -4989,9 +5029,18 @@ static int yaml_parser_parse_flow_sequence_entry(YamlParser *parser,
 
     if (token->type == YAML_KEY_TOKEN) {
       parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE;
-      MAPPING_START_EVENT_INIT(*event, NULL, NULL, 1, YAML_FLOW_MAPPING_STYLE,
-                               token->start_mark, token->end_mark);
+
+      memset((event), 0, sizeof(YamlEvent));
+      event->type = YAML_MAPPING_START_EVENT;
+      event->start_mark = token->start_mark;
+      event->end_mark = token->end_mark;
+      event->data.mapping_start.anchor = NULL;
+      event->data.mapping_start.tag = NULL;
+      event->data.mapping_start.implicit = 1;
+      event->data.mapping_start.style = YAML_FLOW_MAPPING_STYLE;
+
       SKIP_TOKEN(parser);
+
       return MYYAML_SUCCESS;
     }
 
@@ -5004,7 +5053,12 @@ static int yaml_parser_parse_flow_sequence_entry(YamlParser *parser,
 
   parser->state = POP(parser, parser->states);
   (void)POP(parser, parser->marks);
-  SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_SEQUENCE_END_EVENT;
+  event->start_mark = token->start_mark;
+  event->end_mark = token->start_mark;
+
   SKIP_TOKEN(parser);
   return MYYAML_SUCCESS;
 }
@@ -5084,7 +5138,11 @@ static int yaml_parser_parse_flow_sequence_entry_mapping_end(YamlParser *parser,
 
   parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE;
 
-  MAPPING_END_EVENT_INIT(*event, token->start_mark, token->start_mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_MAPPING_END_EVENT;
+  event->start_mark = token->start_mark;
+  event->end_mark = token->end_mark;
+
   return MYYAML_SUCCESS;
 }
 
@@ -5153,7 +5211,12 @@ static int yaml_parser_parse_flow_mapping_key(YamlParser *parser,
 
   parser->state = POP(parser, parser->states);
   (void)POP(parser, parser->marks);
-  MAPPING_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_MAPPING_END_EVENT;
+  event->start_mark = token->start_mark;
+  event->end_mark = token->end_mark;
+
   SKIP_TOKEN(parser);
   return MYYAML_SUCCESS;
 }
@@ -5207,8 +5270,17 @@ static int yaml_parser_process_empty_scalar(YamlParser *parser,
   }
   value[0] = '\0';
 
-  SCALAR_EVENT_INIT(*event, NULL, NULL, value, 0, 1, 0, YAML_PLAIN_SCALAR_STYLE,
-                    mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_SCALAR_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.scalar.anchor = NULL;
+  event->data.scalar.tag = NULL;
+  event->data.scalar.value = value;
+  event->data.scalar.length = 0;
+  event->data.scalar.plain_implicit = 1;
+  event->data.scalar.quoted_implicit = 0;
+  event->data.scalar.style = YAML_PLAIN_SCALAR_STYLE;
 
   return MYYAML_SUCCESS;
 }
@@ -6335,7 +6407,11 @@ static int yaml_emitter_dump_alias(YamlEmitter *emitter, YamlChar_t *anchor) {
   YamlEvent event;
   YamlMark mark = {0, 0, 0};
 
-  ALIAS_EVENT_INIT(event, anchor, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_ALIAS_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.alias.anchor = anchor;
 
   return yaml_emitter_emit(emitter, &event);
 }
@@ -6354,9 +6430,17 @@ static int yaml_emitter_dump_scalar(YamlEmitter *emitter, YamlNode *node,
   int quoted_implicit =
       (strcmp((char *)node->tag, YAML_DEFAULT_SCALAR_TAG) == 0);
 
-  SCALAR_EVENT_INIT(event, anchor, node->tag, node->data.scalar.value,
-                    node->data.scalar.length, plain_implicit, quoted_implicit,
-                    node->data.scalar.style, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_SCALAR_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.scalar.anchor = anchor;
+  event.data.scalar.tag = node->tag;
+  event.data.scalar.value = node->data.scalar.value;
+  event.data.scalar.length = node->data.scalar.length;
+  event.data.scalar.plain_implicit = plain_implicit;
+  event.data.scalar.quoted_implicit = quoted_implicit;
+  event.data.scalar.style = YAML_PLAIN_SCALAR_STYLE;
 
   return yaml_emitter_emit(emitter, &event);
 }
@@ -6374,8 +6458,15 @@ static int yaml_emitter_dump_sequence(YamlEmitter *emitter, YamlNode *node,
 
   YamlNodeItem *item;
 
-  SEQUENCE_START_EVENT_INIT(event, anchor, node->tag, implicit,
-                            node->data.sequence.style, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_SEQUENCE_START_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.sequence_start.anchor = anchor;
+  event.data.sequence_start.tag = node->tag;
+  event.data.sequence_start.implicit = implicit;
+  event.data.sequence_start.style = node->data.sequence.style;
+
   if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
 
   for (item = node->data.sequence.items.start;
@@ -6383,7 +6474,11 @@ static int yaml_emitter_dump_sequence(YamlEmitter *emitter, YamlNode *node,
     if (!yaml_emitter_dump_node(emitter, *item)) return MYYAML_FAILURE;
   }
 
-  SEQUENCE_END_EVENT_INIT(event, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_SEQUENCE_END_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+
   if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
 
   return MYYAML_SUCCESS;
@@ -6402,8 +6497,15 @@ static int yaml_emitter_dump_mapping(YamlEmitter *emitter, YamlNode *node,
 
   YamlNodePair *pair;
 
-  MAPPING_START_EVENT_INIT(event, anchor, node->tag, implicit,
-                           node->data.mapping.style, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_MAPPING_START_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.mapping_start.anchor = anchor;
+  event.data.mapping_start.tag = node->tag;
+  event.data.mapping_start.implicit = implicit;
+  event.data.mapping_start.style = node->data.mapping.style;
+
   if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
 
   for (pair = node->data.mapping.pairs.start;
@@ -6412,7 +6514,11 @@ static int yaml_emitter_dump_mapping(YamlEmitter *emitter, YamlNode *node,
     if (!yaml_emitter_dump_node(emitter, pair->value)) return MYYAML_FAILURE;
   }
 
-  MAPPING_END_EVENT_INIT(event, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_MAPPING_END_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+
   if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
 
   return MYYAML_SUCCESS;
@@ -8419,21 +8525,28 @@ MYYAML_API int yaml_check_utf8(const YamlChar_t *start, size_t length) {
 
 MYYAML_API int yaml_event_initialize_stream_start(YamlEvent *event,
                                                   YamlEncoding encoding) {
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-
-  STREAM_START_EVENT_INIT(*event, encoding, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_STREAM_START_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.stream_start.encoding = encoding;
 
   return MYYAML_SUCCESS;
 }
 
 MYYAML_API int yaml_event_initialize_stream_end(YamlEvent *event) {
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-
-  STREAM_END_EVENT_INIT(*event, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_STREAM_END_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
 
   return MYYAML_SUCCESS;
 }
@@ -8442,23 +8555,24 @@ MYYAML_API int yaml_event_initialize_document_start(
     YamlEvent *event, YamlVersionDirective *version_directive,
     YamlTagDirective *tag_directives_start,
     YamlTagDirective *tag_directives_end, int implicit) {
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+  MYYAML_ASSERT((tag_directives_start && tag_directives_end) ||
+                (tag_directives_start == tag_directives_end));
+
   struct {
     YamlErrorType error;
   } context;
-  YamlMark mark = {0, 0, 0};
+
   YamlVersionDirective *version_directive_copy = NULL;
+  YamlTagDirective value = {NULL, NULL};
+  YamlMark mark = {0, 0, 0};
   struct {
     YamlTagDirective *start;
     YamlTagDirective *end;
     YamlTagDirective *top;
   } tag_directives_copy = {NULL, NULL, NULL};
-  YamlTagDirective value = {NULL, NULL};
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-  MYYAML_ASSERT((tag_directives_start && tag_directives_end) ||
-                (tag_directives_start == tag_directives_end));
   /* Valid tag directives are expected. */
-
   if (version_directive) {
     version_directive_copy = YAML_MALLOC_STATIC(YamlVersionDirective);
     if (!version_directive_copy) goto error;
@@ -8489,9 +8603,14 @@ MYYAML_API int yaml_event_initialize_document_start(
     }
   }
 
-  DOCUMENT_START_EVENT_INIT(*event, version_directive_copy,
-                            tag_directives_copy.start, tag_directives_copy.top,
-                            implicit, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_DOCUMENT_START_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.document_start.version_directive = version_directive_copy;
+  event->data.document_start.tag_directives.start = tag_directives_copy.start;
+  event->data.document_start.tag_directives.end = tag_directives_copy.top;
+  event->data.document_start.implicit = implicit;
 
   return MYYAML_SUCCESS;
 
@@ -8511,29 +8630,38 @@ error:
 
 MYYAML_API int yaml_event_initialize_document_end(YamlEvent *event,
                                                   int implicit) {
+  MYYAML_ASSERT(event); /**< Non-NULL emitter object is expected. */
+
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(event); /* Non-NULL emitter object is expected. */
-
-  DOCUMENT_END_EVENT_INIT(*event, implicit, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_DOCUMENT_END_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.document_end.implicit = implicit;
 
   return MYYAML_SUCCESS;
 }
 
 MYYAML_API int yaml_event_initialize_alias(YamlEvent *event,
                                            const YamlChar_t *anchor) {
-  YamlMark mark = {0, 0, 0};
-  YamlChar_t *anchor_copy = NULL;
+  MYYAML_ASSERT(event);  /**< Non-NULL event object is expected. */
+  MYYAML_ASSERT(anchor); /**< Non-NULL anchor is expected. */
 
-  MYYAML_ASSERT(event);  /* Non-NULL event object is expected. */
-  MYYAML_ASSERT(anchor); /* Non-NULL anchor is expected. */
+  YamlChar_t *anchor_copy = NULL;
+  YamlMark mark = {0, 0, 0};
 
   if (!yaml_check_utf8(anchor, strlen((char *)anchor))) return MYYAML_FAILURE;
 
   anchor_copy = _myyaml_strdup(anchor);
+
   if (!anchor_copy) return MYYAML_FAILURE;
 
-  ALIAS_EVENT_INIT(*event, anchor_copy, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_ALIAS_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.alias.anchor = anchor_copy;
 
   return MYYAML_SUCCESS;
 }
@@ -8542,13 +8670,13 @@ MYYAML_API int yaml_event_initialize_scalar(
     YamlEvent *event, const YamlChar_t *anchor, const YamlChar_t *tag,
     const YamlChar_t *value, int length, int plain_implicit,
     int quoted_implicit, YamlScalarStyle style) {
-  YamlMark mark = {0, 0, 0};
-  YamlChar_t *anchor_copy = NULL;
-  YamlChar_t *tag_copy = NULL;
-  YamlChar_t *value_copy = NULL;
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+  MYYAML_ASSERT(value); /**< Non-NULL anchor is expected. */
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-  MYYAML_ASSERT(value); /* Non-NULL anchor is expected. */
+  YamlChar_t *anchor_copy = NULL;
+  YamlChar_t *value_copy = NULL;
+  YamlChar_t *tag_copy = NULL;
+  YamlMark mark = {0, 0, 0};
 
   if (anchor) {
     if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
@@ -8572,8 +8700,17 @@ MYYAML_API int yaml_event_initialize_scalar(
   memcpy(value_copy, value, length);
   value_copy[length] = '\0';
 
-  SCALAR_EVENT_INIT(*event, anchor_copy, tag_copy, value_copy, length,
-                    plain_implicit, quoted_implicit, style, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_SCALAR_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.scalar.anchor = anchor_copy;
+  event->data.scalar.tag = tag_copy;
+  event->data.scalar.value = value_copy;
+  event->data.scalar.length = length;
+  event->data.scalar.plain_implicit = plain_implicit,
+  event->data.scalar.quoted_implicit = quoted_implicit;
+  event->data.scalar.style = style;
 
   return MYYAML_SUCCESS;
 
@@ -8590,11 +8727,11 @@ MYYAML_API int yaml_event_initialize_sequence_start(YamlEvent *event,
                                                     const YamlChar_t *tag,
                                                     int implicit,
                                                     YamlSequenceStyle style) {
-  YamlMark mark = {0, 0, 0};
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlChar_t *anchor_copy = NULL;
   YamlChar_t *tag_copy = NULL;
-
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
+  YamlMark mark = {0, 0, 0};
 
   if (anchor) {
     if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
@@ -8608,8 +8745,14 @@ MYYAML_API int yaml_event_initialize_sequence_start(YamlEvent *event,
     if (!tag_copy) goto error;
   }
 
-  SEQUENCE_START_EVENT_INIT(*event, anchor_copy, tag_copy, implicit, style,
-                            mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_SEQUENCE_START_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.sequence_start.anchor = anchor_copy;
+  event->data.sequence_start.tag = tag_copy;
+  event->data.sequence_start.implicit = implicit;
+  event->data.sequence_start.style = style;
 
   return MYYAML_SUCCESS;
 
@@ -8621,11 +8764,14 @@ error:
 }
 
 MYYAML_API int yaml_event_initialize_sequence_end(YamlEvent *event) {
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-
-  SEQUENCE_END_EVENT_INIT(*event, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_SEQUENCE_END_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
 
   return MYYAML_SUCCESS;
 }
@@ -8635,11 +8781,11 @@ MYYAML_API int yaml_event_initialize_mapping_start(YamlEvent *event,
                                                    const YamlChar_t *tag,
                                                    int implicit,
                                                    YamlMappingStyle style) {
-  YamlMark mark = {0, 0, 0};
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlChar_t *anchor_copy = NULL;
   YamlChar_t *tag_copy = NULL;
-
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
+  YamlMark mark = {0, 0, 0};
 
   if (anchor) {
     if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
@@ -8653,8 +8799,14 @@ MYYAML_API int yaml_event_initialize_mapping_start(YamlEvent *event,
     if (!tag_copy) goto error;
   }
 
-  MAPPING_START_EVENT_INIT(*event, anchor_copy, tag_copy, implicit, style, mark,
-                           mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_MAPPING_START_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
+  event->data.mapping_start.anchor = anchor_copy;
+  event->data.mapping_start.tag = tag_copy;
+  event->data.mapping_start.implicit = implicit;
+  event->data.mapping_start.style = style;
 
   return MYYAML_SUCCESS;
 
@@ -8666,19 +8818,22 @@ error:
 }
 
 MYYAML_API int yaml_event_initialize_mapping_end(YamlEvent *event) {
+  MYYAML_ASSERT(event); /**< Non-NULL event object is expected. */
+
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(event); /* Non-NULL event object is expected. */
-
-  MAPPING_END_EVENT_INIT(*event, mark, mark);
+  memset((event), 0, sizeof(YamlEvent));
+  event->type = YAML_MAPPING_END_EVENT;
+  event->start_mark = mark;
+  event->end_mark = mark;
 
   return MYYAML_SUCCESS;
 }
 
 MYYAML_API void yaml_event_delete(YamlEvent *event) {
-  YamlTagDirective *tag_directive;
+  MYYAML_ASSERT(event); /**< Non-NULL event object expected. */
 
-  MYYAML_ASSERT(event); /* Non-NULL event object expected. */
+  YamlTagDirective *tag_directive;
 
   switch (event->type) {
     case YAML_DOCUMENT_START_EVENT:
@@ -8782,9 +8937,17 @@ MYYAML_API int yaml_document_initialize(YamlDocument *document,
     }
   }
 
-  DOCUMENT_INIT(*document, nodes.start, nodes.end, version_directive_copy,
-                tag_directives_copy.start, tag_directives_copy.top,
-                start_implicit, end_implicit, mark, mark);
+  memset((document), 0, sizeof(YamlDocument));
+  document->nodes.start = nodes.start;
+  document->nodes.top = nodes.start;
+  document->nodes.end = nodes.end;
+  document->start_mark = mark;
+  document->end_mark = mark;
+  document->version_directive = version_directive_copy;
+  document->tag_directives.start = tag_directives_copy.start;
+  document->tag_directives.end = tag_directives_copy.top;
+  document->start_implicit = start_implicit;
+  document->end_implicit = end_implicit;
 
   return MYYAML_SUCCESS;
 
@@ -9494,15 +9657,27 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
          sizeof(*(emitter->anchors)) *
              (document->nodes.top - document->nodes.start));
 
-  DOCUMENT_START_EVENT_INIT(
-      event, document->version_directive, document->tag_directives.start,
-      document->tag_directives.end, document->start_implicit, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_DOCUMENT_START_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.document_start.version_directive = document->version_directive;
+  event.data.document_start.tag_directives.start =
+      document->tag_directives.start;
+  event.data.document_start.tag_directives.end = document->tag_directives.end;
+  event.data.document_start.implicit = document->start_implicit;
+
   if (!yaml_emitter_emit(emitter, &event)) goto error;
 
   yaml_emitter_anchor_node(emitter, 1);
   if (!yaml_emitter_dump_node(emitter, 1)) goto error;
 
-  DOCUMENT_END_EVENT_INIT(event, document->end_implicit, mark, mark);
+  memset((&event), 0, sizeof(YamlEvent));
+  event.type = YAML_DOCUMENT_END_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.document_end.implicit = document->end_implicit;
+
   if (!yaml_emitter_emit(emitter, &event)) goto error;
 
   yaml_emitter_delete_document_and_anchors(emitter);
@@ -9520,10 +9695,10 @@ MYYAML_API void yaml_emitter_set_output_string(YamlEmitter *emitter,
                                                unsigned char *output,
                                                size_t size,
                                                size_t *size_written) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
   MYYAML_ASSERT(
-      !emitter->write_handler); /* You can set the output only once. */
-  MYYAML_ASSERT(output);        /* Non-NULL output string expected. */
+      !emitter->write_handler); /**< You can set the output only once. */
+  MYYAML_ASSERT(output);        /**< Non-NULL output string expected. */
 
   emitter->write_handler = yaml_string_write_handler;
   emitter->write_handler_data = emitter;
@@ -9567,44 +9742,48 @@ MYYAML_API void yaml_emitter_set_encoding(YamlEmitter *emitter,
 
 MYYAML_API void yaml_emitter_set_canonical(YamlEmitter *emitter,
                                            int canonical) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
 
   emitter->canonical = (canonical != 0);
 }
 
 MYYAML_API void yaml_emitter_set_indent(YamlEmitter *emitter, int indent) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
 
   emitter->best_indent = (1 < indent && indent < 10) ? indent : 2;
 }
 
 MYYAML_API void yaml_emitter_set_width(YamlEmitter *emitter, int width) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
 
   emitter->best_width = (width >= 0) ? width : -1;
 }
 
 MYYAML_API void yaml_emitter_set_unicode(YamlEmitter *emitter, int unicode) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
 
   emitter->unicode = (unicode != 0);
 }
 
 MYYAML_API void yaml_emitter_set_break(YamlEmitter *emitter,
                                        YamlBreakType line_break) {
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object expected. */
 
   emitter->line_break = line_break;
 }
 
 MYYAML_API int yaml_emitter_open(YamlEmitter *emitter) {
-  YamlEvent event;
+  MYYAML_ASSERT(emitter);          /**< Non-NULL emitter object is required. */
+  MYYAML_ASSERT(!emitter->opened); /**< Emitter should not be opened yet. */
+
   YamlMark mark = {0, 0, 0};
+  YamlEvent event;
 
-  MYYAML_ASSERT(emitter);          /* Non-NULL emitter object is required. */
-  MYYAML_ASSERT(!emitter->opened); /* Emitter should not be opened yet. */
-
-  STREAM_START_EVENT_INIT(event, YAML_ANY_ENCODING, mark, mark);
+  memset(&(event), 0, sizeof(YamlEvent));
+  event.type = YAML_STREAM_START_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
+  event.data.stream_start.encoding = YAML_ANY_ENCODING;
 
   if (!yaml_emitter_emit(emitter, &event)) {
     return MYYAML_FAILURE;
@@ -9616,15 +9795,18 @@ MYYAML_API int yaml_emitter_open(YamlEmitter *emitter) {
 }
 
 MYYAML_API int yaml_emitter_close(YamlEmitter *emitter) {
+  MYYAML_ASSERT(emitter);         /**< Non-NULL emitter object is required. */
+  MYYAML_ASSERT(emitter->opened); /**< Emitter should be opened. */
+
   YamlEvent event;
   YamlMark mark = {0, 0, 0};
 
-  MYYAML_ASSERT(emitter);         /* Non-NULL emitter object is required. */
-  MYYAML_ASSERT(emitter->opened); /* Emitter should be opened. */
-
   if (emitter->closed) return MYYAML_SUCCESS;
 
-  STREAM_END_EVENT_INIT(event, mark, mark);
+  memset(&(event), 0, sizeof(YamlEvent));
+  event.type = YAML_STREAM_END_EVENT;
+  event.start_mark = mark;
+  event.end_mark = mark;
 
   if (!yaml_emitter_emit(emitter, &event)) {
     return MYYAML_FAILURE;
@@ -9636,11 +9818,11 @@ MYYAML_API int yaml_emitter_close(YamlEmitter *emitter) {
 }
 
 MYYAML_API int yaml_emitter_flush(YamlEmitter *emitter) {
-  int low, high;
+  MYYAML_ASSERT(emitter); /**< Non-NULL emitter object is expected. */
+  MYYAML_ASSERT(emitter->write_handler); /**< Write handler must be set. */
+  MYYAML_ASSERT(emitter->encoding);      /**< Output encoding must be set. */
 
-  MYYAML_ASSERT(emitter); /* Non-NULL emitter object is expected. */
-  MYYAML_ASSERT(emitter->write_handler); /* Write handler must be set. */
-  MYYAML_ASSERT(emitter->encoding);      /* Output encoding must be set. */
+  int low, high;
 
   emitter->buffer.last = emitter->buffer.pointer;
   emitter->buffer.pointer = emitter->buffer.start;

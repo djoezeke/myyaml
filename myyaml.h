@@ -4,7 +4,7 @@
  * This is a  C/C++ Yaml Parser Library Header @c myyaml.c.
  * @details This header provides all public API, types, macros, and
  * configuration for YAML and supports both C and C++ usage.
- * @author Sackey Ezekiel Etrue (djoezeke)
+ * @author Sackey Ezekiel -Etrue (djoezeke)
  * @date Thur 02 11:08:15 Oct GMT 2025
  * @version 0.1.0
  * @see https://www.github.com/djoezeke/myyaml
@@ -1839,19 +1839,6 @@ MYYAML_API int yaml_document_initialize(YamlDocument *document,
 MYYAML_API void yaml_document_delete(YamlDocument *document);
 
 /**
- * Get a node of a YAML document.
- *
- * The pointer returned by this function is valid until any of the functions
- * modifying the documents are called.
- *
- * @param[in]       document        A document object.
- * @param[in]       index           The node id.
- *
- * @returns the node objct or @c NULL if @c node_id is out of range.
- */
-MYYAML_API YamlNode *yaml_document_get_node(YamlDocument *document, int index);
-
-/**
  * Get the root of a YAML document node.
  *
  * The root object is the first object added to the document.
@@ -1867,6 +1854,20 @@ MYYAML_API YamlNode *yaml_document_get_node(YamlDocument *document, int index);
  * @returns the node object or @c NULL if the document is empty.
  */
 MYYAML_API YamlNode *yaml_document_get_root_node(YamlDocument *document);
+
+
+/**
+ * Get a node of a YAML document.
+ *
+ * The pointer returned by this function is valid until any of the functions
+ * modifying the documents are called.
+ *
+ * @param[in]       document        A document object.
+ * @param[in]       index           The node id.
+ *
+ * @returns the node objct or @c NULL if @c node_id is out of range.
+ */
+MYYAML_API YamlNode *yaml_document_get_node(YamlDocument *document, int index);
 
 /**
  * Create a SCALAR node and attach it to the document.
@@ -2020,6 +2021,28 @@ MYYAML_API int yaml_document_get_value_length_by_path(YamlDocument *document,
 MYYAML_API int yaml_parser_initialize(YamlParser *parser);
 
 /**
+ * Parse the input stream and produce the next parsing event.
+ *
+ * Call the function subsequently to produce a sequence of events corresponding
+ * to the input stream.  The initial event has the type
+ * @c YAML_STREAM_START_EVENT while the ending event has the type
+ * @c YAML_STREAM_END_EVENT.
+ *
+ * An application is responsible for freeing any buffers associated with the
+ * produced event object using the yaml_event_delete() function.
+ *
+ * An application must not alternate the calls of yaml_parser_parse() with the
+ * calls of yaml_parser_scan() or yaml_parser_load(). Doing this will break the
+ * parser.
+ *
+ * @param[in,out]   parser      A parser object.
+ * @param[out]      event       An empty event object.
+ *
+ * @returns @c 1 if the function succeeded, @c 0 on error.
+ */
+MYYAML_API int yaml_parser_parse(YamlParser *parser, YamlEvent *event);
+
+/**
  * Parse the input stream and produce the next YAML document.
  *
  * Call this function subsequently to produce a sequence of documents
@@ -2041,6 +2064,35 @@ MYYAML_API int yaml_parser_initialize(YamlParser *parser);
  * @returns @c 1 if the function succeeded, @c 0 on error.
  */
 MYYAML_API int yaml_parser_load(YamlParser *parser, YamlDocument *document);
+
+/**
+ * Scan the input stream and produce the next token.
+ *
+ * Call the function subsequently to produce a sequence of tokens corresponding
+ * to the input stream.  The initial token has the type
+ * @c YAML_STREAM_START_TOKEN while the ending token has the type
+ * @c YAML_STREAM_END_TOKEN.
+ *
+ * An application is responsible for freeing any buffers associated with the
+ * produced token object using the @c yaml_token_delete function.
+ *
+ * An application must not alternate the calls of yaml_parser_scan() with the
+ * calls of yaml_parser_parse() or yaml_parser_load(). Doing this will break
+ * the parser.
+ *
+ * @param[in,out]   parser      A parser object.
+ * @param[out]      token       An empty token object.
+ *
+ * @returns @c 1 if the function succeeded, @c 0 on error.
+ */
+MYYAML_API int yaml_parser_scan(YamlParser *parser, YamlToken *token);
+
+/**
+ * Destroy a parser.
+ *
+ * @param[in,out]   parser  A parser object.
+ */
+MYYAML_API void yaml_parser_delete(YamlParser *parser);
 
 /**
  * Set a string input.
@@ -2088,57 +2140,6 @@ MYYAML_API void yaml_parser_set_input(YamlParser *parser,
 MYYAML_API void yaml_parser_set_encoding(YamlParser *parser,
                                          YamlEncoding encoding);
 
-/**
- * Scan the input stream and produce the next token.
- *
- * Call the function subsequently to produce a sequence of tokens corresponding
- * to the input stream.  The initial token has the type
- * @c YAML_STREAM_START_TOKEN while the ending token has the type
- * @c YAML_STREAM_END_TOKEN.
- *
- * An application is responsible for freeing any buffers associated with the
- * produced token object using the @c yaml_token_delete function.
- *
- * An application must not alternate the calls of yaml_parser_scan() with the
- * calls of yaml_parser_parse() or yaml_parser_load(). Doing this will break
- * the parser.
- *
- * @param[in,out]   parser      A parser object.
- * @param[out]      token       An empty token object.
- *
- * @returns @c 1 if the function succeeded, @c 0 on error.
- */
-MYYAML_API int yaml_parser_scan(YamlParser *parser, YamlToken *token);
-
-/**
- * Parse the input stream and produce the next parsing event.
- *
- * Call the function subsequently to produce a sequence of events corresponding
- * to the input stream.  The initial event has the type
- * @c YAML_STREAM_START_EVENT while the ending event has the type
- * @c YAML_STREAM_END_EVENT.
- *
- * An application is responsible for freeing any buffers associated with the
- * produced event object using the yaml_event_delete() function.
- *
- * An application must not alternate the calls of yaml_parser_parse() with the
- * calls of yaml_parser_scan() or yaml_parser_load(). Doing this will break the
- * parser.
- *
- * @param[in,out]   parser      A parser object.
- * @param[out]      event       An empty event object.
- *
- * @returns @c 1 if the function succeeded, @c 0 on error.
- */
-MYYAML_API int yaml_parser_parse(YamlParser *parser, YamlEvent *event);
-
-/**
- * Destroy a parser.
- *
- * @param[in,out]   parser  A parser object.
- */
-MYYAML_API void yaml_parser_delete(YamlParser *parser);
-
 #pragma endregion  // Reader
 
 #endif  // MYYAML_DISABLE_READER
@@ -2160,13 +2161,6 @@ MYYAML_API void yaml_parser_delete(YamlParser *parser);
 MYYAML_API int yaml_emitter_initialize(YamlEmitter *emitter);
 
 /**
- * Destroy an emitter.
- *
- * @param[in,out]   emitter     An emitter object.
- */
-MYYAML_API void yaml_emitter_delete(YamlEmitter *emitter);
-
-/**
  * Emit an event.
  *
  * The event object may be generated using the yaml_parser_parse() function.
@@ -2180,6 +2174,13 @@ MYYAML_API void yaml_emitter_delete(YamlEmitter *emitter);
  * @returns @c 1 if the function succeeded, @c 0 on error.
  */
 MYYAML_API int yaml_emitter_emit(YamlEmitter *emitter, YamlEvent *event);
+
+/**
+ * Destroy an emitter.
+ *
+ * @param[in,out]   emitter     An emitter object.
+ */
+MYYAML_API void yaml_emitter_delete(YamlEmitter *emitter);
 
 /**
  * Emit a YAML document.
