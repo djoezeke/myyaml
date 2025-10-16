@@ -2133,6 +2133,8 @@ extern "C"
 	 */
 	MYYAML_API void yaml_parser_delete(YamlParser *parser);
 
+	MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length);
+
 	/**
 	 * Set a string input.
 	 *

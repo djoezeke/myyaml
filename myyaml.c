@@ -71,14 +71,23 @@
 //-------------------------------------------------------------------------
 // [SECTION] Defines
 //-----------------------------------------------------------------------------
+// clang-format off
 
 /*
  * Byte order marks.
  */
 
-#define BOM_UTF8 "\xef\xbb\xbf"
-#define BOM_UTF16LE "\xff\xfe"
-#define BOM_UTF16BE "\xfe\xff"
+#ifndef MYYAML_BOM_UTF8
+	#define MYYAML_BOM_UTF8 "\xef\xbb\xbf"
+#endif // MYYAML_BOM_UTF8
+
+#ifndef MYYAML_BOM_UTF16LE
+	#define MYYAML_BOM_UTF16LE "\xff\xfe"
+#endif // MYYAML_BOM_UTF16LE
+
+#ifndef MYYAML_BOM_UTF16BE
+	#define MYYAML_BOM_UTF16BE "\xfe\xff"
+#endif // MYYAML_BOM_UTF16BE
 
 #ifndef MYYAML_MAX_FILE_SIZE
 /**
@@ -173,22 +182,8 @@
 #endif // MYYAML_INITIAL_STRING_SIZE
 
 /*
- * Buffer management.
+ * String Management Macros.
  */
-
-#define BUFFER_INIT(context, buffer, size)                     \
-	(((buffer).start = (YamlChar_t *)_myyaml_malloc(size))     \
-		 ? ((buffer).last = (buffer).pointer = (buffer).start, \
-			(buffer).end = (buffer).start + (size), 1)         \
-		 : ((context)->error = YAML_MEMORY_ERROR, 0))
-
-#define BUFFER_DEL(context, buffer) \
-	(_myyaml_free((buffer).start),  \
-	 (buffer).start = (buffer).pointer = (buffer).end = 0)
-
-#define NULL_STRING {NULL, NULL, NULL}
-
-#define STRING(string, length) {(string), (string) + (length), (string)}
 
 #define STRING_ASSIGN(value, string, length)                      \
 	((value).start = (string), (value).end = (string) + (length), \
@@ -221,6 +216,35 @@
 						  &(string_b).pointer, &(string_b).end))  \
 		 ? ((string_b).pointer = (string_b).start, 1)             \
 		 : ((context)->error = YAML_MEMORY_ERROR, 0))
+
+#define MYYAML_STRING_INIT(context, string)  \
+	if (!_myyaml_string_initialize(string))  \
+	{                                        \
+		(context)->error = YAML_MEMORY_ERROR \
+	}
+
+#define MYYAML_STRING_FREE(context, string) \
+	(_myyaml_string_delete(string))
+
+#define MYYAML_STRING_CLEAR(context, string) \
+	((string).pointer = (string).start,      \
+	 memset((string).start, 0, (string).end - (string).start))
+
+#define MYYAML_STRING_NULL {NULL, NULL, NULL}
+
+/*
+ * Buffer Management Macros.
+ */
+
+#define MYYAML_BUFFER_INIT(context, buffer, size)                     \
+	(((buffer).start = (YamlChar_t *)_myyaml_malloc(size))     \
+		 ? ((buffer).last = (buffer).pointer = (buffer).start, \
+			(buffer).end = (buffer).start + (size), 1)         \
+		 : ((context)->error = YAML_MEMORY_ERROR, 0))
+
+#define MYYAML_BUFFER_FREE(context, buffer) \
+	(_myyaml_free((buffer).start),  \
+	 (buffer).start = (buffer).pointer = (buffer).end = 0)
 
 /*
  * String check operations.
@@ -270,7 +294,7 @@
 
 /*
  * Check if the character at the specified position is a hex-digit.
- */
+ */ 
 #define IS_HEX_AT(string, offset)                     \
 	(((string).pointer[offset] >= (YamlChar_t)'0' &&  \
 	  (string).pointer[offset] <= (YamlChar_t)'9') || \
@@ -508,51 +532,139 @@
  * Token initializers.
  */
 
-#define TOKEN_INIT(token, token_type, token_start_mark, token_end_mark)   \
-	(memset(&(token), 0, sizeof(YamlToken)), (token).type = (token_type), \
-	 (token).start_mark = (token_start_mark),                             \
-	 (token).end_mark = (token_end_mark))
+#define TOKEN_INIT(token,token_type,token_start_mark,token_end_mark)            \
+    (memset(&(token), 0, sizeof(YamlToken)),                                 	\
+    (token).type = (token_type),                                               	\
+    (token).start_mark = (token_start_mark),                                   	\
+    (token).end_mark = (token_end_mark))
 
-#define STREAM_START_TOKEN_INIT(token, token_encoding, start_mark, end_mark) \
-	(TOKEN_INIT((token), YAML_STREAM_START_TOKEN, (start_mark), (end_mark)), \
-	 (token).data.stream_start.encoding = (token_encoding))
+#define STREAM_START_TOKEN_INIT(token,token_encoding,start_mark,end_mark)       \
+    (TOKEN_INIT((token),YAML_STREAM_START_TOKEN,(start_mark),(end_mark)),       \
+    (token).data.stream_start.encoding = (token_encoding))
 
-#define STREAM_END_TOKEN_INIT(token, start_mark, end_mark) \
-	(TOKEN_INIT((token), YAML_STREAM_END_TOKEN, (start_mark), (end_mark)))
+#define STREAM_END_TOKEN_INIT(token,start_mark,end_mark)                        \
+    (TOKEN_INIT((token),YAML_STREAM_END_TOKEN,(start_mark),(end_mark)))
 
-#define ALIAS_TOKEN_INIT(token, token_value, start_mark, end_mark)    \
-	(TOKEN_INIT((token), YAML_ALIAS_TOKEN, (start_mark), (end_mark)), \
-	 (token).data.alias.value = (token_value))
+#define ALIAS_TOKEN_INIT(token,token_value,start_mark,end_mark)                 \
+    (TOKEN_INIT((token),YAML_ALIAS_TOKEN,(start_mark),(end_mark)),              \
+    (token).data.alias.value = (token_value))
 
-#define ANCHOR_TOKEN_INIT(token, token_value, start_mark, end_mark)    \
-	(TOKEN_INIT((token), YAML_ANCHOR_TOKEN, (start_mark), (end_mark)), \
-	 (token).data.anchor.value = (token_value))
+#define ANCHOR_TOKEN_INIT(token,token_value,start_mark,end_mark)                \
+    (TOKEN_INIT((token),YAML_ANCHOR_TOKEN,(start_mark),(end_mark)),             \
+    (token).data.anchor.value = (token_value))
 
-#define TAG_TOKEN_INIT(token, token_handle, token_suffix, start_mark, \
-					   end_mark)                                      \
-	(TOKEN_INIT((token), YAML_TAG_TOKEN, (start_mark), (end_mark)),   \
-	 (token).data.tag.handle = (token_handle),                        \
-	 (token).data.tag.suffix = (token_suffix))
+#define TAG_TOKEN_INIT(token,token_handle,token_suffix,start_mark,end_mark)     \
+    (TOKEN_INIT((token),YAML_TAG_TOKEN,(start_mark),(end_mark)),                \
+    (token).data.tag.handle = (token_handle),               	                \
+    (token).data.tag.suffix = (token_suffix))
 
-#define SCALAR_TOKEN_INIT(token, token_value, token_length, token_style, \
-						  start_mark, end_mark)                          \
-	(TOKEN_INIT((token), YAML_SCALAR_TOKEN, (start_mark), (end_mark)),   \
-	 (token).data.scalar.value = (token_value),                          \
-	 (token).data.scalar.length = (token_length),                        \
-	 (token).data.scalar.style = (token_style))
+#define SCALAR_TOKEN_INIT(token,token_value,token_length,token_style,start_mark,end_mark)\
+    (TOKEN_INIT((token),YAML_SCALAR_TOKEN,(start_mark),(end_mark)),             		 \
+    (token).data.scalar.value = (token_value),                                 			 \
+    (token).data.scalar.length = (token_length),                               		 	 \
+    (token).data.scalar.style = (token_style))
 
-#define VERSION_DIRECTIVE_TOKEN_INIT(token, token_major, token_minor, \
-									 start_mark, end_mark)            \
-	(TOKEN_INIT((token), YAML_VERSION_DIRECTIVE_TOKEN, (start_mark),  \
-				(end_mark)),                                          \
-	 (token).data.version_directive.major = (token_major),            \
-	 (token).data.version_directive.minor = (token_minor))
+#define VERSION_DIRECTIVE_TOKEN_INIT(token,token_major,token_minor,start_mark,end_mark)	\
+    (TOKEN_INIT((token),YAML_VERSION_DIRECTIVE_TOKEN,(start_mark),(end_mark)),  		\
+    (token).data.version_directive.major = (token_major),                  	    		\
+    (token).data.version_directive.minor = (token_minor))
 
-#define TAG_DIRECTIVE_TOKEN_INIT(token, token_handle, token_prefix,           \
-								 start_mark, end_mark)                        \
-	(TOKEN_INIT((token), YAML_TAG_DIRECTIVE_TOKEN, (start_mark), (end_mark)), \
-	 (token).data.tag_directive.handle = (token_handle),                      \
-	 (token).data.tag_directive.prefix = (token_prefix))
+#define TAG_DIRECTIVE_TOKEN_INIT(token,token_handle,token_prefix,start_mark,end_mark) 	\
+    (TOKEN_INIT((token),YAML_TAG_DIRECTIVE_TOKEN,(start_mark),(end_mark)),      		\
+    (token).data.tag_directive.handle = (token_handle),                       	 		\
+    (token).data.tag_directive.prefix = (token_prefix))
+
+/*
+ * Event initializers.
+ */
+
+#define EVENT_INIT(event,event_type,event_start_mark,event_end_mark)            \
+    (memset(&(event), 0, sizeof(YamlEvent)),                               		\
+    (event).type = (event_type),                                                \
+    (event).start_mark = (event_start_mark),                                    \
+    (event).end_mark = (event_end_mark))
+
+#define STREAM_START_EVENT_INIT(event,event_encoding,start_mark,end_mark)       \
+    (EVENT_INIT((event),YAML_STREAM_START_EVENT,(start_mark),(end_mark)),       \
+    (event).data.stream_start.encoding = (event_encoding))
+
+#define STREAM_END_EVENT_INIT(event,start_mark,end_mark)                        \
+    (EVENT_INIT((event),YAML_STREAM_END_EVENT,(start_mark),(end_mark)))
+
+#define DOCUMENT_START_EVENT_INIT(event,event_version_directive,event_tag_directives_start,event_tag_directives_end,event_implicit,start_mark,end_mark) \
+    (EVENT_INIT((event),YAML_DOCUMENT_START_EVENT,(start_mark),(end_mark)),     																		\
+    (event).data.document_start.version_directive = (event_version_directive),																			\
+    (event).data.document_start.tag_directives.start = (event_tag_directives_start),   																	\
+    (event).data.document_start.tag_directives.end = (event_tag_directives_end),   																		\
+    (event).data.document_start.implicit = (event_implicit))
+
+#define DOCUMENT_END_EVENT_INIT(event,event_implicit,start_mark,end_mark)       \
+    (EVENT_INIT((event),YAML_DOCUMENT_END_EVENT,(start_mark),(end_mark)),       \
+    (event).data.document_end.implicit = (event_implicit))
+
+#define ALIAS_EVENT_INIT(event,event_anchor,start_mark,end_mark)                \
+    (EVENT_INIT((event),YAML_ALIAS_EVENT,(start_mark),(end_mark)),              \
+    (event).data.alias.anchor = (event_anchor))
+
+#define SCALAR_EVENT_INIT(event,event_anchor,event_tag,event_value,event_length,event_plain_implicit, event_quoted_implicit,event_style,start_mark,end_mark) \
+    (EVENT_INIT((event),YAML_SCALAR_EVENT,(start_mark),(end_mark)),             																			 \
+    (event).data.scalar.anchor = (event_anchor),                               																				 \
+    (event).data.scalar.tag = (event_tag),                                     																				 \
+    (event).data.scalar.value = (event_value),                                																				 \
+    (event).data.scalar.length = (event_length),                               																				 \
+    (event).data.scalar.plain_implicit = (event_plain_implicit),              																				 \
+    (event).data.scalar.quoted_implicit = (event_quoted_implicit),            																				 \
+    (event).data.scalar.style = (event_style))
+
+#define SEQUENCE_START_EVENT_INIT(event,event_anchor,event_tag, event_implicit,event_style,start_mark,end_mark) \
+    (EVENT_INIT((event),YAML_SEQUENCE_START_EVENT,(start_mark),(end_mark)),     								\
+    (event).data.sequence_start.anchor = (event_anchor),                       									\
+    (event).data.sequence_start.tag = (event_tag),                            								    \
+    (event).data.sequence_start.implicit = (event_implicit),                   									\
+    (event).data.sequence_start.style = (event_style))
+
+#define SEQUENCE_END_EVENT_INIT(event,start_mark,end_mark)                \
+    (EVENT_INIT((event),YAML_SEQUENCE_END_EVENT,(start_mark),(end_mark)))
+
+#define MAPPING_START_EVENT_INIT(event,event_anchor,event_tag,event_implicit,event_style,start_mark,end_mark) \
+    (EVENT_INIT((event),YAML_MAPPING_START_EVENT,(start_mark),(end_mark)),     								  \
+    (event).data.mapping_start.anchor = (event_anchor),                        								  \
+    (event).data.mapping_start.tag = (event_tag),                              								  \
+    (event).data.mapping_start.implicit = (event_implicit),                    								  \
+    (event).data.mapping_start.style = (event_style))
+
+#define MAPPING_END_EVENT_INIT(event,start_mark,end_mark)                 \
+    (EVENT_INIT((event),YAML_MAPPING_END_EVENT,(start_mark),(end_mark)))
+
+/*
+ * Node initializers.
+ */
+
+#define NODE_INIT(node, node_type, node_tag, node_start_mark, node_end_mark) \
+	(memset(&(node), 0, sizeof(YamlNode)), (node).type = (node_type),        \
+	(node).tag = (node_tag), (node).start_mark = (node_start_mark),          \
+	(node).end_mark = (node_end_mark))
+
+#define SCALAR_NODE_INIT(node, node_tag, node_value, node_length, node_style, start_mark, end_mark)	\
+	(NODE_INIT((node), YAML_SCALAR_NODE, (node_tag), (start_mark), (end_mark)), 					\
+	(node).data.scalar.value = (node_value),                                   						\
+	(node).data.scalar.length = (node_length),                                 						\
+	(node).data.scalar.style = (node_style))
+
+#define SEQUENCE_NODE_INIT(node, node_tag, node_items_start, node_items_end, node_style, start_mark, end_mark) \
+	(NODE_INIT((node), YAML_SEQUENCE_NODE, (node_tag), (start_mark), (end_mark)),                              \
+	(node).data.sequence.items.start = (node_items_start),                  								   \
+	(node).data.sequence.items.end = (node_items_end),                      								   \
+	(node).data.sequence.items.top = (node_items_start),                    								   \
+	(node).data.sequence.style = (node_style))
+
+#define MAPPING_NODE_INIT(node, node_tag, node_pairs_start, node_pairs_end, node_style, start_mark, end_mark)  \
+	(NODE_INIT((node), YAML_MAPPING_NODE, (node_tag), (start_mark), (end_mark)), 							   \
+	(node).data.mapping.pairs.start = (node_pairs_start),                       							   \
+	(node).data.mapping.pairs.end = (node_pairs_end),                           							   \
+	(node).data.mapping.pairs.top = (node_pairs_start),                         							   \
+	(node).data.mapping.style = (node_style))
+
 
 /*
  * Document initializer.
@@ -564,52 +676,22 @@
 	document_tag_directives_end, document_start_implicit,               \
 	document_end_implicit, document_start_mark, document_end_mark)      \
 	(memset(&(document), 0, sizeof(YamlDocument)),                      \
-	 (document).nodes.start = (document_nodes_start),                   \
-	 (document).nodes.end = (document_nodes_end),                       \
-	 (document).nodes.top = (document_nodes_start),                     \
-	 (document).version_directive = (document_version_directive),       \
-	 (document).tag_directives.start = (document_tag_directives_start), \
-	 (document).tag_directives.end = (document_tag_directives_end),     \
-	 (document).start_implicit = (document_start_implicit),             \
-	 (document).end_implicit = (document_end_implicit),                 \
-	 (document).start_mark = (document_start_mark),                     \
-	 (document).end_mark = (document_end_mark))
-
-/*
- * Node initializers.
- */
-
-#define NODE_INIT(node, node_type, node_tag, node_start_mark, node_end_mark) \
-	(memset(&(node), 0, sizeof(YamlNode)), (node).type = (node_type),        \
-	 (node).tag = (node_tag), (node).start_mark = (node_start_mark),         \
-	 (node).end_mark = (node_end_mark))
-
-#define SCALAR_NODE_INIT(node, node_tag, node_value, node_length, node_style,   \
-						 start_mark, end_mark)                                  \
-	(NODE_INIT((node), YAML_SCALAR_NODE, (node_tag), (start_mark), (end_mark)), \
-	 (node).data.scalar.value = (node_value),                                   \
-	 (node).data.scalar.length = (node_length),                                 \
-	 (node).data.scalar.style = (node_style))
-
-#define SEQUENCE_NODE_INIT(node, node_tag, node_items_start, node_items_end, \
-						   node_style, start_mark, end_mark)                 \
-	(NODE_INIT((node), YAML_SEQUENCE_NODE, (node_tag), (start_mark),         \
-			   (end_mark)),                                                  \
-	 (node).data.sequence.items.start = (node_items_start),                  \
-	 (node).data.sequence.items.end = (node_items_end),                      \
-	 (node).data.sequence.items.top = (node_items_start),                    \
-	 (node).data.sequence.style = (node_style))
-
-#define MAPPING_NODE_INIT(node, node_tag, node_pairs_start, node_pairs_end,      \
-						  node_style, start_mark, end_mark)                      \
-	(NODE_INIT((node), YAML_MAPPING_NODE, (node_tag), (start_mark), (end_mark)), \
-	 (node).data.mapping.pairs.start = (node_pairs_start),                       \
-	 (node).data.mapping.pairs.end = (node_pairs_end),                           \
-	 (node).data.mapping.pairs.top = (node_pairs_start),                         \
-	 (node).data.mapping.style = (node_style))
+	(document).nodes.start = (document_nodes_start),                   	\
+	(document).nodes.end = (document_nodes_end),                       	\
+	(document).nodes.top = (document_nodes_start),                     	\
+	(document).version_directive = (document_version_directive),       	\
+	(document).tag_directives.start = (document_tag_directives_start),  \
+	(document).tag_directives.end = (document_tag_directives_end),     	\
+	(document).start_implicit = (document_start_implicit),             	\
+	(document).end_implicit = (document_end_implicit),                 	\
+	(document).start_mark = (document_start_mark),                     	\
+	(document).end_mark = (document_end_mark))
 
 #define YAML_MALLOC_STATIC(type) (type *)_myyaml_malloc(sizeof(type))
+
 #define YAML_MALLOC(size) (YamlChar_t *)_myyaml_malloc(size)
+
+// clang-format on
 
 //-----------------------------------------------------------------------------
 // [SECTION] Scanner
@@ -795,9 +877,9 @@ int MAX_NESTING_LEVEL = 1000;
  */
 typedef struct
 {
+	YamlChar_t *pointer;
 	YamlChar_t *start;
 	YamlChar_t *end;
-	YamlChar_t *pointer;
 } YamlString_t;
 
 /*
@@ -861,6 +943,27 @@ extern "C"
 	MYYAML_API int _myyaml_string_join(YamlChar_t **a_start, YamlChar_t **a_pointer,
 									   YamlChar_t **a_end, YamlChar_t **b_start,
 									   YamlChar_t **b_pointer, YamlChar_t **b_end);
+
+	MYYAML_API int _myyaml_string_initialize(YamlString_t *string)
+	{
+		string->start = YAML_MALLOC(MYYAML_INITIAL_STRING_SIZE);
+		if (!string->start)
+		{
+			string->start = 0;
+			return MYYAML_FAILURE;
+		}
+		string->pointer = string->start;
+		string->end = string->start + MYYAML_INITIAL_STRING_SIZE;
+		memset(string->start, 0, MYYAML_INITIAL_STRING_SIZE);
+
+		return MYYAML_SUCCESS;
+	};
+
+	MYYAML_API void _myyaml_string_delete(YamlString_t *string)
+	{
+		_myyaml_free(string->start);
+		string->start = string->pointer = string->end = 0;
+	};
 
 	/*
 	 * Extend a stack.
@@ -1532,6 +1635,483 @@ extern "C"
 #if !defined(MYYAML_DISABLE_READER) || !MYYAML_DISABLE_READER
 
 #pragma region Scanner
+
+	/*
+	 * Introduction
+	 * ************
+	 *
+	 * The following notes assume that you are familiar with the YAML specification
+	 * (http://yaml.org/spec/cvs/current.html).  We mostly follow it, although in
+	 * some cases we are less restrictive that it requires.
+	 *
+	 * The process of transforming a YAML stream into a sequence of events is
+	 * divided on two steps: Scanning and Parsing.
+	 *
+	 * The Scanner transforms the input stream into a sequence of tokens, while the
+	 * parser transform the sequence of tokens produced by the Scanner into a
+	 * sequence of parsing events.
+	 *
+	 * The Scanner is rather clever and complicated. The Parser, on the contrary,
+	 * is a straightforward implementation of a recursive-descendant parser (or,
+	 * LL(1) parser, as it is usually called).
+	 *
+	 * Actually there are two issues of Scanning that might be called "clever", the
+	 * rest is quite straightforward.  The issues are "block collection start" and
+	 * "simple keys".  Both issues are explained below in details.
+	 *
+	 * Here the Scanning step is explained and implemented.  We start with the list
+	 * of all the tokens produced by the Scanner together with short descriptions.
+	 *
+	 * Now, tokens:
+	 *
+	 *      STREAM-START(encoding)          # The stream start.
+	 *      STREAM-END                      # The stream end.
+	 *      VERSION-DIRECTIVE(major,minor)  # The '%YAML' directive.
+	 *      TAG-DIRECTIVE(handle,prefix)    # The '%TAG' directive.
+	 *      DOCUMENT-START                  # '---'
+	 *      DOCUMENT-END                    # '...'
+	 *      BLOCK-SEQUENCE-START            # Indentation increase denoting a block
+	 *      BLOCK-MAPPING-START             # sequence or a block mapping.
+	 *      BLOCK-END                       # Indentation decrease.
+	 *      FLOW-SEQUENCE-START             # '['
+	 *      FLOW-SEQUENCE-END               # ']'
+	 *      FLOW-MAPPING-START              # '{'
+	 *      FLOW-MAPPING-END                # '}'
+	 *      BLOCK-ENTRY                     # '-'
+	 *      FLOW-ENTRY                      # ','
+	 *      KEY                             # '?' or nothing (simple keys).
+	 *      VALUE                           # ':'
+	 *      ALIAS(anchor)                   # '*anchor'
+	 *      ANCHOR(anchor)                  # '&anchor'
+	 *      TAG(handle,suffix)              # '!handle!suffix'
+	 *      SCALAR(value,style)             # A scalar.
+	 *
+	 * The following two tokens are "virtual" tokens denoting the beginning and the
+	 * end of the stream:
+	 *
+	 *      STREAM-START(encoding)
+	 *      STREAM-END
+	 *
+	 * We pass the information about the input stream encoding with the
+	 * STREAM-START token.
+	 *
+	 * The next two tokens are responsible for tags:
+	 *
+	 *      VERSION-DIRECTIVE(major,minor)
+	 *      TAG-DIRECTIVE(handle,prefix)
+	 *
+	 * Example:
+	 *
+	 *      %YAML   1.1
+	 *      %TAG    !   !foo
+	 *      %TAG    !yaml!  tag:yaml.org,2002:
+	 *      ---
+	 *
+	 * The corresponding sequence of tokens:
+	 *
+	 *      STREAM-START(utf-8)
+	 *      VERSION-DIRECTIVE(1,1)
+	 *      TAG-DIRECTIVE("!","!foo")
+	 *      TAG-DIRECTIVE("!yaml","tag:yaml.org,2002:")
+	 *      DOCUMENT-START
+	 *      STREAM-END
+	 *
+	 * Note that the VERSION-DIRECTIVE and TAG-DIRECTIVE tokens occupy a whole
+	 * line.
+	 *
+	 * The document start and end indicators are represented by:
+	 *
+	 *      DOCUMENT-START
+	 *      DOCUMENT-END
+	 *
+	 * Note that if a YAML stream contains an implicit document (without '---'
+	 * and '...' indicators), no DOCUMENT-START and DOCUMENT-END tokens will be
+	 * produced.
+	 *
+	 * In the following examples, we present whole documents together with the
+	 * produced tokens.
+	 *
+	 *      1. An implicit document:
+	 *
+	 *          'a scalar'
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          SCALAR("a scalar",single-quoted)
+	 *          STREAM-END
+	 *
+	 *      2. An explicit document:
+	 *
+	 *          ---
+	 *          'a scalar'
+	 *          ...
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          DOCUMENT-START
+	 *          SCALAR("a scalar",single-quoted)
+	 *          DOCUMENT-END
+	 *          STREAM-END
+	 *
+	 *      3. Several documents in a stream:
+	 *
+	 *          'a scalar'
+	 *          ---
+	 *          'another scalar'
+	 *          ---
+	 *          'yet another scalar'
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          SCALAR("a scalar",single-quoted)
+	 *          DOCUMENT-START
+	 *          SCALAR("another scalar",single-quoted)
+	 *          DOCUMENT-START
+	 *          SCALAR("yet another scalar",single-quoted)
+	 *          STREAM-END
+	 *
+	 * We have already introduced the SCALAR token above.  The following tokens are
+	 * used to describe aliases, anchors, tag, and scalars:
+	 *
+	 *      ALIAS(anchor)
+	 *      ANCHOR(anchor)
+	 *      TAG(handle,suffix)
+	 *      SCALAR(value,style)
+	 *
+	 * The following series of examples illustrate the usage of these tokens:
+	 *
+	 *      1. A recursive sequence:
+	 *
+	 *          &A [ *A ]
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          ANCHOR("A")
+	 *          FLOW-SEQUENCE-START
+	 *          ALIAS("A")
+	 *          FLOW-SEQUENCE-END
+	 *          STREAM-END
+	 *
+	 *      2. A tagged scalar:
+	 *
+	 *          !!float "3.14"  # A good approximation.
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          TAG("!!","float")
+	 *          SCALAR("3.14",double-quoted)
+	 *          STREAM-END
+	 *
+	 *      3. Various scalar styles:
+	 *
+	 *          --- # Implicit empty plain scalars do not produce tokens.
+	 *          --- a plain scalar
+	 *          --- 'a single-quoted scalar'
+	 *          --- "a double-quoted scalar"
+	 *          --- |-
+	 *            a literal scalar
+	 *          --- >-
+	 *            a folded
+	 *            scalar
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          DOCUMENT-START
+	 *          DOCUMENT-START
+	 *          SCALAR("a plain scalar",plain)
+	 *          DOCUMENT-START
+	 *          SCALAR("a single-quoted scalar",single-quoted)
+	 *          DOCUMENT-START
+	 *          SCALAR("a double-quoted scalar",double-quoted)
+	 *          DOCUMENT-START
+	 *          SCALAR("a literal scalar",literal)
+	 *          DOCUMENT-START
+	 *          SCALAR("a folded scalar",folded)
+	 *          STREAM-END
+	 *
+	 * Now it's time to review collection-related tokens. We will start with
+	 * flow collections:
+	 *
+	 *      FLOW-SEQUENCE-START
+	 *      FLOW-SEQUENCE-END
+	 *      FLOW-MAPPING-START
+	 *      FLOW-MAPPING-END
+	 *      FLOW-ENTRY
+	 *      KEY
+	 *      VALUE
+	 *
+	 * The tokens FLOW-SEQUENCE-START, FLOW-SEQUENCE-END, FLOW-MAPPING-START, and
+	 * FLOW-MAPPING-END represent the indicators '[', ']', '{', and '}'
+	 * correspondingly.  FLOW-ENTRY represent the ',' indicator.  Finally the
+	 * indicators '?' and ':', which are used for denoting mapping keys and values,
+	 * are represented by the KEY and VALUE tokens.
+	 *
+	 * The following examples show flow collections:
+	 *
+	 *      1. A flow sequence:
+	 *
+	 *          [item 1, item 2, item 3]
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          FLOW-SEQUENCE-START
+	 *          SCALAR("item 1",plain)
+	 *          FLOW-ENTRY
+	 *          SCALAR("item 2",plain)
+	 *          FLOW-ENTRY
+	 *          SCALAR("item 3",plain)
+	 *          FLOW-SEQUENCE-END
+	 *          STREAM-END
+	 *
+	 *      2. A flow mapping:
+	 *
+	 *          {
+	 *              a simple key: a value,  # Note that the KEY token is produced.
+	 *              ? a complex key: another value,
+	 *          }
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          FLOW-MAPPING-START
+	 *          KEY
+	 *          SCALAR("a simple key",plain)
+	 *          VALUE
+	 *          SCALAR("a value",plain)
+	 *          FLOW-ENTRY
+	 *          KEY
+	 *          SCALAR("a complex key",plain)
+	 *          VALUE
+	 *          SCALAR("another value",plain)
+	 *          FLOW-ENTRY
+	 *          FLOW-MAPPING-END
+	 *          STREAM-END
+	 *
+	 * A simple key is a key which is not denoted by the '?' indicator.  Note that
+	 * the Scanner still produce the KEY token whenever it encounters a simple key.
+	 *
+	 * For scanning block collections, the following tokens are used (note that we
+	 * repeat KEY and VALUE here):
+	 *
+	 *      BLOCK-SEQUENCE-START
+	 *      BLOCK-MAPPING-START
+	 *      BLOCK-END
+	 *      BLOCK-ENTRY
+	 *      KEY
+	 *      VALUE
+	 *
+	 * The tokens BLOCK-SEQUENCE-START and BLOCK-MAPPING-START denote indentation
+	 * increase that precedes a block collection (cf. the INDENT token in Python).
+	 * The token BLOCK-END denote indentation decrease that ends a block collection
+	 * (cf. the DEDENT token in Python).  However YAML has some syntax peculiarities
+	 * that makes detections of these tokens more complex.
+	 *
+	 * The tokens BLOCK-ENTRY, KEY, and VALUE are used to represent the indicators
+	 * '-', '?', and ':' correspondingly.
+	 *
+	 * The following examples show how the tokens BLOCK-SEQUENCE-START,
+	 * BLOCK-MAPPING-START, and BLOCK-END are emitted by the Scanner:
+	 *
+	 *      1. Block sequences:
+	 *
+	 *          - item 1
+	 *          - item 2
+	 *          -
+	 *            - item 3.1
+	 *            - item 3.2
+	 *          -
+	 *            key 1: value 1
+	 *            key 2: value 2
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 1",plain)
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 2",plain)
+	 *          BLOCK-ENTRY
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 3.1",plain)
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 3.2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-ENTRY
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("key 1",plain)
+	 *          VALUE
+	 *          SCALAR("value 1",plain)
+	 *          KEY
+	 *          SCALAR("key 2",plain)
+	 *          VALUE
+	 *          SCALAR("value 2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-END
+	 *          STREAM-END
+	 *
+	 *      2. Block mappings:
+	 *
+	 *          a simple key: a value   # The KEY token is produced here.
+	 *          ? a complex key
+	 *          : another value
+	 *          a mapping:
+	 *            key 1: value 1
+	 *            key 2: value 2
+	 *          a sequence:
+	 *            - item 1
+	 *            - item 2
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("a simple key",plain)
+	 *          VALUE
+	 *          SCALAR("a value",plain)
+	 *          KEY
+	 *          SCALAR("a complex key",plain)
+	 *          VALUE
+	 *          SCALAR("another value",plain)
+	 *          KEY
+	 *          SCALAR("a mapping",plain)
+	 *          VALUE
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("key 1",plain)
+	 *          VALUE
+	 *          SCALAR("value 1",plain)
+	 *          KEY
+	 *          SCALAR("key 2",plain)
+	 *          VALUE
+	 *          SCALAR("value 2",plain)
+	 *          BLOCK-END
+	 *          KEY
+	 *          SCALAR("a sequence",plain)
+	 *          VALUE
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 1",plain)
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-END
+	 *          STREAM-END
+	 *
+	 * YAML does not always require to start a new block collection from a new
+	 * line.  If the current line contains only '-', '?', and ':' indicators, a new
+	 * block collection may start at the current line.  The following examples
+	 * illustrate this case:
+	 *
+	 *      1. Collections in a sequence:
+	 *
+	 *          - - item 1
+	 *            - item 2
+	 *          - key 1: value 1
+	 *            key 2: value 2
+	 *          - ? complex key
+	 *            : complex value
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 1",plain)
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-ENTRY
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("key 1",plain)
+	 *          VALUE
+	 *          SCALAR("value 1",plain)
+	 *          KEY
+	 *          SCALAR("key 2",plain)
+	 *          VALUE
+	 *          SCALAR("value 2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-ENTRY
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("complex key")
+	 *          VALUE
+	 *          SCALAR("complex value")
+	 *          BLOCK-END
+	 *          BLOCK-END
+	 *          STREAM-END
+	 *
+	 *      2. Collections in a mapping:
+	 *
+	 *          ? a sequence
+	 *          : - item 1
+	 *            - item 2
+	 *          ? a mapping
+	 *          : key 1: value 1
+	 *            key 2: value 2
+	 *
+	 *      Tokens:
+	 *
+	 *          STREAM-START(utf-8)
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("a sequence",plain)
+	 *          VALUE
+	 *          BLOCK-SEQUENCE-START
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 1",plain)
+	 *          BLOCK-ENTRY
+	 *          SCALAR("item 2",plain)
+	 *          BLOCK-END
+	 *          KEY
+	 *          SCALAR("a mapping",plain)
+	 *          VALUE
+	 *          BLOCK-MAPPING-START
+	 *          KEY
+	 *          SCALAR("key 1",plain)
+	 *          VALUE
+	 *          SCALAR("value 1",plain)
+	 *          KEY
+	 *          SCALAR("key 2",plain)
+	 *          VALUE
+	 *          SCALAR("value 2",plain)
+	 *          BLOCK-END
+	 *          BLOCK-END
+	 *          STREAM-END
+	 *
+	 * YAML also permits non-indented sequences if they are included into a block
+	 * mapping.  In this case, the token BLOCK-SEQUENCE-START is not produced:
+	 *
+	 *      key:
+	 *      - item 1    # BLOCK-SEQUENCE-START is NOT produced here.
+	 *      - item 2
+	 *
+	 * Tokens:
+	 *
+	 *      STREAM-START(utf-8)
+	 *      BLOCK-MAPPING-START
+	 *      KEY
+	 *      SCALAR("key",plain)
+	 *      VALUE
+	 *      BLOCK-ENTRY
+	 *      SCALAR("item 1",plain)
+	 *      BLOCK-ENTRY
+	 *      SCALAR("item 2",plain)
+	 *      BLOCK-END
+	 */
 
 	/*
 	 * Set the scanner error and return 0.
@@ -2880,7 +3460,7 @@ extern "C"
 											   YamlMark start_mark,
 											   YamlChar_t **name)
 	{
-		YamlString_t string = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
 
 		if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE))
 			goto error;
@@ -3121,7 +3701,7 @@ extern "C"
 	{
 		int length = 0;
 		YamlMark start_mark, end_mark;
-		YamlString_t string = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
 
 		if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE))
 			goto error;
@@ -3321,7 +3901,7 @@ extern "C"
 										   YamlMark start_mark,
 										   YamlChar_t **handle)
 	{
-		YamlString_t string = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
 
 		if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE))
 			goto error;
@@ -3399,7 +3979,7 @@ extern "C"
 										YamlMark start_mark, YamlChar_t **uri)
 	{
 		size_t length = head ? strlen((char *)head) : 0;
-		YamlString_t string = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
 
 		if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE))
 			goto error;
@@ -3589,9 +4169,9 @@ extern "C"
 	{
 		YamlMark start_mark;
 		YamlMark end_mark;
-		YamlString_t string = NULL_STRING;
-		YamlString_t leading_break = NULL_STRING;
-		YamlString_t trailing_breaks = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
+		YamlString_t leading_break = MYYAML_STRING_NULL;
+		YamlString_t trailing_breaks = MYYAML_STRING_NULL;
 		int chomping = 0;
 		int increment = 0;
 		int indent = 0;
@@ -3923,10 +4503,10 @@ extern "C"
 	{
 		YamlMark start_mark;
 		YamlMark end_mark;
-		YamlString_t string = NULL_STRING;
-		YamlString_t leading_break = NULL_STRING;
-		YamlString_t trailing_breaks = NULL_STRING;
-		YamlString_t whitespaces = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
+		YamlString_t leading_break = MYYAML_STRING_NULL;
+		YamlString_t trailing_breaks = MYYAML_STRING_NULL;
+		YamlString_t whitespaces = MYYAML_STRING_NULL;
 		int leading_blanks;
 
 		if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE))
@@ -4341,10 +4921,10 @@ extern "C"
 	{
 		YamlMark start_mark;
 		YamlMark end_mark;
-		YamlString_t string = NULL_STRING;
-		YamlString_t leading_break = NULL_STRING;
-		YamlString_t trailing_breaks = NULL_STRING;
-		YamlString_t whitespaces = NULL_STRING;
+		YamlString_t string = MYYAML_STRING_NULL;
+		YamlString_t leading_break = MYYAML_STRING_NULL;
+		YamlString_t trailing_breaks = MYYAML_STRING_NULL;
+		YamlString_t whitespaces = MYYAML_STRING_NULL;
 		int leading_blanks = 0;
 		int indent = parser->indent + 1;
 
@@ -4566,6 +5146,46 @@ extern "C"
 #pragma endregion // Scanner
 
 #pragma region Parser
+
+	/*
+	 * The parser implements the following grammar:
+	 *
+	 * stream               ::= STREAM-START implicit_document? explicit_document* STREAM-END
+	 * implicit_document    ::= block_node DOCUMENT-END*
+	 * explicit_document    ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*
+	 * block_node_or_indentless_sequence    ::=
+	 *                          ALIAS
+	 *                          | properties (block_content | indentless_block_sequence)?
+	 *                          | block_content
+	 *                          | indentless_block_sequence
+	 * block_node           ::= ALIAS
+	 *                          | properties block_content?
+	 *                          | block_content
+	 * flow_node            ::= ALIAS
+	 *                          | properties flow_content?
+	 *                          | flow_content
+	 * properties           ::= TAG ANCHOR? | ANCHOR TAG?
+	 * block_content        ::= block_collection | flow_collection | SCALAR
+	 * flow_content         ::= flow_collection | SCALAR
+	 * block_collection     ::= block_sequence | block_mapping
+	 * flow_collection      ::= flow_sequence | flow_mapping
+	 * block_sequence       ::= BLOCK-SEQUENCE-START (BLOCK-ENTRY block_node?)* BLOCK-END
+	 * indentless_sequence  ::= (BLOCK-ENTRY block_node?)+
+	 * block_mapping        ::= BLOCK-MAPPING_START
+	 *                          ((KEY block_node_or_indentless_sequence?)?
+	 *                          (VALUE block_node_or_indentless_sequence?)?)*
+	 *                          BLOCK-END
+	 * flow_sequence        ::= FLOW-SEQUENCE-START
+	 *                          (flow_sequence_entry FLOW-ENTRY)*
+	 *                          flow_sequence_entry?
+	 *                          FLOW-SEQUENCE-END
+	 * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+	 * flow_mapping         ::= FLOW-MAPPING-START
+	 *                          (flow_mapping_entry FLOW-ENTRY)*
+	 *                          flow_mapping_entry?
+	 *                          FLOW-MAPPING-END
+	 * flow_mapping_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+	 */
 
 	static int yaml_string_read_handler(void *data, unsigned char *buffer,
 										size_t size, size_t *size_read)
@@ -6089,21 +6709,21 @@ extern "C"
 		/* Determine the encoding. */
 
 		if (parser->raw_buffer.last - parser->raw_buffer.pointer >= 2 &&
-			!memcmp(parser->raw_buffer.pointer, BOM_UTF16LE, 2))
+			!memcmp(parser->raw_buffer.pointer, MYYAML_BOM_UTF16LE, 2))
 		{
 			parser->encoding = YAML_UTF16LE_ENCODING;
 			parser->raw_buffer.pointer += 2;
 			parser->offset += 2;
 		}
 		else if (parser->raw_buffer.last - parser->raw_buffer.pointer >= 2 &&
-				 !memcmp(parser->raw_buffer.pointer, BOM_UTF16BE, 2))
+				 !memcmp(parser->raw_buffer.pointer, MYYAML_BOM_UTF16BE, 2))
 		{
 			parser->encoding = YAML_UTF16BE_ENCODING;
 			parser->raw_buffer.pointer += 2;
 			parser->offset += 2;
 		}
 		else if (parser->raw_buffer.last - parser->raw_buffer.pointer >= 3 &&
-				 !memcmp(parser->raw_buffer.pointer, BOM_UTF8, 3))
+				 !memcmp(parser->raw_buffer.pointer, MYYAML_BOM_UTF8, 3))
 		{
 			parser->encoding = YAML_UTF8_ENCODING;
 			parser->raw_buffer.pointer += 3;
@@ -6161,360 +6781,6 @@ extern "C"
 		if (!size_read)
 		{
 			parser->eof = 1;
-		}
-
-		return MYYAML_SUCCESS;
-	}
-
-	/*
-	 * Ensure that the buffer contains at least `length` characters.
-	 * Return 1 on success, 0 on failure.
-	 *
-	 * The length is supposed to be significantly less that the buffer size.
-	 */
-
-	MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length)
-	{
-		int first = 1;
-
-		MYYAML_ASSERT(parser->read_handler); /* Read handler must be set. */
-
-		/* If the EOF flag is set and the raw buffer is empty, do nothing. */
-
-		if (parser->eof && parser->raw_buffer.pointer == parser->raw_buffer.last)
-			return MYYAML_SUCCESS;
-
-		/* Return if the buffer contains enough characters. */
-
-		if (parser->unread >= length)
-			return MYYAML_SUCCESS;
-
-		/* Determine the input encoding if it is not known yet. */
-
-		if (!parser->encoding)
-		{
-			if (!yaml_parser_determine_encoding(parser))
-				return MYYAML_FAILURE;
-		}
-
-		/* Move the unread characters to the beginning of the buffer. */
-
-		if (parser->buffer.start < parser->buffer.pointer &&
-			parser->buffer.pointer < parser->buffer.last)
-		{
-			size_t size = parser->buffer.last - parser->buffer.pointer;
-			memmove(parser->buffer.start, parser->buffer.pointer, size);
-			parser->buffer.pointer = parser->buffer.start;
-			parser->buffer.last = parser->buffer.start + size;
-		}
-		else if (parser->buffer.pointer == parser->buffer.last)
-		{
-			parser->buffer.pointer = parser->buffer.start;
-			parser->buffer.last = parser->buffer.start;
-		}
-
-		/* Fill the buffer until it has enough characters. */
-
-		while (parser->unread < length)
-		{
-			/* Fill the raw buffer if necessary. */
-
-			if (!first || parser->raw_buffer.pointer == parser->raw_buffer.last)
-			{
-				if (!yaml_parser_update_raw_buffer(parser))
-					return MYYAML_FAILURE;
-			}
-			first = 0;
-
-			/* Decode the raw buffer. */
-
-			while (parser->raw_buffer.pointer != parser->raw_buffer.last)
-			{
-				unsigned int value = 0, value2 = 0;
-				int incomplete = 0;
-				unsigned char octet;
-				unsigned int width = 0;
-				int low, high;
-				size_t k;
-				size_t raw_unread = parser->raw_buffer.last - parser->raw_buffer.pointer;
-
-				/* Decode the next character. */
-
-				switch (parser->encoding)
-				{
-				case YAML_UTF8_ENCODING:
-
-					/*
-					 * Decode a UTF-8 character.  Check RFC 3629
-					 * (http://www.ietf.org/rfc/rfc3629.txt) for more details.
-					 *
-					 * The following table (taken from the RFC) is used for
-					 * decoding.
-					 *
-					 *    Char. number range |        UTF-8 octet sequence
-					 *      (hexadecimal)    |              (binary)
-					 *   --------------------+------------------------------------
-					 *   0000 0000-0000 007F | 0xxxxxxx
-					 *   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
-					 *   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
-					 *   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx
-					 * 10xxxxxx
-					 *
-					 * Additionally, the characters in the range 0xD800-0xDFFF
-					 * are prohibited as they are reserved for use with UTF-16
-					 * surrogate pairs.
-					 */
-
-					/* Determine the length of the UTF-8 sequence. */
-
-					octet = parser->raw_buffer.pointer[0];
-					width = (octet & 0x80) == 0x00	 ? 1
-							: (octet & 0xE0) == 0xC0 ? 2
-							: (octet & 0xF0) == 0xE0 ? 3
-							: (octet & 0xF8) == 0xF0 ? 4
-													 : 0;
-
-					/* Check if the leading octet is valid. */
-
-					if (!width)
-						return yaml_parser_set_reader_error(
-							parser, "invalid leading UTF-8 octet", parser->offset, octet);
-
-					/* Check if the raw buffer contains an incomplete character.
-					 */
-
-					if (width > raw_unread)
-					{
-						if (parser->eof)
-						{
-							return yaml_parser_set_reader_error(
-								parser, "incomplete UTF-8 octet sequence", parser->offset,
-								-1);
-						}
-						incomplete = 1;
-						break;
-					}
-
-					/* Decode the leading octet. */
-
-					value = (octet & 0x80) == 0x00	 ? octet & 0x7F
-							: (octet & 0xE0) == 0xC0 ? octet & 0x1F
-							: (octet & 0xF0) == 0xE0 ? octet & 0x0F
-							: (octet & 0xF8) == 0xF0 ? octet & 0x07
-													 : 0;
-
-					/* Check and decode the trailing octets. */
-
-					for (k = 1; k < width; k++)
-					{
-						octet = parser->raw_buffer.pointer[k];
-
-						/* Check if the octet is valid. */
-
-						if ((octet & 0xC0) != 0x80)
-							return yaml_parser_set_reader_error(
-								parser, "invalid trailing UTF-8 octet", parser->offset + k,
-								octet);
-
-						/* Decode the octet. */
-
-						value = (value << 6) + (octet & 0x3F);
-					}
-
-					/* Check the length of the sequence against the value. */
-
-					if (!((width == 1) || (width == 2 && value >= 0x80) ||
-						  (width == 3 && value >= 0x800) ||
-						  (width == 4 && value >= 0x10000)))
-						return yaml_parser_set_reader_error(
-							parser, "invalid length of a UTF-8 sequence", parser->offset,
-							-1);
-
-					/* Check the range of the value. */
-
-					if ((value >= 0xD800 && value <= 0xDFFF) || value > 0x10FFFF)
-						return yaml_parser_set_reader_error(
-							parser, "invalid Unicode character", parser->offset, value);
-
-					break;
-
-				case YAML_UTF16LE_ENCODING:
-				case YAML_UTF16BE_ENCODING:
-
-					low = (parser->encoding == YAML_UTF16LE_ENCODING ? 0 : 1);
-					high = (parser->encoding == YAML_UTF16LE_ENCODING ? 1 : 0);
-
-					/*
-					 * The UTF-16 encoding is not as simple as one might
-					 * naively think.  Check RFC 2781
-					 * (http://www.ietf.org/rfc/rfc2781.txt).
-					 *
-					 * Normally, two subsequent bytes describe a Unicode
-					 * character.  However a special technique (called a
-					 * surrogate pair) is used for specifying character
-					 * values larger than 0xFFFF.
-					 *
-					 * A surrogate pair consists of two pseudo-characters:
-					 *      high surrogate area (0xD800-0xDBFF)
-					 *      low surrogate area (0xDC00-0xDFFF)
-					 *
-					 * The following formulas are used for decoding
-					 * and encoding characters using surrogate pairs:
-					 *
-					 *  U  = U' + 0x10000   (0x01 00 00 <= U <= 0x10 FF FF)
-					 *  U' = yyyyyyyyyyxxxxxxxxxx   (0 <= U' <= 0x0F FF FF)
-					 *  W1 = 110110yyyyyyyyyy
-					 *  W2 = 110111xxxxxxxxxx
-					 *
-					 * where U is the character value, W1 is the high surrogate
-					 * area, W2 is the low surrogate area.
-					 */
-
-					/* Check for incomplete UTF-16 character. */
-
-					if (raw_unread < 2)
-					{
-						if (parser->eof)
-						{
-							return yaml_parser_set_reader_error(
-								parser, "incomplete UTF-16 character", parser->offset, -1);
-						}
-						incomplete = 1;
-						break;
-					}
-
-					/* Get the character. */
-
-					value = parser->raw_buffer.pointer[low] +
-							(parser->raw_buffer.pointer[high] << 8);
-
-					/* Check for unexpected low surrogate area. */
-
-					if ((value & 0xFC00) == 0xDC00)
-						return yaml_parser_set_reader_error(
-							parser, "unexpected low surrogate area", parser->offset, value);
-
-					/* Check for a high surrogate area. */
-
-					if ((value & 0xFC00) == 0xD800)
-					{
-						width = 4;
-
-						/* Check for incomplete surrogate pair. */
-
-						if (raw_unread < 4)
-						{
-							if (parser->eof)
-							{
-								return yaml_parser_set_reader_error(
-									parser, "incomplete UTF-16 surrogate pair", parser->offset,
-									-1);
-							}
-							incomplete = 1;
-							break;
-						}
-
-						/* Get the next character. */
-
-						value2 = parser->raw_buffer.pointer[low + 2] +
-								 (parser->raw_buffer.pointer[high + 2] << 8);
-
-						/* Check for a low surrogate area. */
-
-						if ((value2 & 0xFC00) != 0xDC00)
-							return yaml_parser_set_reader_error(parser,
-																"expected low surrogate area",
-																parser->offset + 2, value2);
-
-						/* Generate the value of the surrogate pair. */
-
-						value = 0x10000 + ((value & 0x3FF) << 10) + (value2 & 0x3FF);
-					}
-
-					else
-					{
-						width = 2;
-					}
-
-					break;
-
-				default:
-					MYYAML_ASSERT(1); /* Impossible. */
-				}
-
-				/* Check if the raw buffer contains enough bytes to form a
-				 * character. */
-
-				if (incomplete)
-					break;
-
-				/*
-				 * Check if the character is in the allowed range:
-				 *      #x9 | #xA | #xD | [#x20-#x7E]               (8 bit)
-				 *      | #x85 | [#xA0-#xD7FF] | [#xE000-#xFFFD]    (16 bit)
-				 *      | [#x10000-#x10FFFF]                        (32 bit)
-				 */
-
-				if (!(value == 0x09 || value == 0x0A || value == 0x0D ||
-					  (value >= 0x20 && value <= 0x7E) || (value == 0x85) ||
-					  (value >= 0xA0 && value <= 0xD7FF) ||
-					  (value >= 0xE000 && value <= 0xFFFD) ||
-					  (value >= 0x10000 && value <= 0x10FFFF)))
-					return yaml_parser_set_reader_error(
-						parser, "control characters are not allowed", parser->offset,
-						value);
-
-				/* Move the raw pointers. */
-
-				parser->raw_buffer.pointer += width;
-				parser->offset += width;
-
-				/* Finally put the character into the buffer. */
-
-				/* 0000 0000-0000 007F -> 0xxxxxxx */
-				if (value <= 0x7F)
-				{
-					*(parser->buffer.last++) = value;
-				}
-				/* 0000 0080-0000 07FF -> 110xxxxx 10xxxxxx */
-				else if (value <= 0x7FF)
-				{
-					*(parser->buffer.last++) = 0xC0 + (value >> 6);
-					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
-				}
-				/* 0000 0800-0000 FFFF -> 1110xxxx 10xxxxxx 10xxxxxx */
-				else if (value <= 0xFFFF)
-				{
-					*(parser->buffer.last++) = 0xE0 + (value >> 12);
-					*(parser->buffer.last++) = 0x80 + ((value >> 6) & 0x3F);
-					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
-				}
-				/* 0001 0000-0010 FFFF -> 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-				else
-				{
-					*(parser->buffer.last++) = 0xF0 + (value >> 18);
-					*(parser->buffer.last++) = 0x80 + ((value >> 12) & 0x3F);
-					*(parser->buffer.last++) = 0x80 + ((value >> 6) & 0x3F);
-					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
-				}
-
-				parser->unread++;
-			}
-
-			/* On EOF, put NUL into the buffer and return. */
-
-			if (parser->eof)
-			{
-				*(parser->buffer.last++) = '\0';
-				parser->unread++;
-				return MYYAML_SUCCESS;
-			}
-		}
-
-		if (parser->offset >= MYYAML_MAX_FILE_SIZE)
-		{
-			return yaml_parser_set_reader_error(parser, "input is too long",
-												parser->offset, -1);
 		}
 
 		return MYYAML_SUCCESS;
@@ -10630,9 +10896,9 @@ extern "C"
 		MYYAML_ASSERT(parser); /* Non-NULL parser object expected. */
 
 		memset(parser, 0, sizeof(YamlParser));
-		if (!BUFFER_INIT(parser, parser->raw_buffer, MYYAML_INPUT_RAW_BUFFER_SIZE))
+		if (!MYYAML_BUFFER_INIT(parser, parser->raw_buffer, MYYAML_INPUT_RAW_BUFFER_SIZE))
 			goto error;
-		if (!BUFFER_INIT(parser, parser->buffer, MYYAML_INPUT_BUFFER_SIZE))
+		if (!MYYAML_BUFFER_INIT(parser, parser->buffer, MYYAML_INPUT_BUFFER_SIZE))
 			goto error;
 		if (!QUEUE_INIT(parser, parser->tokens, MYYAML_INITIAL_QUEUE_SIZE,
 						YamlToken *))
@@ -10715,6 +10981,360 @@ extern "C"
 		parser->document = NULL;
 
 		return MYYAML_FAILURE;
+	}
+
+	/*
+	 * Ensure that the buffer contains at least `length` characters.
+	 * Return 1 on success, 0 on failure.
+	 *
+	 * The length is supposed to be significantly less that the buffer size.
+	 */
+
+	MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length)
+	{
+		int first = 1;
+
+		MYYAML_ASSERT(parser->read_handler); /* Read handler must be set. */
+
+		/* If the EOF flag is set and the raw buffer is empty, do nothing. */
+
+		if (parser->eof && parser->raw_buffer.pointer == parser->raw_buffer.last)
+			return MYYAML_SUCCESS;
+
+		/* Return if the buffer contains enough characters. */
+
+		if (parser->unread >= length)
+			return MYYAML_SUCCESS;
+
+		/* Determine the input encoding if it is not known yet. */
+
+		if (!parser->encoding)
+		{
+			if (!yaml_parser_determine_encoding(parser))
+				return MYYAML_FAILURE;
+		}
+
+		/* Move the unread characters to the beginning of the buffer. */
+
+		if (parser->buffer.start < parser->buffer.pointer &&
+			parser->buffer.pointer < parser->buffer.last)
+		{
+			size_t size = parser->buffer.last - parser->buffer.pointer;
+			memmove(parser->buffer.start, parser->buffer.pointer, size);
+			parser->buffer.pointer = parser->buffer.start;
+			parser->buffer.last = parser->buffer.start + size;
+		}
+		else if (parser->buffer.pointer == parser->buffer.last)
+		{
+			parser->buffer.pointer = parser->buffer.start;
+			parser->buffer.last = parser->buffer.start;
+		}
+
+		/* Fill the buffer until it has enough characters. */
+
+		while (parser->unread < length)
+		{
+			/* Fill the raw buffer if necessary. */
+
+			if (!first || parser->raw_buffer.pointer == parser->raw_buffer.last)
+			{
+				if (!yaml_parser_update_raw_buffer(parser))
+					return MYYAML_FAILURE;
+			}
+			first = 0;
+
+			/* Decode the raw buffer. */
+
+			while (parser->raw_buffer.pointer != parser->raw_buffer.last)
+			{
+				unsigned int value = 0, value2 = 0;
+				int incomplete = 0;
+				unsigned char octet;
+				unsigned int width = 0;
+				int low, high;
+				size_t k;
+				size_t raw_unread = parser->raw_buffer.last - parser->raw_buffer.pointer;
+
+				/* Decode the next character. */
+
+				switch (parser->encoding)
+				{
+				case YAML_UTF8_ENCODING:
+
+					/*
+					 * Decode a UTF-8 character.  Check RFC 3629
+					 * (http://www.ietf.org/rfc/rfc3629.txt) for more details.
+					 *
+					 * The following table (taken from the RFC) is used for
+					 * decoding.
+					 *
+					 *    Char. number range |        UTF-8 octet sequence
+					 *      (hexadecimal)    |              (binary)
+					 *   --------------------+------------------------------------
+					 *   0000 0000-0000 007F | 0xxxxxxx
+					 *   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+					 *   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+					 *   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx
+					 * 10xxxxxx
+					 *
+					 * Additionally, the characters in the range 0xD800-0xDFFF
+					 * are prohibited as they are reserved for use with UTF-16
+					 * surrogate pairs.
+					 */
+
+					/* Determine the length of the UTF-8 sequence. */
+
+					octet = parser->raw_buffer.pointer[0];
+					width = (octet & 0x80) == 0x00	 ? 1
+							: (octet & 0xE0) == 0xC0 ? 2
+							: (octet & 0xF0) == 0xE0 ? 3
+							: (octet & 0xF8) == 0xF0 ? 4
+													 : 0;
+
+					/* Check if the leading octet is valid. */
+
+					if (!width)
+						return yaml_parser_set_reader_error(
+							parser, "invalid leading UTF-8 octet", parser->offset, octet);
+
+					/* Check if the raw buffer contains an incomplete character.
+					 */
+
+					if (width > raw_unread)
+					{
+						if (parser->eof)
+						{
+							return yaml_parser_set_reader_error(
+								parser, "incomplete UTF-8 octet sequence", parser->offset,
+								-1);
+						}
+						incomplete = 1;
+						break;
+					}
+
+					/* Decode the leading octet. */
+
+					value = (octet & 0x80) == 0x00	 ? octet & 0x7F
+							: (octet & 0xE0) == 0xC0 ? octet & 0x1F
+							: (octet & 0xF0) == 0xE0 ? octet & 0x0F
+							: (octet & 0xF8) == 0xF0 ? octet & 0x07
+													 : 0;
+
+					/* Check and decode the trailing octets. */
+
+					for (k = 1; k < width; k++)
+					{
+						octet = parser->raw_buffer.pointer[k];
+
+						/* Check if the octet is valid. */
+
+						if ((octet & 0xC0) != 0x80)
+							return yaml_parser_set_reader_error(
+								parser, "invalid trailing UTF-8 octet", parser->offset + k,
+								octet);
+
+						/* Decode the octet. */
+
+						value = (value << 6) + (octet & 0x3F);
+					}
+
+					/* Check the length of the sequence against the value. */
+
+					if (!((width == 1) || (width == 2 && value >= 0x80) ||
+						  (width == 3 && value >= 0x800) ||
+						  (width == 4 && value >= 0x10000)))
+						return yaml_parser_set_reader_error(
+							parser, "invalid length of a UTF-8 sequence", parser->offset,
+							-1);
+
+					/* Check the range of the value. */
+
+					if ((value >= 0xD800 && value <= 0xDFFF) || value > 0x10FFFF)
+						return yaml_parser_set_reader_error(
+							parser, "invalid Unicode character", parser->offset, value);
+
+					break;
+
+				case YAML_UTF16LE_ENCODING:
+				case YAML_UTF16BE_ENCODING:
+
+					low = (parser->encoding == YAML_UTF16LE_ENCODING ? 0 : 1);
+					high = (parser->encoding == YAML_UTF16LE_ENCODING ? 1 : 0);
+
+					/*
+					 * The UTF-16 encoding is not as simple as one might
+					 * naively think.  Check RFC 2781
+					 * (http://www.ietf.org/rfc/rfc2781.txt).
+					 *
+					 * Normally, two subsequent bytes describe a Unicode
+					 * character.  However a special technique (called a
+					 * surrogate pair) is used for specifying character
+					 * values larger than 0xFFFF.
+					 *
+					 * A surrogate pair consists of two pseudo-characters:
+					 *      high surrogate area (0xD800-0xDBFF)
+					 *      low surrogate area (0xDC00-0xDFFF)
+					 *
+					 * The following formulas are used for decoding
+					 * and encoding characters using surrogate pairs:
+					 *
+					 *  U  = U' + 0x10000   (0x01 00 00 <= U <= 0x10 FF FF)
+					 *  U' = yyyyyyyyyyxxxxxxxxxx   (0 <= U' <= 0x0F FF FF)
+					 *  W1 = 110110yyyyyyyyyy
+					 *  W2 = 110111xxxxxxxxxx
+					 *
+					 * where U is the character value, W1 is the high surrogate
+					 * area, W2 is the low surrogate area.
+					 */
+
+					/* Check for incomplete UTF-16 character. */
+
+					if (raw_unread < 2)
+					{
+						if (parser->eof)
+						{
+							return yaml_parser_set_reader_error(
+								parser, "incomplete UTF-16 character", parser->offset, -1);
+						}
+						incomplete = 1;
+						break;
+					}
+
+					/* Get the character. */
+
+					value = parser->raw_buffer.pointer[low] +
+							(parser->raw_buffer.pointer[high] << 8);
+
+					/* Check for unexpected low surrogate area. */
+
+					if ((value & 0xFC00) == 0xDC00)
+						return yaml_parser_set_reader_error(
+							parser, "unexpected low surrogate area", parser->offset, value);
+
+					/* Check for a high surrogate area. */
+
+					if ((value & 0xFC00) == 0xD800)
+					{
+						width = 4;
+
+						/* Check for incomplete surrogate pair. */
+
+						if (raw_unread < 4)
+						{
+							if (parser->eof)
+							{
+								return yaml_parser_set_reader_error(
+									parser, "incomplete UTF-16 surrogate pair", parser->offset,
+									-1);
+							}
+							incomplete = 1;
+							break;
+						}
+
+						/* Get the next character. */
+
+						value2 = parser->raw_buffer.pointer[low + 2] +
+								 (parser->raw_buffer.pointer[high + 2] << 8);
+
+						/* Check for a low surrogate area. */
+
+						if ((value2 & 0xFC00) != 0xDC00)
+							return yaml_parser_set_reader_error(parser,
+																"expected low surrogate area",
+																parser->offset + 2, value2);
+
+						/* Generate the value of the surrogate pair. */
+
+						value = 0x10000 + ((value & 0x3FF) << 10) + (value2 & 0x3FF);
+					}
+
+					else
+					{
+						width = 2;
+					}
+
+					break;
+
+				default:
+					MYYAML_ASSERT(1); /* Impossible. */
+				}
+
+				/* Check if the raw buffer contains enough bytes to form a
+				 * character. */
+
+				if (incomplete)
+					break;
+
+				/*
+				 * Check if the character is in the allowed range:
+				 *      #x9 | #xA | #xD | [#x20-#x7E]               (8 bit)
+				 *      | #x85 | [#xA0-#xD7FF] | [#xE000-#xFFFD]    (16 bit)
+				 *      | [#x10000-#x10FFFF]                        (32 bit)
+				 */
+
+				if (!(value == 0x09 || value == 0x0A || value == 0x0D ||
+					  (value >= 0x20 && value <= 0x7E) || (value == 0x85) ||
+					  (value >= 0xA0 && value <= 0xD7FF) ||
+					  (value >= 0xE000 && value <= 0xFFFD) ||
+					  (value >= 0x10000 && value <= 0x10FFFF)))
+					return yaml_parser_set_reader_error(
+						parser, "control characters are not allowed", parser->offset,
+						value);
+
+				/* Move the raw pointers. */
+
+				parser->raw_buffer.pointer += width;
+				parser->offset += width;
+
+				/* Finally put the character into the buffer. */
+
+				/* 0000 0000-0000 007F -> 0xxxxxxx */
+				if (value <= 0x7F)
+				{
+					*(parser->buffer.last++) = value;
+				}
+				/* 0000 0080-0000 07FF -> 110xxxxx 10xxxxxx */
+				else if (value <= 0x7FF)
+				{
+					*(parser->buffer.last++) = 0xC0 + (value >> 6);
+					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
+				}
+				/* 0000 0800-0000 FFFF -> 1110xxxx 10xxxxxx 10xxxxxx */
+				else if (value <= 0xFFFF)
+				{
+					*(parser->buffer.last++) = 0xE0 + (value >> 12);
+					*(parser->buffer.last++) = 0x80 + ((value >> 6) & 0x3F);
+					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
+				}
+				/* 0001 0000-0010 FFFF -> 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+				else
+				{
+					*(parser->buffer.last++) = 0xF0 + (value >> 18);
+					*(parser->buffer.last++) = 0x80 + ((value >> 12) & 0x3F);
+					*(parser->buffer.last++) = 0x80 + ((value >> 6) & 0x3F);
+					*(parser->buffer.last++) = 0x80 + (value & 0x3F);
+				}
+
+				parser->unread++;
+			}
+
+			/* On EOF, put NUL into the buffer and return. */
+
+			if (parser->eof)
+			{
+				*(parser->buffer.last++) = '\0';
+				parser->unread++;
+				return MYYAML_SUCCESS;
+			}
+		}
+
+		if (parser->offset >= MYYAML_MAX_FILE_SIZE)
+		{
+			return yaml_parser_set_reader_error(parser, "input is too long",
+												parser->offset, -1);
+		}
+
+		return MYYAML_SUCCESS;
 	}
 
 	MYYAML_API void yaml_parser_set_input_string(YamlParser *parser,
@@ -10864,9 +11484,9 @@ extern "C"
 		MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
 
 		memset(emitter, 0, sizeof(YamlEmitter));
-		if (!BUFFER_INIT(emitter, emitter->buffer, MYYAML_OUPUT_BUFFER_SIZE))
+		if (!MYYAML_BUFFER_INIT(emitter, emitter->buffer, MYYAML_OUPUT_BUFFER_SIZE))
 			goto error;
-		if (!BUFFER_INIT(emitter, emitter->raw_buffer, MYYAML_OUTPUT_RAW_BUFFER_SIZE))
+		if (!MYYAML_BUFFER_INIT(emitter, emitter->raw_buffer, MYYAML_OUTPUT_RAW_BUFFER_SIZE))
 			goto error;
 		if (!STACK_INIT(emitter, emitter->states, YamlEmitterState *))
 			goto error;
