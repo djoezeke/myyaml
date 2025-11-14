@@ -1,0 +1,22 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Myyaml | YAML for Modern C/C++ 📚
+    url: https://github.com/djoezeke/myyaml
+    about: Simple and Fast Yaml Ain't a Markup Language (YAML) Parser for Modern C/C++.
+
+  - name: Myyaml Discussions 💖
+    url: https://github.com/djoezeke/myyaml/discussions
+    about: The "Discussions" forum is where you want to start.
+
+  - name: Myyaml Issues | Bug Bounty 🐞
+    url: https://github.com/djoezeke/myyaml/issues
+    about: Please report issues and vulnerabilities here.
+
+  - name: Myyaml Releases & Tags 📦
+    url: https://github.com/djoezeke/myyaml/releases
+    about: Please latest Myyaml release here.
+
+  - name: Myyaml Documentation 📚
+    url: https://djoezeke.github.io/myyaml/
+    about: Please refer to the Myyaml documentation here.

@@ -1,0 +1,27 @@
+name: Issue
+description: Report an issue or unexpected behavior. 🙏
+title: "[Label] <section> : <title> "
+
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for contributing to Myyaml! ✊
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Please explain what you're seeing and what you would expect to see.
+
+        Please provide as much detail as possible to make understanding and solving your problem as quick as possible. 🙏
+    validations:
+      required: true
