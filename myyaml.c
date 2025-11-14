@@ -246,6 +246,11 @@
 	(_myyaml_free((buffer).start),  \
 	 (buffer).start = (buffer).pointer = (buffer).end = 0)
 
+	 
+#define BUFFER_DEL(context, buffer) \
+	(_myyaml_free((buffer).start),  \
+	 (buffer).start = (buffer).pointer = (buffer).end = 0)
+
 /*
  * String check operations.
  */

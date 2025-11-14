@@ -119,7 +119,7 @@ endif()
 
 # Build the example apps   
 if(MYYAML_BUILD_EXAMPLES)
-    add_subdirectory(samples)
+    add_subdirectory(examples)
 endif()
 
 # Build the test apps   
