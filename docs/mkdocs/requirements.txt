@@ -1,0 +1,4 @@
+mkdocs                  # Documentation framework
+mkdocs-material         # Theme for mkdocs
+mkdocstrings            # Support for docstrings
+mkdocstrings-python     # Python support for mkdocstrings

@@ -1,0 +1,97 @@
+# Project information
+site_name: Myyaml | YAML for Modern C/C++
+site_url: https://djoezeke.github.io/myyaml
+site_dir: site/myyaml
+site_author: djoezeke
+site_description: Simple and Fast Yaml Ain't Markup Language (YAML) Parser for Modern C/C++.
+strict: true
+
+# Repository
+repo_url: https://github.com/djoezeke/myyaml
+repo_name: djoezeke/myyaml
+edit_uri: edit/main/docs/mkdocs/docs
+
+# Copyright
+copyright: Copyright &copy; 2025 Sackey Ezekiel Etrue
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+# Configuration
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.top
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: JetBrains Mono
+
+# Additional configuration
+extra:
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/djoezeke
+  generator: false
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.snippets:
+  - pymdownx.magiclink:
+  - attr_list:
+  - toc:
+      permalink: true
+      anchorlink: true
+      anchorlink_class: "toclink"
+  - md_in_html:
+  - pymdownx.inlinehilite:
+  - pymdownx.superfences:
+  - markdown.extensions.attr_list:
+  - pymdownx.keys:
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+
+# Hooks
+
+# Plugins
+plugins:
+  - search
+
+# Page tree
+nav:
+  - Introduction: index.md
