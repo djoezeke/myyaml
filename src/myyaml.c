@@ -937,6 +937,25 @@ MYYAML_API int _myyaml_stack_extend(void **start, void **top, void **end);
  */
 MYYAML_API int _myyaml_queue_extend(void **start, void **head, void **tail, void **end);
 
+//-----------------------------------------------------------------------------
+// [SECTION] Encoding
+//-----------------------------------------------------------------------------
+
+typedef struct FileInputStream_t FileInputStream_t;
+typedef struct FileOutputStream_t FileOutputStream_t;
+typedef struct MemoryInputStream_t MemoryInputStream_t;
+typedef struct MemoryOutputStream_t MemoryOutputStream_t;
+
+MYYAML_API void Utf8DecodeFileInput(FileInputStream_t *stream, size_t *codepoint);
+MYYAML_API void Utf8EncodeFileInput(FileOutputStream_t *stream, size_t codepoint);
+MYYAML_API void Utf8DecodeMemoryInput(MemoryInputStream_t *stream, size_t *codepoint);
+MYYAML_API void Utf8EncodeMemoryInput(MemoryOutputStream_t *stream, size_t codepoint);
+
+MYYAML_API bool Utf8Validate1(uint8_t byte);
+MYYAML_API bool Utf8Validate2(uint8_t byte0, uint8_t byte1);
+MYYAML_API bool Utf8Validate3(uint8_t byte0, uint8_t byte1, uint8_t byte2);
+MYYAML_API bool Utf8Validate4(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3);
+
 #if !defined(MYYAML_DISABLE_READER) || !MYYAML_DISABLE_READER
 
 //-----------------------------------------------------------------------------
@@ -1448,6 +1467,20 @@ MYYAML_API int _myyaml_queue_extend(void **start, void **head, void **tail, void
 }
 
 #if !defined(MYYAML_DISABLE_READER) || !MYYAML_DISABLE_READER
+
+#pragma region Encoding
+
+MYYAML_API void Utf8DecodeFileInput(FileInputStream_t *stream, size_t *codepoint) {};
+MYYAML_API void Utf8EncodeFileInput(FileOutputStream_t *stream, size_t codepoint) {};
+MYYAML_API void Utf8DecodeMemoryInput(MemoryInputStream_t *stream, size_t *codepoint) {};
+MYYAML_API void Utf8EncodeMemoryInput(MemoryOutputStream_t *stream, size_t codepoint) {};
+
+MYYAML_API bool Utf8Validate1(uint8_t byte) {};
+MYYAML_API bool Utf8Validate2(uint8_t byte0, uint8_t byte1) {};
+MYYAML_API bool Utf8Validate3(uint8_t byte0, uint8_t byte1, uint8_t byte2) {};
+MYYAML_API bool Utf8Validate4(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3) {};
+
+#pragma endregion  // Encoding
 
 #pragma region Scanner
 
@@ -7952,6 +7985,159 @@ inline namespace internal {
 //-----------------------------------------------------------------------------
 
 #pragma region Cpp Dec
+
+#pragma region Encoding
+
+/**
+ * @brief A class which handles UTF-8 encodings.
+ */
+template <typename CharType = char>
+struct Utf8 {
+    using Char = CharType;
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+
+    /**
+     * @brief Checks if `uint8_t` is a valid 1-uint8_t UTF-8 character.
+     *
+     * @param[in] uint8_t The uint8_t value.
+     *
+     * @return true if `uint8_t` is a valid 1-uint8_t UTF-8 character, false otherwise.
+     */
+    bool validate(uint8_t byte) { return Utf8Validate1(byte); };
+
+    /**
+     * @brief Checks if the given bytes are a valid 2-uint8_t UTF-8 character.
+     *
+     * @param[in] byte0 The first uint8_t value.
+     * @param[in] byte1 The second uint8_t value.
+     *
+     * @return true if the given bytes a valid 2-uint8_t UTF-8 character, false otherwise.
+     */
+    bool validate(uint8_t byte0, uint8_t byte1) { return Utf8Validate2(byte0, byte1); };
+
+    /**
+     * @brief Checks if the given bytes are a valid 3-uint8_t UTF-8 character.
+     *
+     * @param[in] byte0 The first uint8_t value.
+     * @param[in] byte1 The second uint8_t value.
+     * @param[in] byte2 The third uint8_t value.
+     *
+     * @return true if the given bytes a valid 3-uint8_t UTF-8 character, false otherwise.
+     */
+    bool validate(uint8_t byte0, uint8_t byte1, uint8_t byte2) { return Utf8Validate3(byte0, byte1, byte3); };
+
+    /**
+     * @brief Checks if the given bytes are a valid 4-uint8_t UTF-8 character.
+     *
+     * @param[in] byte0 The first uint8_t value.
+     * @param[in] byte1 The second uint8_t value.
+     * @param[in] byte2 The third uint8_t value.
+     * @param[in] byte3 The fourth uint8_t value.
+     *
+     * @return true if the given bytes a valid 4-uint8_t UTF-8 character, false otherwise.
+     */
+    bool validate(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3) { return Utf8Validate4(byte0, byte1, byte2, byte3); };
+};
+
+template <typename CharType = wchar_t>
+struct Utf16 {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 2, "sizeof(Char) >= 2");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+template <typename CharType = wchar_t>
+struct Utf16LE {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 2, "sizeof(Char) >= 2");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+template <typename CharType = wchar_t>
+struct Utf16BE {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 2, "sizeof(Char) >= 2");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+template <typename CharType = unsigned>
+struct Utf32 {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 4, "sizeof(Char) >= 4");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+template <typename CharType = unsigned>
+struct Utf32LE {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 4, "sizeof(Char) >= 4");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+template <typename CharType = unsigned>
+struct Utf32BE {
+    using Char = CharType;
+    static_assert(sizeof(Char) >= 4, "sizeof(Char) >= 4");
+
+    template <typename OutputStream>
+    static void encode(OutputStream &os, unsigned codepoint);
+
+    template <typename InputStream>
+    static bool decode(InputStream &is, unsigned *codepoint);
+
+    template <typename InputStream, typename OutputStream>
+    static bool validate(InputStream &is, OutputStream &os);
+};
+
+#pragma endregion  // Encoding
 
 #if !defined(MYYAML_DISABLE_READER) || !MYYAML_DISABLE_READER
 
