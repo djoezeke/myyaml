@@ -5,6 +5,16 @@
     "minor": 16,
     "patch": 0
   },
-  "configurePresets": [],
+  "configurePresets": [
+    {
+      "name": "default",
+      "binaryDir": "build",
+      "generator": "MinGW Makefiles",
+      "cacheVariables": {
+        "MYYAML_BUILD_TESTS": "OFF",
+        "MYYAML_BUILD_EXAMPLES": "OFF"
+      }
+    }
+  ],
   "testPresets": []
 }

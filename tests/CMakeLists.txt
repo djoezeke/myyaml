@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.16...4.1.1 FATAL_ERROR)
+# ===================================================================
+# Copyright © 2025 Sackey Ezekiel Etrue
+# Distributed under the terms of the MIT license.
+# ===================================================================
 
 #--------------------------------------------------------------------
 # Basic Test Configures   
