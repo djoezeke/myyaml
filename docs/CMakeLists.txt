@@ -28,7 +28,6 @@ ELSE()
 
     add_custom_target(doc ALL DEPENDS html)
     
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
-        DESTINATION ${DOC_INSTALL_DIR}
-        COMPONENT doc)
+    # TODO: Add documentation install 
+
 ENDIF()

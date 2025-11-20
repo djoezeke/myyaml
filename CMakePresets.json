@@ -9,10 +9,26 @@
     {
       "name": "default",
       "binaryDir": "build",
+      "installDir": "${sourceDir}/build/install",
+      "cacheVariables": {
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "MYYAML_BUILD_TESTS": "OFF",
+        "MYYAML_BUILD_EXAMPLES": "OFF",
+        "MYYAML_ENABLE_WARNING": "OFF",
+        "MYYAML_ENABLE_PACKING": "OFF"
+      }
+    },
+    {
+      "name": "develop",
+      "binaryDir": "build",
+      "installDir": "${sourceDir}/build/install",
       "generator": "MinGW Makefiles",
       "cacheVariables": {
-        "MYYAML_BUILD_TESTS": "OFF",
-        "MYYAML_BUILD_EXAMPLES": "OFF"
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "MYYAML_BUILD_TESTS": "ON",
+        "MYYAML_BUILD_EXAMPLES": "ON",
+        "MYYAML_ENABLE_WARNING": "ON",
+        "MYYAML_ENABLE_PACKING": "OFF"
       }
     }
   ],

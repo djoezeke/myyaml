@@ -4,26 +4,38 @@
 # ===================================================================
 
 #--------------------------------------------------------------------
-# Basic Sample Configures   
+# Basic Example Configures   
 #--------------------------------------------------------------------
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
 
-set(MYYAML_EXAMPLE_LIB_NAME ${MYYAML_LIB_NAME}-e)
+#--------------------------------------------------------------------
+# Test Functions
+#--------------------------------------------------------------------
 
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-add_library(${MYYAML_EXAMPLE_LIB_NAME} ../${MYYAML_SOURCES})
+# add a new target which is a MYYAML example
+# example: myyaml_add_example(main-examples main.example.cpp "")
+function(myyaml_add_example target SOURCES DEPENDS)
 
-target_include_directories(${MYYAML_EXAMPLE_LIB_NAME} 
-    PUBLIC 
-        $<BUILD_INTERFACE:${MYYAML_INCLUDE_BUILD_DIR}>
-)
+    # set a source group for the source files
+    source_group("" FILES ${SOURCES})
 
-set_target_properties(${MYYAML_EXAMPLE_LIB_NAME} 
-    PROPERTIES DEFINE_SYMBOL MYYAML_BUILD_SHARED
-    )
+    # create the target
+    add_executable(${target} ${SOURCES})
+
+    # set the target's folder (for IDEs that support it, e.g. Visual Studio)
+    set_target_properties(${target} PROPERTIES FOLDER "Examples")
+
+    # set the Visual Studio startup path for debugging
+    set_target_properties(${target} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # link the target to its MYYAML dependencies
+    target_link_libraries(${target} PRIVATE ${DEPENDS} Myyaml::Myyaml)
+
+    # Enable support for UTF-8 characters in source code
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /utf-8)
+    endif()
+endfunction()
 
 #--------------------------------------------------------------------
 # Build Api Example Projects

@@ -4,49 +4,20 @@
 # ===================================================================
 
 #--------------------------------------------------------------------
-# Basic Sample Configures   
-#--------------------------------------------------------------------
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
-
-#--------------------------------------------------------------------
-# Sample Functions
-#--------------------------------------------------------------------
-
-function(add_c_sample NAME)
-  add_executable(${NAME} ${NAME}.c)
-  set_property(TARGET ${NAME} PROPERTY C_STANDARD 17)
-  target_link_libraries(${NAME} ${MYYAML_EXAMPLE_LIB_NAME})
-  target_include_directories(${NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-  set_target_properties(${NAME} PROPERTIES DEFINE_SYMBOL MYYAML_IMPORT)
-endfunction()
-
-function(add_cpp_sample NAME)
-  add_executable(${NAME} ${NAME}.cpp)
-  target_include_directories(${NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-  target_link_libraries(${NAME} ${MYYAML_EXAMPLE_LIB_NAME})
-  set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
-  set_target_properties(${NAME} PROPERTIES DEFINE_SYMBOL MYYAML_IMPORT)
-endfunction()
-
-#--------------------------------------------------------------------
-# Recursively add Samples
+# Recursively Add Examples
 #--------------------------------------------------------------------
 
 # Automatically add all .c samples in this folder
 file(GLOB C_SAMPLE_SOURCES "*.c")
-foreach(SAMPLE_FILE ${C_SAMPLE_SOURCES})
-  get_filename_component(SAMPLE_NAME ${SAMPLE_FILE} NAME_WE)
-  add_c_sample(${SAMPLE_NAME})
+foreach(EXAMPLE_FILE ${C_SAMPLE_SOURCES})
+  get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
+  myyaml_add_example("${EXAMPLE_NAME}" "${EXAMPLE_FILE}" "")
 endforeach()
 
 
 # Automatically add all .cpp samples in this folder
 file(GLOB CPP_SAMPLE_SOURCES "*.cpp")
-foreach(SAMPLE_FILE ${CPP_SAMPLE_SOURCES})
-  get_filename_component(SAMPLE_NAME ${SAMPLE_FILE} NAME_WE)
-  add_cpp_sample(${SAMPLE_NAME})
+foreach(EXAMPLE_FILE ${CPP_SAMPLE_SOURCES})
+  get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
+  myyaml_add_example("${EXAMPLE_NAME}" "${EXAMPLE_FILE}" "")
 endforeach()
