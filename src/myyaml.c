@@ -64,16 +64,543 @@
 // [SECTION] INCLUDES
 //-------------------------------------------------------------------------
 
+#include <myyaml/myyaml.h>
+
+#include <ctype.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>   //
+#include <stdlib.h>  //
+#include <string.h>  //
 #include <stdint.h>
 
-#include "../include/myyaml/myyaml.h"
+// clang-format off
+
+#ifdef __cplusplus
+
+    /** C++ Exclusive headers. */
+    #include <algorithm>
+    #include <cctype>
+    #include <exception>
+    #include <fstream>
+    #include <iostream>
+    #include <map>
+    #include <sstream>
+    #include <string>
+    #include <type_traits>
+    #include <vector>
+
+#endif  //__cplusplus
+
+//-----------------------------------------------------------------------------
+// [SECTION] Myyaml Info Check
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// [SECTION] Platform
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup platform Platform Definitions
+ * @{
+ */
+
+/**
+ * @brief   Checks if the compiler is of given brand.
+ * @param   name Platform, like `APPLE`.
+ * @retval  true   It is.
+ * @retval  false  It isn't.
+ */
+#define MYYAML_PLATFORM_IS(name) MYYAML_PLATFORM_IS_##name
+
+/**
+ * @brief  Returns the current platform name.
+ * @return  platform name.
+ */
+#ifdef __APPLE__
+	/**
+	* A preprocessor macro that is only defined if compiling for MacOS.
+	*/
+	#define MYYAML_PLATFORM_IS_APPLE 1
+	/**
+	 * @brief  Returns the current platform name.
+	 * @return  platform name.
+	 */
+  #define MYYAML_PLATFORM_NAME_IS "Apple"
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+	/**
+	* A preprocessor macro that is only defined if compiling for Linux.
+	*/
+	#define MYYAML_PLATFORM_IS_LINUX 1
+  	/**
+   	* @brief  Returns the current platform name.
+   	* @return  platform name.
+   	*/
+  	#define MYYAML_PLATFORM_NAME_IS "Linux"
+#elif defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+  	/**
+   	* A preprocessor macro that is only defined if compiling for Windows.
+   	*/
+  	#define MYYAML_PLATFORM_IS_WINDOWS 1
+  	/**
+   	* @brief  Returns the current platform name.
+   	* @return  platform name.
+   	*/
+  	#define MYYAML_PLATFORM_NAME_IS "Windows"
+#else
+  	/**
+   	* A preprocessor macro that is only defined if compiling for others.
+   	*/
+  	#define MYYAML_PLATFORM_IS_OTHERS 1
+  	/**
+   	* @brief  Returns the current platform name.
+   	* @return  platform name.
+   	*/
+  	#define MYYAML_PLATFORM_NAME_IS "Others"
+#endif
+
+/** @} */
+
+//-----------------------------------------------------------------------------
+// [SECTION] Compiler
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup compiler Compiler Definitions
+ * @{
+ */
+
+/**
+ * @brief   Checks if the compiler is of given brand.
+ * @param   name  Compiler brand, like `MSVC`.
+ * @retval  true   It is.
+ * @retval  false  It isn't.
+ */
+#define MYYAML_COMPILER_IS(name) MYYAML_COMPILER_IS_##name
+
+/// Compiler is apple
+#if !defined(__clang__)
+	#define MYYAML_COMPILER_IS_APPLE 0
+#elif !defined(__apple_build_version__)
+	#define MYYAML_COMPILER_IS_APPLE 0
+#else
+	#define MYYAML_COMPILER_IS_APPLE 1
+	#define MYYAML_COMPILER_VERSION_MAJOR __clang_major__
+	#define MYYAML_COMPILER_VERSION_MINOR __clang_minor__
+	#define MYYAML_COMPILER_VERSION_PATCH __clang_patchlevel__
+#endif
+
+/// Compiler is clang
+#if !defined(__clang__)
+	#define MYYAML_COMPILER_IS_CLANG 0
+#elif MYYAML_COMPILER_IS(APPLE)
+	#define MYYAML_COMPILER_IS_CLANG 0
+#else
+	#define MYYAML_COMPILER_IS_CLANG 1
+	#define MYYAML_COMPILER_VERSION_MAJOR __clang_major__
+	#define MYYAML_COMPILER_VERSION_MINOR __clang_minor__
+	#define MYYAML_COMPILER_VERSION_PATCH __clang_patchlevel__
+#endif
+
+/// Compiler is intel
+#if !defined(__INTEL_COMPILER)
+	#define MYYAML_COMPILER_IS_INTEL 0
+#elif !defined(__INTEL_COMPILER_UPDATE)
+	#define MYYAML_COMPILER_IS_INTEL 1
+	/* __INTEL_COMPILER = XXYZ */
+	#define MYYAML_COMPILER_VERSION_MAJOR (__INTEL_COMPILER / 100)
+	#define MYYAML_COMPILER_VERSION_MINOR (__INTEL_COMPILER % 100 / 10)
+	#define MYYAML_COMPILER_VERSION_PATCH (__INTEL_COMPILER % 10)
+#else
+	#define MYYAML_COMPILER_IS_INTEL 1
+	/* __INTEL_COMPILER = XXYZ */
+	#define MYYAML_COMPILER_VERSION_MAJOR (__INTEL_COMPILER / 100)
+	#define MYYAML_COMPILER_VERSION_MINOR (__INTEL_COMPILER % 100 / 10)
+	#define MYYAML_COMPILER_VERSION_PATCH __INTEL_COMPILER_UPDATE
+#endif
+
+/// Compiler is msc
+#if !defined(_MSC_VER)
+	#define MYYAML_COMPILER_IS_MSVC 0
+#elif MYYAML_COMPILER_IS(CLANG)
+	#define MYYAML_COMPILER_IS_MSVC 0
+#elif MYYAML_COMPILER_IS(INTEL)
+	#define MYYAML_COMPILER_IS_MSVC 0
+#elif _MSC_VER >= 1400
+	#define MYYAML_COMPILER_IS_MSVC 1
+	/* _MSC_FULL_VER = XXYYZZZZZ */
+	#define MYYAML_COMPILER_VERSION_MAJOR (_MSC_FULL_VER / 10000000)
+	#define MYYAML_COMPILER_VERSION_MINOR (_MSC_FULL_VER % 10000000 / 100000)
+	#define MYYAML_COMPILER_VERSION_PATCH (_MSC_FULL_VER % 100000)
+#elif defined(_MSC_FULL_VER)
+	#define MYYAML_COMPILER_IS_MSVC 1
+	/* _MSC_FULL_VER = XXYYZZZZ */
+	#define MYYAML_COMPILER_VERSION_MAJOR (_MSC_FULL_VER / 1000000)
+	#define MYYAML_COMPILER_VERSION_MINOR (_MSC_FULL_VER % 1000000 / 10000)
+	#define MYYAML_COMPILER_VERSION_PATCH (_MSC_FULL_VER % 10000)
+#else
+	#define MYYAML_COMPILER_IS_MSVC 1
+	/* _MSC_VER = XXYY */
+	#define MYYAML_COMPILER_VERSION_MAJOR (_MSC_VER / 100)
+	#define MYYAML_COMPILER_VERSION_MINOR (_MSC_VER % 100)
+	#define MYYAML_COMPILER_VERSION_PATCH 0
+#endif
+
+/// Compiler is gcc
+#if !defined(__GNUC__)
+	#define MYYAML_COMPILER_IS_GCC 0
+#elif MYYAML_COMPILER_IS(APPLE)
+	#define MYYAML_COMPILER_IS_GCC 0
+#elif MYYAML_COMPILER_IS(CLANG)
+	#define MYYAML_COMPILER_IS_GCC 0
+#elif MYYAML_COMPILER_IS(INTEL)
+	#define MYYAML_COMPILER_IS_GCC 0
+#else
+	#define MYYAML_COMPILER_IS_GCC 1
+	#define MYYAML_COMPILER_VERSION_MAJOR __GNUC__
+	#define MYYAML_COMPILER_VERSION_MINOR __GNUC_MINOR__
+	#define MYYAML_COMPILER_VERSION_PATCH __GNUC_PATCHLEVEL__
+#endif
+
+// Compiler Checks
+
+/**
+ * @brief   Checks if the compiler is of given brand and is newer than or equal
+ *          to the passed version.
+ * @param   name     Compiler brand, like `MSVC`.
+ * @param   x      Major version.
+ * @param   y      Minor version.
+ * @param   z      Patchlevel.
+ * @retval  true   name >= x.y.z.
+ * @retval  false  otherwise.
+ */
+#define MYYAML_COMPILER_SINCE(name, x, y, z)                                 \
+  (MYYAML_COMPILER_IS(name) && ((MYYAML_COMPILER_VERSION_MAJOR > (x)) ||     \
+                                ((MYYAML_COMPILER_VERSION_MAJOR == (x)) &&   \
+                                 ((MYYAML_COMPILER_VERSION_MINOR > (y)) ||   \
+                                  ((MYYAML_COMPILER_VERSION_MINOR == (y)) && \
+                                   (MYYAML_COMPILER_VERSION_PATCH >= (z)))))))
+
+/**
+ * @brief   Checks if  the compiler  is of  given brand and  is older  than the
+ *          passed version.
+ * @param   name     Compiler brand, like `MSVC`.
+ * @param   x      Major version.
+ * @param   y      Minor version.
+ * @param   z      Patchlevel.
+ * @retval  true   name < x.y.z.
+ * @retval  false  otherwise.
+ */
+#define MYYAML_COMPILER_BEFORE(name, x, y, z)                                \
+  (MYYAML_COMPILER_IS(name) && ((MYYAML_COMPILER_VERSION_MAJOR < (x)) ||     \
+                                ((MYYAML_COMPILER_VERSION_MAJOR == (x)) &&   \
+                                 ((MYYAML_COMPILER_VERSION_MINOR < (y)) ||   \
+                                  ((MYYAML_COMPILER_VERSION_MINOR == (y)) && \
+                                   (MYYAML_COMPILER_VERSION_PATCH < (z)))))))
+
+/** @} */
+
+//-----------------------------------------------------------------------------
+// [SECTION] Warnings
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup compiler Compiler Warnings
+ * @{
+ */
+
+#if MYYAML_COMPILER_IS(CLANG)
+	#define MYYAML_PRAGMA_TO_STR(x) _Pragma(#x)
+	#define MYYAML_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+	#define MYYAML_CLANG_SUPPRESS_WARNING(w) MYYAML_PRAGMA_TO_STR(clang diagnostic ignored w)
+	#define MYYAML_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+	#define MYYAML_CLANG_SUPPRESS_WARNING_WITH_PUSH(w) MYYAML_CLANG_SUPPRESS_WARNING_PUSH MYYAML_CLANG_SUPPRESS_WARNING(w)
+#else  // MYYAML_CLANG
+	#define MYYAML_CLANG_SUPPRESS_WARNING_PUSH
+	#define MYYAML_CLANG_SUPPRESS_WARNING(w)
+	#define MYYAML_CLANG_SUPPRESS_WARNING_POP
+	#define MYYAML_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif  // MYYAML_CLANG
+
+#if MYYAML_COMPILER_IS(GCC)
+	#define MYYAML_PRAGMA_TO_STR(x) _Pragma(#x)
+	#define MYYAML_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+	#define MYYAML_GCC_SUPPRESS_WARNING(w) MYYAML_PRAGMA_TO_STR(GCC diagnostic ignored w)
+	#define MYYAML_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+	#define MYYAML_GCC_SUPPRESS_WARNING_WITH_PUSH(w) MYYAML_GCC_SUPPRESS_WARNING_PUSH MYYAML_GCC_SUPPRESS_WARNING(w)
+#else  // MYYAML_GCC
+	#define MYYAML_GCC_SUPPRESS_WARNING_PUSH
+	#define MYYAML_GCC_SUPPRESS_WARNING(w)
+	#define MYYAML_GCC_SUPPRESS_WARNING_POP
+	#define MYYAML_GCC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif  // MYYAML_GCC
+
+#if MYYAML_COMPILER_IS(MSVC)
+	#define MYYAML_MSVC_SUPPRESS_WARNING_PUSH __pragma(warning(push))
+	#define MYYAML_MSVC_SUPPRESS_WARNING(w) __pragma(warning(disable : w))
+	#define MYYAML_MSVC_SUPPRESS_WARNING_POP __pragma(warning(pop))
+	#define MYYAML_MSVC_SUPPRESS_WARNING_WITH_PUSH(w) MYYAML_MSVC_SUPPRESS_WARNING_PUSH MYYAML_MSVC_SUPPRESS_WARNING(w)
+#else  // MYYAML_MSVC
+	#define MYYAML_MSVC_SUPPRESS_WARNING_PUSH
+	#define MYYAML_MSVC_SUPPRESS_WARNING(w)
+	#define MYYAML_MSVC_SUPPRESS_WARNING_POP
+	#define MYYAML_MSVC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif  // MYYAML_MSVC
+
+/** @} */
+
+//-----------------------------------------------------------------------------
+// [SECTION] Compiler Checks
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup check Compiler Checks
+ * @{
+ */
+
+/** C version (STDC) */
+#if defined(__STDC__) && (__STDC__ >= 1) && defined(__STDC_VERSION__)
+	#define MYYAML_STDC_VERSION __STDC_VERSION__
+#else
+	#define MYYAML_STDC_VERSION 0
+#endif
+
+/** C++ version */
+#if defined(__cplusplus)
+	#define MYYAML_CPP_VERSION __cplusplus
+#else
+  #define MYYAML_CPP_VERSION 0
+#endif
+
+/** compiler builtin check */
+#ifndef MYYAML_HAS_BUILTIN
+	#ifdef __has_builtin
+    	#define MYYAML_HAS_BUILTIN(x) __has_builtin(x)
+  	#else
+    	#define MYYAML_HAS_BUILTIN(x) 0
+  	#endif
+#endif
+
+/** compiler attribute check */
+#ifndef MYYAML_HAS_ATTRIBUTE
+  	#ifdef __has_attribute
+    	#define MYYAML_HAS_ATTRIBUTE(x) __has_attribute(x)
+  	#else
+    	#define MYYAML_HAS_ATTRIBUTE(x) 0
+  	#endif
+#endif
+
+/** compiler feature check */
+#ifndef MYYAML_HAS_FEATURE
+  	#ifdef __has_feature
+    	#define MYYAML_HAS_FEATURE(x) __has_feature(x)
+  	#else
+    	#define MYYAML_HAS_FEATURE(x) 0
+  	#endif
+#endif
+
+/** include check */
+#ifndef MYYAML_HAS_INCLUDE
+  	#ifdef __has_include
+    	#define MYYAML_HAS_INCLUDE(x) __has_include(x)
+  	#else
+    	#define MYYAML_HAS_INCLUDE(x) 0
+  	#endif
+#endif
+
+/** @} */
+
+//-----------------------------------------------------------------------------
+// [SECTION] Compiler Attributes
+//-----------------------------------------------------------------------------
+
+/**
+ * @defgroup attribute Compiler Attributes
+ * @{
+ */
+
+/** inline for compiler */
+#ifndef MYYAML_INLINE
+  	#if MYYAML_COMPILER_SINCE(MSVC, 12, 0, 0)
+    	#define MYYAML_INLINE __forceinline
+  	#elif MYYAML_COMPILER_IS(INTEL)
+    	#define MYYAML_INLINE __inline
+  	#elif MYYAML_HAS_ATTRIBUTE(always_inline) || MYYAML_COMPILER_SINCE(GCC, 4, 0, 0)
+    	#define MYYAML_INLINE __inline__ __attribute__((always_inline))
+  	#elif MYYAML_COMPILER_IS(CLANG) || MYYAML_COMPILER_IS(GCC)
+    	#define MYYAML_INLINE __inline__
+  	#elif defined(__cplusplus) || MYYAML_STDC_VERSION >= 199901L
+    	#define MYYAML_INLINE inline
+  	#else
+    	#define MYYAML_INLINE
+  	#endif
+#endif
+
+/** noinline for compiler */
+#ifndef MYYAML_NOINLINE
+  	#if MYYAML_COMPILER_SINCE(MSVC, 14, 0, 0)
+    	#define MYYAML_NOINLINE __declspec(noinline)
+  	#elif MYYAML_HAS_ATTRIBUTE(noinline) || (MYYAML_COMPILER_SINCE(GCC, 4, 0, 0))
+    	#define MYYAML_NOINLINE __attribute__((noinline))
+  	#else
+    	#define MYYAML_NOINLINE
+  	#endif
+#endif
+
+/** align for compiler */
+#ifndef MYYAML_ALIGN
+  	#if MYYAML_COMPILER_SINCE(MSVC, 13, 0, 0)
+    	#define MYYAML_ALIGN(x) __declspec(align(x))
+  	#elif MYYAML_HAS_ATTRIBUTE(aligned) || defined(__GNUC__)
+    	#define MYYAML_ALIGN(x) __attribute__((aligned(x)))
+  	#elif MYYAML_CPP_VERSION >= 201103L
+    	#define MYYAML_ALIGN(x) alignas(x)
+  	#else
+    	#define MYYAML_ALIGN(x)
+  	#endif
+#endif
+
+/** likely for compiler */
+#ifndef MYYAML_LIKELY
+  	#if MYYAML_HAS_BUILTIN(__builtin_expect) || (MYYAML_COMPILER_SINCE(GCC, 4, 0, 0) && MYYAML_COMPILER_VERSION_MAJOR != 5)
+    	#define MYYAML_LIKELY(expr) __builtin_expect(!!(expr), 1)
+  	#else
+    	#define MYYAML_LIKELY(expr) (expr)
+  	#endif
+#endif
+
+/** unlikely for compiler */
+#ifndef MYYAML_UNLIKELY
+  	#if MYYAML_HAS_BUILTIN(__builtin_expect) || (MYYAML_COMPILER_SINCE(GCC, 4, 0, 0) && MYYAML_COMPILER_VERSION_MAJOR != 5)
+    	#define MYYAML_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+  	#else
+    	#define MYYAML_UNLIKELY(expr) (expr)
+  	#endif
+#endif
+
+/** compile-time constant check for compiler */
+#ifndef MYYAML_CONSTANT_P
+  	#if MYYAML_HAS_BUILTIN(__builtin_constant_p) || (MYYAML_COMPILER_SINCE(GCC, 3, 0, 0))
+    	#define MYYAML_HAS_CONSTANT_P 1
+    	#define MYYAML_CONSTANT_P(value) __builtin_constant_p(value)
+  	#else
+    	#define MYYAML_HAS_CONSTANT_P 0
+    	#define MYYAML_CONSTANT_P(value) 0
+  	#endif
+#endif
+
+/** deprecate warning */
+#ifndef MYYAML_DEPRECATED
+  	#if MYYAML_COMPILER_SINCE(MSVC, 14, 0, 0)
+    	#define MYYAML_DEPRECATED(msg) __declspec(deprecated(msg))
+  	#elif MYYAML_HAS_FEATURE(attribute_deprecated_with_message) || \
+    (MYYAML_COMPILER_SINCE(GCC, 4, 0, 0) ||                    \
+     (MYYAML_COMPILER_VERSION_MAJOR == 5 &&                    \
+      MYYAML_COMPILER_VERSION_MINOR >= 5))
+    	#define MYYAML_DEPRECATED(msg) __attribute__((deprecated(msg)))
+  	#elif MYYAML_COMPILER_SINCE(MSVC, 3, 0, 0)
+    	#define MYYAML_DEPRECATED(msg) __attribute__((deprecated))
+  	#else
+    	#define MYYAML_DEPRECATED(msg)
+  	#endif
+#endif
+
+/** @} */
+
+
+/** char bit check */
+#if defined(CHAR_BIT)
+  	#if CHAR_BIT != 8
+    	#error non 8-bit char is not supported
+  	#endif
+#endif
+
+/* Strict C compiler warning helpers */
+
+#if MYYAML_COMPILER_IS(CLANG) || MYYAML_COMPILER_IS(GCC)
+  	#define HASATTRIBUTE_UNUSED
+#endif
+
+#ifdef HASATTRIBUTE_UNUSED
+  	#define MYYAML_UNUSED __attribute__((__unused__))
+#else
+  	#define MYYAML_UNUSED
+#endif
+
+/* Shim arguments are arguments that must be included in your function,
+ * but serve no purpose inside.  Silence compiler warnings. */
+#define SHIM(a) /*@unused@*/ a MYYAML_UNUSED
+
+/* UNUSED_PARAM() marks a shim argument in the body to silence compiler warnings
+ */
+#ifdef __clang__
+  	#define UNUSED_PARAM(a) (void)(a);
+#else
+  	#define UNUSED_PARAM(a) if (0) (void)(a);
+#endif
+
+// clang-format on
 
 #pragma region Internal
 
 //-------------------------------------------------------------------------
 // [SECTION] Defines
 //-----------------------------------------------------------------------------
+
 // clang-format off
+
+#define MYYAML_SUCCESS 1
+#define MYYAML_FAILURE 0
+
+// C++ macros
+#ifdef __cplusplus
+	#define MYYAML_INLINE inline
+	#define MYYAML_LITERAL(T) T
+	#define MYYAML_ZERO_INIT {}
+#else
+	#define MYYAML_API
+	#define MYYAML_INLINE static inline
+	/// Used for C literals like (b2Vec2){1.0f, 2.0f} where C++ requires b2Vec2{1.0f, 2.0f}
+	#define MYYAML_LITERAL(T) (T)
+	#define MYYAML_ZERO_INIT {0}
+#endif
+
+// see https://github.com/scottt/debugbreak
+#if defined( _MSC_VER )
+#define MYYAML_BREAKPOINT __debugbreak()
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#define MYYAML_BREAKPOINT __builtin_trap()
+#else
+// Unknown compiler
+#include <assert.h>
+#define MYYAML_BREAKPOINT assert( 0 )
+#endif
+
+#if !defined( NDEBUG ) || defined( MYYAML_ENABLE_ASSERT )
+MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, int lineNumber );
+
+    #include <assert.h>
+
+    /**
+     * @def MYYAML_ASSERT
+     * @brief Apply the default assert.
+     */
+    #ifndef MYYAML_ASSERT
+        #define MYYAML_ASSERT( condition )                                                                                                   \
+            do                                                                                                                           \
+            {                                                                                                                            \
+                if ( !( condition ) && MyInternalAssert( #condition, __FILE__, (int)__LINE__ ) )                                          \
+                    MYYAML_BREAKPOINT;                                                                                                       \
+            }                                                                                                                            \
+            while ( 0 )
+	#else
+		#define MYYAML_ASSERT(x)
+    #endif // MYYAML_ASSERT
+#else
+    #define MYYAML_ASSERT( ... ) ( (void)0 )
+#endif
 
 /*
  * Byte order marks.
