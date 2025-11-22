@@ -3592,14 +3592,14 @@ int yaml_parser_scan_directive(YamlParser *parser, YamlToken *token) {
 
     /* Scan the directive name. */
 
-    if (!yaml_parser_scan_directive_name(parser, start_mark, &name)) goto error;
+    if (!yaml_parser_scan_directive_name(parser, start_mark, &name)) { goto error; }
 
     /* Is it a YAML directive? */
 
     if (strcmp((char *)name, "YAML") == 0) {
         /* Scan the VERSION directive value. */
 
-        if (!yaml_parser_scan_version_directive_value(parser, start_mark, &major, &minor)) goto error;
+        if (!yaml_parser_scan_version_directive_value(parser, start_mark, &major, &minor)) { goto error; }
 
         end_mark = parser->mark;
 
@@ -3613,7 +3613,7 @@ int yaml_parser_scan_directive(YamlParser *parser, YamlToken *token) {
     else if (strcmp((char *)name, "TAG") == 0) {
         /* Scan the TAG directive value. */
 
-        if (!yaml_parser_scan_tag_directive_value(parser, start_mark, &handle, &prefix)) goto error;
+        if (!yaml_parser_scan_tag_directive_value(parser, start_mark, &handle, &prefix)) { goto error; }
 
         end_mark = parser->mark;
 
@@ -3631,17 +3631,17 @@ int yaml_parser_scan_directive(YamlParser *parser, YamlToken *token) {
 
     /* Eat the rest of the line including any comments. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_BLANK(parser->buffer)) {
         SKIP(parser);
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     if (CHECK(parser->buffer, '#')) {
         while (!IS_BREAKZ(parser->buffer)) {
             SKIP(parser);
-            if (!CACHE(parser, 1)) goto error;
+            if (!CACHE(parser, 1)) { goto error; }
         }
     }
 
@@ -3655,7 +3655,7 @@ int yaml_parser_scan_directive(YamlParser *parser, YamlToken *token) {
     /* Eat a line break. */
 
     if (IS_BREAK(parser->buffer)) {
-        if (!CACHE(parser, 2)) goto error;
+        if (!CACHE(parser, 2)) { goto error; }
         SKIP_LINE(parser);
     }
 
@@ -3683,15 +3683,15 @@ error:
 static int yaml_parser_scan_directive_name(YamlParser *parser, YamlMark start_mark, YamlChar_t **name) {
     YamlString_t string = MYYAML_STRING_NULL;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Consume the directive name. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_ALPHA(parser->buffer)) {
-        if (!READ(parser, string)) goto error;
-        if (!CACHE(parser, 1)) goto error;
+        if (!READ(parser, string)) { goto error; }
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     /* Check if the name is empty. */
@@ -3813,20 +3813,20 @@ static int yaml_parser_scan_tag_directive_value(YamlParser *parser, YamlMark sta
 
     /* Eat whitespaces. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_BLANK(parser->buffer)) {
         SKIP(parser);
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     /* Scan a handle. */
 
-    if (!yaml_parser_scan_tag_handle(parser, 1, start_mark, &handle_value)) goto error;
+    if (!yaml_parser_scan_tag_handle(parser, 1, start_mark, &handle_value)) { goto error; }
 
     /* Expect a whitespace. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     if (!IS_BLANK(parser->buffer)) {
         yaml_parser_set_scanner_error(parser, "while scanning a %TAG directive", start_mark, "did not find expected whitespace");
@@ -3837,16 +3837,16 @@ static int yaml_parser_scan_tag_directive_value(YamlParser *parser, YamlMark sta
 
     while (IS_BLANK(parser->buffer)) {
         SKIP(parser);
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     /* Scan a prefix. */
 
-    if (!yaml_parser_scan_tag_uri(parser, 1, 1, NULL, start_mark, &prefix_value)) goto error;
+    if (!yaml_parser_scan_tag_uri(parser, 1, 1, NULL, start_mark, &prefix_value)) { goto error; }
 
     /* Expect a whitespace or line break. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     if (!IS_BLANKZ(parser->buffer)) {
         yaml_parser_set_scanner_error(parser, "while scanning a %TAG directive", start_mark, "did not find expected whitespace or line break");
@@ -3869,7 +3869,7 @@ static int yaml_parser_scan_anchor(YamlParser *parser, YamlToken *token, YamlTok
     YamlMark start_mark, end_mark;
     YamlString_t string = MYYAML_STRING_NULL;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Eat the indicator character. */
 
@@ -3879,11 +3879,11 @@ static int yaml_parser_scan_anchor(YamlParser *parser, YamlToken *token, YamlTok
 
     /* Consume the value. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_ALPHA(parser->buffer)) {
-        if (!READ(parser, string)) goto error;
-        if (!CACHE(parser, 1)) goto error;
+        if (!READ(parser, string)) { goto error; }
+        if (!CACHE(parser, 1)) { goto error; }
         length++;
     }
 
@@ -3932,13 +3932,13 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
 
     /* Check if the tag is in the canonical form. */
 
-    if (!CACHE(parser, 2)) goto error;
+    if (!CACHE(parser, 2)) { goto error; }
 
     if (CHECK_AT(parser->buffer, '<', 1)) {
         /* Set the handle to '' */
 
         handle = YAML_MALLOC(1);
-        if (!handle) goto error;
+        if (!handle) { goto error; }
         handle[0] = '\0';
 
         /* Eat '!<' */
@@ -3948,7 +3948,7 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
 
         /* Consume the tag value. */
 
-        if (!yaml_parser_scan_tag_uri(parser, 1, 0, NULL, start_mark, &suffix)) goto error;
+        if (!yaml_parser_scan_tag_uri(parser, 1, 0, NULL, start_mark, &suffix)) { goto error; }
 
         /* Check for '>' and eat it. */
 
@@ -3963,24 +3963,24 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
 
         /* First, try to scan a handle. */
 
-        if (!yaml_parser_scan_tag_handle(parser, 0, start_mark, &handle)) goto error;
+        if (!yaml_parser_scan_tag_handle(parser, 0, start_mark, &handle)) { goto error; }
 
         /* Check if it is, indeed, handle. */
 
         if (handle[0] == '!' && handle[1] != '\0' && handle[strlen((char *)handle) - 1] == '!') {
             /* Scan the suffix now. */
 
-            if (!yaml_parser_scan_tag_uri(parser, 0, 0, NULL, start_mark, &suffix)) goto error;
+            if (!yaml_parser_scan_tag_uri(parser, 0, 0, NULL, start_mark, &suffix)) { goto error; }
         } else {
             /* It wasn't a handle after all.  Scan the rest of the tag. */
 
-            if (!yaml_parser_scan_tag_uri(parser, 0, 0, handle, start_mark, &suffix)) goto error;
+            if (!yaml_parser_scan_tag_uri(parser, 0, 0, handle, start_mark, &suffix)) { goto error; }
 
             /* Set the handle to '!'. */
 
             _myyaml_free(handle);
             handle = YAML_MALLOC(2);
-            if (!handle) goto error;
+            if (!handle) { goto error; }
             handle[0] = '!';
             handle[1] = '\0';
 
@@ -3999,7 +3999,7 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
 
     /* Check the character which ends the tag. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     if (!IS_BLANKZ(parser->buffer)) {
         if (!parser->flow_level || !CHECK(parser->buffer, ',')) {
@@ -4029,11 +4029,11 @@ error:
 static int yaml_parser_scan_tag_handle(YamlParser *parser, int directive, YamlMark start_mark, YamlChar_t **handle) {
     YamlString_t string = MYYAML_STRING_NULL;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Check the initial '!' character. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     if (!CHECK(parser->buffer, '!')) {
         yaml_parser_set_scanner_error(parser, directive ? "while scanning a tag directive" : "while scanning a tag", start_mark,
@@ -4043,21 +4043,21 @@ static int yaml_parser_scan_tag_handle(YamlParser *parser, int directive, YamlMa
 
     /* Copy the '!' character. */
 
-    if (!READ(parser, string)) goto error;
+    if (!READ(parser, string)) { goto error; }
 
     /* Copy all subsequent alphabetical and numerical characters. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_ALPHA(parser->buffer)) {
-        if (!READ(parser, string)) goto error;
-        if (!CACHE(parser, 1)) goto error;
+        if (!READ(parser, string)) { goto error; }
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     /* Check if the trailing character is '!' and copy it. */
 
     if (CHECK(parser->buffer, '!')) {
-        if (!READ(parser, string)) goto error;
+        if (!READ(parser, string)) { goto error; }
     } else {
         /*
          * It's either the '!' tag or not really a tag handle.  If it's a %TAG
@@ -4088,7 +4088,7 @@ static int yaml_parser_scan_tag_uri(YamlParser *parser, int uri_char, int direct
     size_t length = head ? strlen((char *)head) : 0;
     YamlString_t string = MYYAML_STRING_NULL;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Resize the string to include the head. */
 
@@ -4112,7 +4112,7 @@ static int yaml_parser_scan_tag_uri(YamlParser *parser, int uri_char, int direct
 
     /* Scan the tag. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     /*
      * The set of characters that may appear in URI is as follows:
@@ -4134,21 +4134,21 @@ static int yaml_parser_scan_tag_uri(YamlParser *parser, int uri_char, int direct
         /* Check if it is a URI-escape sequence. */
 
         if (CHECK(parser->buffer, '%')) {
-            if (!STRING_EXTEND(parser, string)) goto error;
+            if (!STRING_EXTEND(parser, string)) { goto error; }
 
-            if (!yaml_parser_scan_uri_escapes(parser, directive, start_mark, &string)) goto error;
+            if (!yaml_parser_scan_uri_escapes(parser, directive, start_mark, &string)) { goto error; }
         } else {
-            if (!READ(parser, string)) goto error;
+            if (!READ(parser, string)) { goto error; }
         }
 
         length++;
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     /* Check if the tag is non-empty. */
 
     if (!length) {
-        if (!STRING_EXTEND(parser, string)) goto error;
+        if (!STRING_EXTEND(parser, string)) { goto error; }
 
         yaml_parser_set_scanner_error(parser, directive ? "while parsing a %TAG directive" : "while parsing a tag", start_mark,
                                       "did not find expected tag URI");
@@ -4236,9 +4236,9 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
     int leading_blank = 0;
     int trailing_blank = 0;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Eat the indicator '|' or '>'. */
 
@@ -4248,7 +4248,7 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
 
     /* Scan the additional block scalar indicators. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     /* Check for a chomping indicator. */
 
@@ -4261,7 +4261,7 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
 
         /* Check for an indentation indicator. */
 
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
 
         if (IS_DIGIT(parser->buffer)) {
             /* Check that the indentation is greater than 0. */
@@ -4291,7 +4291,7 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
 
         SKIP(parser);
 
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
 
         if (CHECK(parser->buffer, '+') || CHECK(parser->buffer, '-')) {
             chomping = CHECK(parser->buffer, '+') ? +1 : -1;
@@ -4302,17 +4302,17 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
 
     /* Eat whitespaces and comments to the end of the line. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while (IS_BLANK(parser->buffer)) {
         SKIP(parser);
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
     }
 
     if (CHECK(parser->buffer, '#')) {
         while (!IS_BREAKZ(parser->buffer)) {
             SKIP(parser);
-            if (!CACHE(parser, 1)) goto error;
+            if (!CACHE(parser, 1)) { goto error; }
         }
     }
 
@@ -4326,7 +4326,7 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
     /* Eat a line break. */
 
     if (IS_BREAK(parser->buffer)) {
-        if (!CACHE(parser, 2)) goto error;
+        if (!CACHE(parser, 2)) { goto error; }
         SKIP_LINE(parser);
     }
 
@@ -4342,11 +4342,11 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
      * needed.
      */
 
-    if (!yaml_parser_scan_block_scalar_breaks(parser, &indent, &trailing_breaks, start_mark, &end_mark)) goto error;
+    if (!yaml_parser_scan_block_scalar_breaks(parser, &indent, &trailing_breaks, start_mark, &end_mark)) { goto error; }
 
     /* Scan the block scalar content. */
 
-    if (!CACHE(parser, 1)) goto error;
+    if (!CACHE(parser, 1)) { goto error; }
 
     while ((int)parser->mark.column == indent && !(IS_Z(parser->buffer))) {
         /*
@@ -4363,19 +4363,19 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
             /* Do we need to join the lines by space? */
 
             if (*trailing_breaks.start == '\0') {
-                if (!STRING_EXTEND(parser, string)) goto error;
+                if (!STRING_EXTEND(parser, string)) { goto error; }
                 *(string.pointer++) = ' ';
             }
 
             CLEAR(parser, leading_break);
         } else {
-            if (!JOIN(parser, string, leading_break)) goto error;
+            if (!JOIN(parser, string, leading_break)) { goto error; }
             CLEAR(parser, leading_break);
         }
 
         /* Append the remaining line breaks. */
 
-        if (!JOIN(parser, string, trailing_breaks)) goto error;
+        if (!JOIN(parser, string, trailing_breaks)) { goto error; }
         CLEAR(parser, trailing_breaks);
 
         /* Is it a leading whitespace? */
@@ -4385,28 +4385,28 @@ static int yaml_parser_scan_block_scalar(YamlParser *parser, YamlToken *token, i
         /* Consume the current line. */
 
         while (!IS_BREAKZ(parser->buffer)) {
-            if (!READ(parser, string)) goto error;
-            if (!CACHE(parser, 1)) goto error;
+            if (!READ(parser, string)) { goto error; }
+            if (!CACHE(parser, 1)) { goto error; }
         }
 
         /* Consume the line break. */
 
-        if (!CACHE(parser, 2)) goto error;
+        if (!CACHE(parser, 2)) { goto error; }
 
-        if (!READ_LINE(parser, leading_break)) goto error;
+        if (!READ_LINE(parser, leading_break)) { goto error; }
 
         /* Eat the following indentation spaces and line breaks. */
 
-        if (!yaml_parser_scan_block_scalar_breaks(parser, &indent, &trailing_breaks, start_mark, &end_mark)) goto error;
+        if (!yaml_parser_scan_block_scalar_breaks(parser, &indent, &trailing_breaks, start_mark, &end_mark)) { goto error; }
     }
 
     /* Chomp the tail. */
 
     if (chomping != -1) {
-        if (!JOIN(parser, string, leading_break)) goto error;
+        if (!JOIN(parser, string, leading_break)) { goto error; }
     }
     if (chomping == 1) {
-        if (!JOIN(parser, string, trailing_breaks)) goto error;
+        if (!JOIN(parser, string, trailing_breaks)) { goto error; }
     }
 
     /* Create a token. */
@@ -4493,10 +4493,10 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
     YamlString_t whitespaces = MYYAML_STRING_NULL;
     int leading_blanks;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, whitespaces, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, whitespaces, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     /* Eat the left quote. */
 
@@ -4511,7 +4511,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
          * line.
          */
 
-        if (!CACHE(parser, 4)) goto error;
+        if (!CACHE(parser, 4)) { goto error; }
 
         if (parser->mark.column == 0 &&
             ((CHECK_AT(parser->buffer, '-', 0) && CHECK_AT(parser->buffer, '-', 1) && CHECK_AT(parser->buffer, '-', 2)) ||
@@ -4530,7 +4530,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
 
         /* Consume non-blank characters. */
 
-        if (!CACHE(parser, 2)) goto error;
+        if (!CACHE(parser, 2)) { goto error; }
 
         leading_blanks = 0;
 
@@ -4538,7 +4538,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
             /* Check for an escaped single quote. */
 
             if (single && CHECK_AT(parser->buffer, '\'', 0) && CHECK_AT(parser->buffer, '\'', 1)) {
-                if (!STRING_EXTEND(parser, string)) goto error;
+                if (!STRING_EXTEND(parser, string)) { goto error; }
                 *(string.pointer++) = '\'';
                 SKIP(parser);
                 SKIP(parser);
@@ -4553,7 +4553,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
             /* Check for an escaped line break. */
 
             else if (!single && CHECK(parser->buffer, '\\') && IS_BREAK_AT(parser->buffer, 1)) {
-                if (!CACHE(parser, 3)) goto error;
+                if (!CACHE(parser, 3)) { goto error; }
                 SKIP(parser);
                 SKIP_LINE(parser);
                 leading_blanks = 1;
@@ -4565,7 +4565,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
             else if (!single && CHECK(parser->buffer, '\\')) {
                 size_t code_length = 0;
 
-                if (!STRING_EXTEND(parser, string)) goto error;
+                if (!STRING_EXTEND(parser, string)) { goto error; }
 
                 /* Check the escape character. */
 
@@ -4673,7 +4673,7 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
 
                     /* Scan the character value. */
 
-                    if (!CACHE(parser, code_length)) goto error;
+                    if (!CACHE(parser, code_length)) { goto error; }
 
                     for (k = 0; k < code_length; k++) {
                         if (!IS_HEX_AT(parser->buffer, k)) {
@@ -4719,10 +4719,10 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
             else {
                 /* It is a non-escaped non-blank character. */
 
-                if (!READ(parser, string)) goto error;
+                if (!READ(parser, string)) { goto error; }
             }
 
-            if (!CACHE(parser, 2)) goto error;
+            if (!CACHE(parser, 2)) { goto error; }
         }
 
         /* Check if we are at the end of the scalar. */
@@ -4731,36 +4731,36 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
          * Credit for the bug and input is to OSS Fuzz
          * Credit for the fix to Alex Gaynor
          */
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
         if (CHECK(parser->buffer, single ? '\'' : '"')) break;
 
         /* Consume blank characters. */
 
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
 
         while (IS_BLANK(parser->buffer) || IS_BREAK(parser->buffer)) {
             if (IS_BLANK(parser->buffer)) {
                 /* Consume a space or a tab character. */
 
                 if (!leading_blanks) {
-                    if (!READ(parser, whitespaces)) goto error;
+                    if (!READ(parser, whitespaces)) { goto error; }
                 } else {
                     SKIP(parser);
                 }
             } else {
-                if (!CACHE(parser, 2)) goto error;
+                if (!CACHE(parser, 2)) { goto error; }
 
                 /* Check if it is a first line break. */
 
                 if (!leading_blanks) {
                     CLEAR(parser, whitespaces);
-                    if (!READ_LINE(parser, leading_break)) goto error;
+                    if (!READ_LINE(parser, leading_break)) { goto error; }
                     leading_blanks = 1;
                 } else {
-                    if (!READ_LINE(parser, trailing_breaks)) goto error;
+                    if (!READ_LINE(parser, trailing_breaks)) { goto error; }
                 }
             }
-            if (!CACHE(parser, 1)) goto error;
+            if (!CACHE(parser, 1)) { goto error; }
         }
 
         /* Join the whitespaces or fold line breaks. */
@@ -4770,21 +4770,21 @@ static int yaml_parser_scan_flow_scalar(YamlParser *parser, YamlToken *token, in
 
             if (leading_break.start[0] == '\n') {
                 if (trailing_breaks.start[0] == '\0') {
-                    if (!STRING_EXTEND(parser, string)) goto error;
+                    if (!STRING_EXTEND(parser, string)) { goto error; }
                     *(string.pointer++) = ' ';
                 } else {
-                    if (!JOIN(parser, string, trailing_breaks)) goto error;
+                    if (!JOIN(parser, string, trailing_breaks)) { goto error; }
                     CLEAR(parser, trailing_breaks);
                 }
                 CLEAR(parser, leading_break);
             } else {
-                if (!JOIN(parser, string, leading_break)) goto error;
-                if (!JOIN(parser, string, trailing_breaks)) goto error;
+                if (!JOIN(parser, string, leading_break)) { goto error; }
+                if (!JOIN(parser, string, trailing_breaks)) { goto error; }
                 CLEAR(parser, leading_break);
                 CLEAR(parser, trailing_breaks);
             }
         } else {
-            if (!JOIN(parser, string, whitespaces)) goto error;
+            if (!JOIN(parser, string, whitespaces)) { goto error; }
             CLEAR(parser, whitespaces);
         }
     }
@@ -4829,10 +4829,10 @@ static int yaml_parser_scan_plain_scalar(YamlParser *parser, YamlToken *token) {
     int leading_blanks = 0;
     int indent = parser->indent + 1;
 
-    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) goto error;
-    if (!STRING_INIT(parser, whitespaces, MYYAML_INITIAL_STRING_SIZE)) goto error;
+    if (!STRING_INIT(parser, string, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, leading_break, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, trailing_breaks, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
+    if (!STRING_INIT(parser, whitespaces, MYYAML_INITIAL_STRING_SIZE)) { goto error; }
 
     start_mark = end_mark = parser->mark;
 
@@ -4841,7 +4841,7 @@ static int yaml_parser_scan_plain_scalar(YamlParser *parser, YamlToken *token) {
     while (1) {
         /* Check for a document indicator. */
 
-        if (!CACHE(parser, 4)) goto error;
+        if (!CACHE(parser, 4)) { goto error; }
 
         if (parser->mark.column == 0 &&
             ((CHECK_AT(parser->buffer, '-', 0) && CHECK_AT(parser->buffer, '-', 1) && CHECK_AT(parser->buffer, '-', 2)) ||
@@ -4883,34 +4883,34 @@ static int yaml_parser_scan_plain_scalar(YamlParser *parser, YamlToken *token) {
 
                     if (leading_break.start[0] == '\n') {
                         if (trailing_breaks.start[0] == '\0') {
-                            if (!STRING_EXTEND(parser, string)) goto error;
+                            if (!STRING_EXTEND(parser, string)) { goto error; }
                             *(string.pointer++) = ' ';
                         } else {
-                            if (!JOIN(parser, string, trailing_breaks)) goto error;
+                            if (!JOIN(parser, string, trailing_breaks)) { goto error; }
                             CLEAR(parser, trailing_breaks);
                         }
                         CLEAR(parser, leading_break);
                     } else {
-                        if (!JOIN(parser, string, leading_break)) goto error;
-                        if (!JOIN(parser, string, trailing_breaks)) goto error;
+                        if (!JOIN(parser, string, leading_break)) { goto error; }
+                        if (!JOIN(parser, string, trailing_breaks)) { goto error; }
                         CLEAR(parser, leading_break);
                         CLEAR(parser, trailing_breaks);
                     }
 
                     leading_blanks = 0;
                 } else {
-                    if (!JOIN(parser, string, whitespaces)) goto error;
+                    if (!JOIN(parser, string, whitespaces)) { goto error; }
                     CLEAR(parser, whitespaces);
                 }
             }
 
             /* Copy the character. */
 
-            if (!READ(parser, string)) goto error;
+            if (!READ(parser, string)) { goto error; }
 
             end_mark = parser->mark;
 
-            if (!CACHE(parser, 2)) goto error;
+            if (!CACHE(parser, 2)) { goto error; }
         }
 
         /* Is it the end? */
@@ -4919,7 +4919,7 @@ static int yaml_parser_scan_plain_scalar(YamlParser *parser, YamlToken *token) {
 
         /* Consume blank characters. */
 
-        if (!CACHE(parser, 1)) goto error;
+        if (!CACHE(parser, 1)) { goto error; }
 
         while (IS_BLANK(parser->buffer) || IS_BREAK(parser->buffer)) {
             if (IS_BLANK(parser->buffer)) {
@@ -4934,24 +4934,24 @@ static int yaml_parser_scan_plain_scalar(YamlParser *parser, YamlToken *token) {
                 /* Consume a space or a tab character. */
 
                 if (!leading_blanks) {
-                    if (!READ(parser, whitespaces)) goto error;
+                    if (!READ(parser, whitespaces)) { goto error; }
                 } else {
                     SKIP(parser);
                 }
             } else {
-                if (!CACHE(parser, 2)) goto error;
+                if (!CACHE(parser, 2)) { goto error; }
 
                 /* Check if it is a first line break. */
 
                 if (!leading_blanks) {
                     CLEAR(parser, whitespaces);
-                    if (!READ_LINE(parser, leading_break)) goto error;
+                    if (!READ_LINE(parser, leading_break)) { goto error; }
                     leading_blanks = 1;
                 } else {
-                    if (!READ_LINE(parser, trailing_breaks)) goto error;
+                    if (!READ_LINE(parser, trailing_breaks)) { goto error; }
                 }
             }
-            if (!CACHE(parser, 1)) goto error;
+            if (!CACHE(parser, 1)) { goto error; }
         }
 
         /* Check indentation level. */
@@ -5252,12 +5252,12 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
 
         token = PEEK_TOKEN(parser);
 
-        if (!token) goto error;
+        if (!token) { goto error; }
         if (token->type != YAML_DOCUMENT_START_TOKEN) {
             yaml_parser_set_parser_error(parser, "did not find expected <document start>", token->start_mark);
             goto error;
         }
-        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE)) goto error;
+        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE)) { goto error; }
         parser->state = YAML_PARSE_DOCUMENT_CONTENT_STATE;
         end_mark = token->end_mark;
 
@@ -5427,7 +5427,7 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
             end_mark = token->end_mark;
             SKIP_TOKEN(parser);
             token = PEEK_TOKEN(parser);
-            if (!token) goto error;
+            if (!token) { goto error; }
             if (token->type == YAML_TAG_TOKEN) {
                 tag_handle = token->data.tag.handle;
                 tag_suffix = token->data.tag.suffix;
@@ -5435,7 +5435,7 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
                 end_mark = token->end_mark;
                 SKIP_TOKEN(parser);
                 token = PEEK_TOKEN(parser);
-                if (!token) goto error;
+                if (!token) { goto error; }
             }
         } else if (token->type == YAML_TAG_TOKEN) {
             tag_handle = token->data.tag.handle;
@@ -5444,13 +5444,13 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
             end_mark = token->end_mark;
             SKIP_TOKEN(parser);
             token = PEEK_TOKEN(parser);
-            if (!token) goto error;
+            if (!token) { goto error; }
             if (token->type == YAML_ANCHOR_TOKEN) {
                 anchor = token->data.anchor.value;
                 end_mark = token->end_mark;
                 SKIP_TOKEN(parser);
                 token = PEEK_TOKEN(parser);
-                if (!token) goto error;
+                if (!token) { goto error; }
             }
         }
 
@@ -6112,10 +6112,10 @@ static int yaml_parser_process_directives(YamlParser *parser, YamlVersionDirecti
     } tag_directives = {NULL, NULL, NULL};
     YamlToken *token;
 
-    if (!STACK_INIT(parser, tag_directives, YamlTagDirective *)) goto error;
+    if (!STACK_INIT(parser, tag_directives, YamlTagDirective *)) { goto error; }
 
     token = PEEK_TOKEN(parser);
-    if (!token) goto error;
+    if (!token) { goto error; }
 
     while (token->type == YAML_VERSION_DIRECTIVE_TOKEN || token->type == YAML_TAG_DIRECTIVE_TOKEN) {
         if (token->type == YAML_VERSION_DIRECTIVE_TOKEN) {
@@ -6141,17 +6141,17 @@ static int yaml_parser_process_directives(YamlParser *parser, YamlVersionDirecti
             value.handle = token->data.tag_directive.handle;
             value.prefix = token->data.tag_directive.prefix;
 
-            if (!yaml_parser_append_tag_directive(parser, value, 0, token->start_mark)) goto error;
-            if (!PUSH(parser, tag_directives, value)) goto error;
+            if (!yaml_parser_append_tag_directive(parser, value, 0, token->start_mark)) { goto error; }
+            if (!PUSH(parser, tag_directives, value)) { goto error; }
         }
 
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) goto error;
+        if (!token) { goto error; }
     }
 
     for (default_tag_directive = default_tag_directives; default_tag_directive->handle; default_tag_directive++) {
-        if (!yaml_parser_append_tag_directive(parser, *default_tag_directive, 1, token->start_mark)) goto error;
+        if (!yaml_parser_append_tag_directive(parser, *default_tag_directive, 1, token->start_mark)) { goto error; }
     }
 
     if (version_directive_ref) {
@@ -6205,7 +6205,7 @@ static int yaml_parser_append_tag_directive(YamlParser *parser, YamlTagDirective
         goto error;
     }
 
-    if (!PUSH(parser, parser->tag_directives, copy)) goto error;
+    if (!PUSH(parser, parser->tag_directives, copy)) { goto error; }
 
     return MYYAML_SUCCESS;
 
@@ -6517,17 +6517,17 @@ static int yaml_parser_load_scalar(YamlParser *parser, YamlEvent *event, struct 
     int index;
     YamlChar_t *tag = event->data.scalar.tag;
 
-    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) goto error;
+    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
         _myyaml_free(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_SCALAR_TAG);
-        if (!tag) goto error;
+        if (!tag) { goto error; }
     }
 
     SCALAR_NODE_INIT(node, tag, event->data.scalar.value, event->data.scalar.length, event->data.scalar.style, event->start_mark, event->end_mark);
 
-    if (!PUSH(parser, parser->document->nodes, node)) goto error;
+    if (!PUSH(parser, parser->document->nodes, node)) { goto error; }
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
@@ -6556,19 +6556,19 @@ static int yaml_parser_load_sequence(YamlParser *parser, YamlEvent *event, struc
     int index;
     YamlChar_t *tag = event->data.sequence_start.tag;
 
-    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) goto error;
+    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
         _myyaml_free(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_SEQUENCE_TAG);
-        if (!tag) goto error;
+        if (!tag) { goto error; }
     }
 
-    if (!STACK_INIT(parser, items, YamlNodeItem *)) goto error;
+    if (!STACK_INIT(parser, items, YamlNodeItem *)) { goto error; }
 
     SEQUENCE_NODE_INIT(node, tag, items.start, items.end, event->data.sequence_start.style, event->start_mark, event->end_mark);
 
-    if (!PUSH(parser, parser->document->nodes, node)) goto error;
+    if (!PUSH(parser, parser->document->nodes, node)) { goto error; }
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
@@ -6615,19 +6615,19 @@ static int yaml_parser_load_mapping(YamlParser *parser, YamlEvent *event, struct
     int index;
     YamlChar_t *tag = event->data.mapping_start.tag;
 
-    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) goto error;
+    if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
         _myyaml_free(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_MAPPING_TAG);
-        if (!tag) goto error;
+        if (!tag) { goto error; }
     }
 
-    if (!STACK_INIT(parser, pairs, YamlNodePair *)) goto error;
+    if (!STACK_INIT(parser, pairs, YamlNodePair *)) { goto error; }
 
     MAPPING_NODE_INIT(node, tag, pairs.start, pairs.end, event->data.mapping_start.style, event->start_mark, event->end_mark);
 
-    if (!PUSH(parser, parser->document->nodes, node)) goto error;
+    if (!PUSH(parser, parser->document->nodes, node)) { goto error; }
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
@@ -7033,7 +7033,7 @@ static int yaml_emitter_append_tag_directive(YamlEmitter *emitter, YamlTagDirect
         goto error;
     }
 
-    if (!PUSH(emitter, emitter->tag_directives, copy)) goto error;
+    if (!PUSH(emitter, emitter->tag_directives, copy)) { goto error; }
 
     return MYYAML_SUCCESS;
 
@@ -9030,23 +9030,23 @@ MYYAML_API int yaml_event_initialize_document_start(YamlEvent *event, YamlVersio
     /* Valid tag directives are expected. */
     if (version_directive) {
         version_directive_copy = YAML_MALLOC_STATIC(YamlVersionDirective);
-        if (!version_directive_copy) goto error;
+        if (!version_directive_copy) { goto error; }
         version_directive_copy->major = version_directive->major;
         version_directive_copy->minor = version_directive->minor;
     }
 
     if (tag_directives_start != tag_directives_end) {
         YamlTagDirective *tag_directive;
-        if (!STACK_INIT(&context, tag_directives_copy, YamlTagDirective *)) goto error;
+        if (!STACK_INIT(&context, tag_directives_copy, YamlTagDirective *)) { goto error; }
         for (tag_directive = tag_directives_start; tag_directive != tag_directives_end; tag_directive++) {
             MYYAML_ASSERT(tag_directive->handle);
             MYYAML_ASSERT(tag_directive->prefix);
-            if (!yaml_check_utf8(tag_directive->handle, strlen((char *)tag_directive->handle))) goto error;
-            if (!yaml_check_utf8(tag_directive->prefix, strlen((char *)tag_directive->prefix))) goto error;
+            if (!yaml_check_utf8(tag_directive->handle, strlen((char *)tag_directive->handle))) { goto error; }
+            if (!yaml_check_utf8(tag_directive->prefix, strlen((char *)tag_directive->prefix))) { goto error; }
             value.handle = _myyaml_strdup(tag_directive->handle);
             value.prefix = _myyaml_strdup(tag_directive->prefix);
-            if (!value.handle || !value.prefix) goto error;
-            if (!PUSH(&context, tag_directives_copy, value)) goto error;
+            if (!value.handle || !value.prefix) { goto error; }
+            if (!PUSH(&context, tag_directives_copy, value)) { goto error; }
             value.handle = NULL;
             value.prefix = NULL;
         }
@@ -9124,24 +9124,24 @@ MYYAML_API int yaml_event_initialize_scalar(YamlEvent *event, const YamlChar_t *
     YamlMark mark = {0, 0, 0};
 
     if (anchor) {
-        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
+        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) { goto error; }
         anchor_copy = _myyaml_strdup(anchor);
-        if (!anchor_copy) goto error;
+        if (!anchor_copy) { goto error; }
     }
 
     if (tag) {
-        if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+        if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
         tag_copy = _myyaml_strdup(tag);
-        if (!tag_copy) goto error;
+        if (!tag_copy) { goto error; }
     }
 
     if (length < 0) {
         length = strlen((char *)value);
     }
 
-    if (!yaml_check_utf8(value, length)) goto error;
+    if (!yaml_check_utf8(value, length)) { goto error; }
     value_copy = YAML_MALLOC(length + 1);
-    if (!value_copy) goto error;
+    if (!value_copy) { goto error; }
     memcpy(value_copy, value, length);
     value_copy[length] = '\0';
 
@@ -9175,15 +9175,15 @@ MYYAML_API int yaml_event_initialize_sequence_start(YamlEvent *event, const Yaml
     YamlMark mark = {0, 0, 0};
 
     if (anchor) {
-        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
+        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) { goto error; }
         anchor_copy = _myyaml_strdup(anchor);
-        if (!anchor_copy) goto error;
+        if (!anchor_copy) { goto error; }
     }
 
     if (tag) {
-        if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+        if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
         tag_copy = _myyaml_strdup(tag);
-        if (!tag_copy) goto error;
+        if (!tag_copy) { goto error; }
     }
 
     memset((event), 0, sizeof(YamlEvent));
@@ -9226,15 +9226,15 @@ MYYAML_API int yaml_event_initialize_mapping_start(YamlEvent *event, const YamlC
     YamlMark mark = {0, 0, 0};
 
     if (anchor) {
-        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) goto error;
+        if (!yaml_check_utf8(anchor, strlen((char *)anchor))) { goto error; }
         anchor_copy = _myyaml_strdup(anchor);
-        if (!anchor_copy) goto error;
+        if (!anchor_copy) { goto error; }
     }
 
     if (tag) {
-        if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+        if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
         tag_copy = _myyaml_strdup(tag);
-        if (!tag_copy) goto error;
+        if (!tag_copy) { goto error; }
     }
 
     memset((event), 0, sizeof(YamlEvent));
@@ -9338,27 +9338,27 @@ MYYAML_API int yaml_document_initialize(YamlDocument *document, YamlVersionDirec
     MYYAML_ASSERT((tag_directives_start && tag_directives_end) || (tag_directives_start == tag_directives_end));
     /* Valid tag directives are expected. */
 
-    if (!STACK_INIT(&context, nodes, YamlNode *)) goto error;
+    if (!STACK_INIT(&context, nodes, YamlNode *)) { goto error; }
 
     if (version_directive) {
         version_directive_copy = YAML_MALLOC_STATIC(YamlVersionDirective);
-        if (!version_directive_copy) goto error;
+        if (!version_directive_copy) { goto error; }
         version_directive_copy->major = version_directive->major;
         version_directive_copy->minor = version_directive->minor;
     }
 
     if (tag_directives_start != tag_directives_end) {
         YamlTagDirective *tag_directive;
-        if (!STACK_INIT(&context, tag_directives_copy, YamlTagDirective *)) goto error;
+        if (!STACK_INIT(&context, tag_directives_copy, YamlTagDirective *)) { goto error; }
         for (tag_directive = tag_directives_start; tag_directive != tag_directives_end; tag_directive++) {
             MYYAML_ASSERT(tag_directive->handle);
             MYYAML_ASSERT(tag_directive->prefix);
-            if (!yaml_check_utf8(tag_directive->handle, strlen((char *)tag_directive->handle))) goto error;
-            if (!yaml_check_utf8(tag_directive->prefix, strlen((char *)tag_directive->prefix))) goto error;
+            if (!yaml_check_utf8(tag_directive->handle, strlen((char *)tag_directive->handle))) { goto error; }
+            if (!yaml_check_utf8(tag_directive->prefix, strlen((char *)tag_directive->prefix))) { goto error; }
             value.handle = _myyaml_strdup(tag_directive->handle);
             value.prefix = _myyaml_strdup(tag_directive->prefix);
-            if (!value.handle || !value.prefix) goto error;
-            if (!PUSH(&context, tag_directives_copy, value)) goto error;
+            if (!value.handle || !value.prefix) { goto error; }
+            if (!PUSH(&context, tag_directives_copy, value)) { goto error; }
             value.handle = NULL;
             value.prefix = NULL;
         }
@@ -9461,22 +9461,22 @@ MYYAML_API int yaml_document_add_scalar(YamlDocument *document, const YamlChar_t
         tag = (YamlChar_t *)YAML_DEFAULT_SCALAR_TAG;
     }
 
-    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+    if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
     tag_copy = _myyaml_strdup(tag);
-    if (!tag_copy) goto error;
+    if (!tag_copy) { goto error; }
 
     if (length < 0) {
         length = strlen((char *)value);
     }
 
-    if (!yaml_check_utf8(value, length)) goto error;
+    if (!yaml_check_utf8(value, length)) { goto error; }
     value_copy = YAML_MALLOC(length + 1);
-    if (!value_copy) goto error;
+    if (!value_copy) { goto error; }
     memcpy(value_copy, value, length);
     value_copy[length] = '\0';
 
     SCALAR_NODE_INIT(node, tag_copy, value_copy, length, style, mark, mark);
-    if (!PUSH(&context, document->nodes, node)) goto error;
+    if (!PUSH(&context, document->nodes, node)) { goto error; }
 
     return document->nodes.top - document->nodes.start;
 
@@ -9506,14 +9506,14 @@ MYYAML_API int yaml_document_add_sequence(YamlDocument *document, const YamlChar
         tag = (YamlChar_t *)YAML_DEFAULT_SEQUENCE_TAG;
     }
 
-    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+    if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
     tag_copy = _myyaml_strdup(tag);
-    if (!tag_copy) goto error;
+    if (!tag_copy) { goto error; }
 
-    if (!STACK_INIT(&context, items, YamlNodeItem *)) goto error;
+    if (!STACK_INIT(&context, items, YamlNodeItem *)) { goto error; }
 
     SEQUENCE_NODE_INIT(node, tag_copy, items.start, items.end, style, mark, mark);
-    if (!PUSH(&context, document->nodes, node)) goto error;
+    if (!PUSH(&context, document->nodes, node)) { goto error; }
 
     return document->nodes.top - document->nodes.start;
 
@@ -9543,14 +9543,14 @@ MYYAML_API int yaml_document_add_mapping(YamlDocument *document, const YamlChar_
         tag = (YamlChar_t *)YAML_DEFAULT_MAPPING_TAG;
     }
 
-    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error;
+    if (!yaml_check_utf8(tag, strlen((char *)tag))) { goto error; }
     tag_copy = _myyaml_strdup(tag);
-    if (!tag_copy) goto error;
+    if (!tag_copy) { goto error; }
 
-    if (!STACK_INIT(&context, pairs, YamlNodePair *)) goto error;
+    if (!STACK_INIT(&context, pairs, YamlNodePair *)) { goto error; }
 
     MAPPING_NODE_INIT(node, tag_copy, pairs.start, pairs.end, style, mark, mark);
-    if (!PUSH(&context, document->nodes, node)) goto error;
+    if (!PUSH(&context, document->nodes, node)) { goto error; }
 
     return document->nodes.top - document->nodes.start;
 
@@ -9745,14 +9745,14 @@ MYYAML_API int yaml_parser_initialize(YamlParser *parser) {
     MYYAML_ASSERT(parser); /* Non-NULL parser object expected. */
 
     memset(parser, 0, sizeof(YamlParser));
-    if (!MYYAML_BUFFER_INIT(parser, parser->raw_buffer, MYYAML_INPUT_RAW_BUFFER_SIZE)) goto error;
-    if (!MYYAML_BUFFER_INIT(parser, parser->buffer, MYYAML_INPUT_BUFFER_SIZE)) goto error;
-    if (!QUEUE_INIT(parser, parser->tokens, MYYAML_INITIAL_QUEUE_SIZE, YamlToken *)) goto error;
-    if (!STACK_INIT(parser, parser->indents, int *)) goto error;
-    if (!STACK_INIT(parser, parser->simple_keys, YamlSimpleKey *)) goto error;
-    if (!STACK_INIT(parser, parser->states, YamlParserState *)) goto error;
-    if (!STACK_INIT(parser, parser->marks, YamlMark *)) goto error;
-    if (!STACK_INIT(parser, parser->tag_directives, YamlTagDirective *)) goto error;
+    if (!MYYAML_BUFFER_INIT(parser, parser->raw_buffer, MYYAML_INPUT_RAW_BUFFER_SIZE)) { goto error; }
+    if (!MYYAML_BUFFER_INIT(parser, parser->buffer, MYYAML_INPUT_BUFFER_SIZE)) { goto error; }
+    if (!QUEUE_INIT(parser, parser->tokens, MYYAML_INITIAL_QUEUE_SIZE, YamlToken *)) { goto error; }
+    if (!STACK_INIT(parser, parser->indents, int *)) { goto error; }
+    if (!STACK_INIT(parser, parser->simple_keys, YamlSimpleKey *)) { goto error; }
+    if (!STACK_INIT(parser, parser->states, YamlParserState *)) { goto error; }
+    if (!STACK_INIT(parser, parser->marks, YamlMark *)) { goto error; }
+    if (!STACK_INIT(parser, parser->tag_directives, YamlTagDirective *)) { goto error; }
 
     return MYYAML_SUCCESS;
 
@@ -9777,10 +9777,10 @@ MYYAML_API int yaml_parser_load(YamlParser *parser, YamlDocument *document) {
     MYYAML_ASSERT(document); /* Non-NULL document object is expected. */
 
     memset(document, 0, sizeof(YamlDocument));
-    if (!STACK_INIT(parser, document->nodes, YamlNode *)) goto error;
+    if (!STACK_INIT(parser, document->nodes, YamlNode *)) { goto error; }
 
     if (!parser->stream_start_produced) {
-        if (!yaml_parser_parse(parser, &event)) goto error;
+        if (!yaml_parser_parse(parser, &event)) { goto error; }
         MYYAML_ASSERT(event.type == YAML_STREAM_START_EVENT);
         /* STREAM-START is expected. */
     }
@@ -9789,16 +9789,16 @@ MYYAML_API int yaml_parser_load(YamlParser *parser, YamlDocument *document) {
         return MYYAML_SUCCESS;
     }
 
-    if (!yaml_parser_parse(parser, &event)) goto error;
+    if (!yaml_parser_parse(parser, &event)) { goto error; }
     if (event.type == YAML_STREAM_END_EVENT) {
         return MYYAML_SUCCESS;
     }
 
-    if (!STACK_INIT(parser, parser->aliases, YamlAliasData *)) goto error;
+    if (!STACK_INIT(parser, parser->aliases, YamlAliasData *)) { goto error; }
 
     parser->document = document;
 
-    if (!yaml_parser_load_document(parser, &event)) goto error;
+    if (!yaml_parser_load_document(parser, &event)) { goto error; }
 
     yaml_parser_delete_aliases(parser);
     parser->document = NULL;
@@ -10236,12 +10236,12 @@ MYYAML_API int yaml_emitter_initialize(YamlEmitter *emitter) {
     MYYAML_ASSERT(emitter); /* Non-NULL emitter object expected. */
 
     memset(emitter, 0, sizeof(YamlEmitter));
-    if (!MYYAML_BUFFER_INIT(emitter, emitter->buffer, MYYAML_OUPUT_BUFFER_SIZE)) goto error;
-    if (!MYYAML_BUFFER_INIT(emitter, emitter->raw_buffer, MYYAML_OUTPUT_RAW_BUFFER_SIZE)) goto error;
-    if (!STACK_INIT(emitter, emitter->states, YamlEmitterState *)) goto error;
-    if (!QUEUE_INIT(emitter, emitter->events, MYYAML_INITIAL_QUEUE_SIZE, YamlEvent *)) goto error;
-    if (!STACK_INIT(emitter, emitter->indents, int *)) goto error;
-    if (!STACK_INIT(emitter, emitter->tag_directives, YamlTagDirective *)) goto error;
+    if (!MYYAML_BUFFER_INIT(emitter, emitter->buffer, MYYAML_OUPUT_BUFFER_SIZE)) { goto error; }
+    if (!MYYAML_BUFFER_INIT(emitter, emitter->raw_buffer, MYYAML_OUTPUT_RAW_BUFFER_SIZE)) { goto error; }
+    if (!STACK_INIT(emitter, emitter->states, YamlEmitterState *)) { goto error; }
+    if (!QUEUE_INIT(emitter, emitter->events, MYYAML_INITIAL_QUEUE_SIZE, YamlEvent *)) { goto error; }
+    if (!STACK_INIT(emitter, emitter->indents, int *)) { goto error; }
+    if (!STACK_INIT(emitter, emitter->tag_directives, YamlTagDirective *)) { goto error; }
 
     return MYYAML_SUCCESS;
 
@@ -10304,11 +10304,11 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
     emitter->document = document;
 
     if (!emitter->opened) {
-        if (!yaml_emitter_open(emitter)) goto error;
+        if (!yaml_emitter_open(emitter)) { goto error; }
     }
 
     if (STACK_EMPTY(emitter, document->nodes)) {
-        if (!yaml_emitter_close(emitter)) goto error;
+        if (!yaml_emitter_close(emitter)) { goto error; }
         yaml_emitter_delete_document_and_anchors(emitter);
         return MYYAML_SUCCESS;
     }
@@ -10316,7 +10316,7 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
     MYYAML_ASSERT(emitter->opened); /* Emitter should be opened. */
 
     emitter->anchors = (YamlAnchors *)_myyaml_malloc(sizeof(*(emitter->anchors)) * (document->nodes.top - document->nodes.start));
-    if (!emitter->anchors) goto error;
+    if (!emitter->anchors) { goto error; }
     memset(emitter->anchors, 0, sizeof(*(emitter->anchors)) * (document->nodes.top - document->nodes.start));
 
     memset((&event), 0, sizeof(YamlEvent));
@@ -10328,10 +10328,10 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
     event.data.document_start.tag_directives.end = document->tag_directives.end;
     event.data.document_start.implicit = document->start_implicit;
 
-    if (!yaml_emitter_emit(emitter, &event)) goto error;
+    if (!yaml_emitter_emit(emitter, &event)) { goto error; }
 
     yaml_emitter_anchor_node(emitter, 1);
-    if (!yaml_emitter_dump_node(emitter, 1)) goto error;
+    if (!yaml_emitter_dump_node(emitter, 1)) { goto error; }
 
     memset((&event), 0, sizeof(YamlEvent));
     event.type = YAML_DOCUMENT_END_EVENT;
@@ -10339,7 +10339,7 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
     event.end_mark = mark;
     event.data.document_end.implicit = document->end_implicit;
 
-    if (!yaml_emitter_emit(emitter, &event)) goto error;
+    if (!yaml_emitter_emit(emitter, &event)) { goto error; }
 
     yaml_emitter_delete_document_and_anchors(emitter);
 
