@@ -627,7 +627,7 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
     #define MYYAML_PTRCAST(type, x)    ((type)x)
     #define MYYAML_ABORT     exit(1)
 	#define MYYAML_API
-	#define MYYAML_INLINE static inline
+	// #define MYYAML_INLINE static inline
 	/// Used for C literals like (b2Vec2){1.0f, 2.0f} where C++ requires b2Vec2{1.0f, 2.0f}
 	#define MYYAML_LITERAL(T) (T)
 	#define MYYAML_ZERO_INIT {0}
@@ -1987,11 +1987,11 @@ MYYAML_API void *_myyaml_malloc(size_t size) { return malloc(size ? size : 1); }
 MYYAML_API void *_myyaml_realloc(void *ptr, size_t size) { return ptr ? realloc(ptr, size ? size : 1) : malloc(size ? size : 1); };
 
 MYYAML_API void _myyaml_free(void *ptr) {
-    if (ptr) free(ptr);
+    if (ptr){ free(ptr);}
 };
 
 MYYAML_API YamlChar_t *_myyaml_strdup(const YamlChar_t *str) {
-    if (!str) return NULL;
+    if (!str) {return NULL;}
 
     return (YamlChar_t *)strdup((char *)str);
 };
@@ -1999,7 +1999,7 @@ MYYAML_API YamlChar_t *_myyaml_strdup(const YamlChar_t *str) {
 MYYAML_API int _myyaml_string_extend(YamlChar_t **start, YamlChar_t **pointer, YamlChar_t **end) {
     YamlChar_t *new_start = (YamlChar_t *)_myyaml_realloc((void *)*start, (*end - *start) * 2);
 
-    if (!new_start) return MYYAML_FAILURE;
+    if (!new_start) {return MYYAML_FAILURE;}
 
     memset(new_start + (*end - *start), 0, *end - *start);
 
@@ -2013,10 +2013,10 @@ MYYAML_API int _myyaml_string_extend(YamlChar_t **start, YamlChar_t **pointer, Y
 MYYAML_API int _myyaml_string_join(YamlChar_t **a_start, YamlChar_t **a_pointer, YamlChar_t **a_end, YamlChar_t **b_start, YamlChar_t **b_pointer,
                                    SHIM(YamlChar_t **b_end)) {
     UNUSED_PARAM(b_end)
-    if (*b_start == *b_pointer) return MYYAML_SUCCESS;
+    if (*b_start == *b_pointer) {return MYYAML_SUCCESS;}
 
     while (*a_end - *a_pointer <= *b_pointer - *b_start) {
-        if (!_myyaml_string_extend(a_start, a_pointer, a_end)) return MYYAML_FAILURE;
+        if (!_myyaml_string_extend(a_start, a_pointer, a_end)) {return MYYAML_FAILURE;}
     }
 
     memcpy(*a_pointer, *b_start, *b_pointer - *b_start);
@@ -2028,11 +2028,11 @@ MYYAML_API int _myyaml_string_join(YamlChar_t **a_start, YamlChar_t **a_pointer,
 MYYAML_API int _myyaml_stack_extend(void **start, void **top, void **end) {
     void *new_start;
 
-    if ((char *)*end - (char *)*start >= INT_MAX / 2) return MYYAML_FAILURE;
+    if ((char *)*end - (char *)*start >= INT_MAX / 2) {return MYYAML_FAILURE;}
 
     new_start = _myyaml_realloc(*start, ((char *)*end - (char *)*start) * 2);
 
-    if (!new_start) return MYYAML_FAILURE;
+    if (!new_start) {return MYYAML_FAILURE;}
 
     *top = (char *)new_start + ((char *)*top - (char *)*start);
     *end = (char *)new_start + ((char *)*end - (char *)*start) * 2;
@@ -2047,7 +2047,7 @@ MYYAML_API int _myyaml_queue_extend(void **start, void **head, void **tail, void
     if (*start == *head && *tail == *end) {
         void *new_start = _myyaml_realloc(*start, ((char *)*end - (char *)*start) * 2);
 
-        if (!new_start) return MYYAML_FAILURE;
+        if (!new_start) {return MYYAML_FAILURE;}
 
         *head = (char *)new_start + ((char *)*head - (char *)*start);
         *tail = (char *)new_start + ((char *)*tail - (char *)*start);
@@ -2602,7 +2602,7 @@ MYYAML_API int yaml_parser_fetch_more_tokens(YamlParser *parser) {
             /* Check if any potential simple key may occupy the head position.
              */
 
-            if (!yaml_parser_stale_simple_keys(parser)) return MYYAML_FAILURE;
+            if (!yaml_parser_stale_simple_keys(parser)) { return MYYAML_FAILURE; }
 
             for (simple_key = parser->simple_keys.start; simple_key != parser->simple_keys.top; simple_key++) {
                 if (simple_key->possible && simple_key->token_number == parser->tokens_parsed) {
@@ -2614,11 +2614,11 @@ MYYAML_API int yaml_parser_fetch_more_tokens(YamlParser *parser) {
 
         /* We are finished. */
 
-        if (!need_more_tokens) break;
+        if (!need_more_tokens){ break;}
 
         /* Fetch the next token. */
 
-        if (!yaml_parser_fetch_next_token(parser)) return MYYAML_FAILURE;
+        if (!yaml_parser_fetch_next_token(parser)) {return MYYAML_FAILURE;}
     }
 
     parser->token_available = 1;
@@ -2633,38 +2633,38 @@ MYYAML_API int yaml_parser_fetch_more_tokens(YamlParser *parser) {
 static int yaml_parser_fetch_next_token(YamlParser *parser) {
     /* Ensure that the buffer is initialized. */
 
-    if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+    if (!CACHE(parser, 1)) {return MYYAML_FAILURE;}
 
     /* Check if we just started scanning.  Fetch STREAM-START then. */
 
-    if (!parser->stream_start_produced) return yaml_parser_fetch_stream_start(parser);
+    if (!parser->stream_start_produced) {return yaml_parser_fetch_stream_start(parser);}
 
     /* Eat whitespaces and comments until we reach the next token. */
 
-    if (!yaml_parser_scan_to_next_token(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_to_next_token(parser)) {return MYYAML_FAILURE;}
 
     /* Remove obsolete potential simple keys. */
 
-    if (!yaml_parser_stale_simple_keys(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_stale_simple_keys(parser)) {return MYYAML_FAILURE;}
 
     /* Check the indentation level against the current column. */
 
-    if (!yaml_parser_unroll_indent(parser, parser->mark.column)) return MYYAML_FAILURE;
+    if (!yaml_parser_unroll_indent(parser, parser->mark.column)) {return MYYAML_FAILURE;}
 
     /*
      * Ensure that the buffer contains at least 4 characters.  4 is the length
      * of the longest indicators ('--- ' and '... ').
      */
 
-    if (!CACHE(parser, 4)) return MYYAML_FAILURE;
+    if (!CACHE(parser, 4)) {return MYYAML_FAILURE;}
 
     /* Is it the end of the stream? */
 
-    if (IS_Z(parser->buffer)) return yaml_parser_fetch_stream_end(parser);
+    if (IS_Z(parser->buffer)) {return yaml_parser_fetch_stream_end(parser);}
 
     /* Is it a directive? */
 
-    if (parser->mark.column == 0 && CHECK(parser->buffer, '%')) return yaml_parser_fetch_directive(parser);
+    if (parser->mark.column == 0 && CHECK(parser->buffer, '%')) {return yaml_parser_fetch_directive(parser);}
 
     /* Is it the document start indicator? */
 
@@ -2680,63 +2680,63 @@ static int yaml_parser_fetch_next_token(YamlParser *parser) {
 
     /* Is it the flow sequence start indicator? */
 
-    if (CHECK(parser->buffer, '[')) return yaml_parser_fetch_flow_collection_start(parser, YAML_FLOW_SEQUENCE_START_TOKEN);
+    if (CHECK(parser->buffer, '[')) {return yaml_parser_fetch_flow_collection_start(parser, YAML_FLOW_SEQUENCE_START_TOKEN);}
 
     /* Is it the flow mapping start indicator? */
 
-    if (CHECK(parser->buffer, '{')) return yaml_parser_fetch_flow_collection_start(parser, YAML_FLOW_MAPPING_START_TOKEN);
+    if (CHECK(parser->buffer, '{')) {return yaml_parser_fetch_flow_collection_start(parser, YAML_FLOW_MAPPING_START_TOKEN);}
 
     /* Is it the flow sequence end indicator? */
 
-    if (CHECK(parser->buffer, ']')) return yaml_parser_fetch_flow_collection_end(parser, YAML_FLOW_SEQUENCE_END_TOKEN);
+    if (CHECK(parser->buffer, ']')) {return yaml_parser_fetch_flow_collection_end(parser, YAML_FLOW_SEQUENCE_END_TOKEN);}
 
     /* Is it the flow mapping end indicator? */
 
-    if (CHECK(parser->buffer, '}')) return yaml_parser_fetch_flow_collection_end(parser, YAML_FLOW_MAPPING_END_TOKEN);
+    if (CHECK(parser->buffer, '}')) {return yaml_parser_fetch_flow_collection_end(parser, YAML_FLOW_MAPPING_END_TOKEN);}
 
     /* Is it the flow entry indicator? */
 
-    if (CHECK(parser->buffer, ',')) return yaml_parser_fetch_flow_entry(parser);
+    if (CHECK(parser->buffer, ',')) {return yaml_parser_fetch_flow_entry(parser);}
 
     /* Is it the block entry indicator? */
 
-    if (CHECK(parser->buffer, '-') && IS_BLANKZ_AT(parser->buffer, 1)) return yaml_parser_fetch_block_entry(parser);
+    if (CHECK(parser->buffer, '-') && IS_BLANKZ_AT(parser->buffer, 1)) {return yaml_parser_fetch_block_entry(parser);}
 
     /* Is it the key indicator? */
 
-    if (CHECK(parser->buffer, '?') && (parser->flow_level || IS_BLANKZ_AT(parser->buffer, 1))) return yaml_parser_fetch_key(parser);
+    if (CHECK(parser->buffer, '?') && (parser->flow_level || IS_BLANKZ_AT(parser->buffer, 1))) {return yaml_parser_fetch_key(parser);}
 
     /* Is it the value indicator? */
 
-    if (CHECK(parser->buffer, ':') && (parser->flow_level || IS_BLANKZ_AT(parser->buffer, 1))) return yaml_parser_fetch_value(parser);
+    if (CHECK(parser->buffer, ':') && (parser->flow_level || IS_BLANKZ_AT(parser->buffer, 1))) {return yaml_parser_fetch_value(parser);}
 
     /* Is it an alias? */
 
-    if (CHECK(parser->buffer, '*')) return yaml_parser_fetch_anchor(parser, YAML_ALIAS_TOKEN);
+    if (CHECK(parser->buffer, '*')) {return yaml_parser_fetch_anchor(parser, YAML_ALIAS_TOKEN);}
 
     /* Is it an anchor? */
 
-    if (CHECK(parser->buffer, '&')) return yaml_parser_fetch_anchor(parser, YAML_ANCHOR_TOKEN);
+    if (CHECK(parser->buffer, '&')) {return yaml_parser_fetch_anchor(parser, YAML_ANCHOR_TOKEN);}
 
     /* Is it a tag? */
 
-    if (CHECK(parser->buffer, '!')) return yaml_parser_fetch_tag(parser);
+    if (CHECK(parser->buffer, '!')) {return yaml_parser_fetch_tag(parser);}
 
     /* Is it a literal scalar? */
 
-    if (CHECK(parser->buffer, '|') && !parser->flow_level) return yaml_parser_fetch_block_scalar(parser, 1);
+    if (CHECK(parser->buffer, '|') && !parser->flow_level) {return yaml_parser_fetch_block_scalar(parser, 1);}
 
     /* Is it a folded scalar? */
 
-    if (CHECK(parser->buffer, '>') && !parser->flow_level) return yaml_parser_fetch_block_scalar(parser, 0);
+    if (CHECK(parser->buffer, '>') && !parser->flow_level) {return yaml_parser_fetch_block_scalar(parser, 0);}
 
     /* Is it a single-quoted scalar? */
 
-    if (CHECK(parser->buffer, '\'')) return yaml_parser_fetch_flow_scalar(parser, 1);
+    if (CHECK(parser->buffer, '\'')) {return yaml_parser_fetch_flow_scalar(parser, 1);}
 
     /* Is it a double-quoted scalar? */
 
-    if (CHECK(parser->buffer, '"')) return yaml_parser_fetch_flow_scalar(parser, 0);
+    if (CHECK(parser->buffer, '"')) {return yaml_parser_fetch_flow_scalar(parser, 0);}
 
     /*
      * Is it a plain scalar?
@@ -2764,7 +2764,7 @@ static int yaml_parser_fetch_next_token(YamlParser *parser) {
           CHECK(parser->buffer, '"') || CHECK(parser->buffer, '%') || CHECK(parser->buffer, '@') || CHECK(parser->buffer, '`')) ||
         (CHECK(parser->buffer, '-') && !IS_BLANK_AT(parser->buffer, 1)) ||
         (!parser->flow_level && (CHECK(parser->buffer, '?') || CHECK(parser->buffer, ':')) && !IS_BLANKZ_AT(parser->buffer, 1)))
-        return yaml_parser_fetch_plain_scalar(parser);
+        {return yaml_parser_fetch_plain_scalar(parser);}
 
     /*
      * If we don't determine the token type so far, it is an error.
@@ -2830,7 +2830,7 @@ static int yaml_parser_save_simple_key(YamlParser *parser) {
         simple_key.token_number = parser->tokens_parsed + (parser->tokens.tail - parser->tokens.head);
         simple_key.mark = parser->mark;
 
-        if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+        if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
         *(parser->simple_keys.top - 1) = simple_key;
     }
@@ -2869,7 +2869,7 @@ static int yaml_parser_increase_flow_level(YamlParser *parser) {
 
     /* Reset the simple key on the next level. */
 
-    if (!PUSH(parser, parser->simple_keys, empty_simple_key)) return MYYAML_FAILURE;
+    if (!PUSH(parser, parser->simple_keys, empty_simple_key)) { return MYYAML_FAILURE; }
 
     /* Increase the flow level. */
 
@@ -2908,7 +2908,7 @@ static int yaml_parser_roll_indent(YamlParser *parser, ptrdiff_t column, ptrdiff
 
     /* In the flow context, do nothing. */
 
-    if (parser->flow_level) return MYYAML_SUCCESS;
+    if (parser->flow_level){ return MYYAML_SUCCESS;}
 
     if (parser->indent < column) {
         /*
@@ -2916,7 +2916,7 @@ static int yaml_parser_roll_indent(YamlParser *parser, ptrdiff_t column, ptrdiff
          * indentation level.
          */
 
-        if (!PUSH(parser, parser->indents, parser->indent)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->indents, parser->indent)) { return MYYAML_FAILURE; }
 
         if (column > INT_MAX) {
             parser->error = YAML_MEMORY_ERROR;
@@ -2930,9 +2930,9 @@ static int yaml_parser_roll_indent(YamlParser *parser, ptrdiff_t column, ptrdiff
         TOKEN_INIT(token, type, mark, mark);
 
         if (number == -1) {
-            if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+            if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
         } else {
-            if (!QUEUE_INSERT(parser, parser->tokens, number - parser->tokens_parsed, token)) return MYYAML_FAILURE;
+            if (!QUEUE_INSERT(parser, parser->tokens, number - parser->tokens_parsed, token)) { return MYYAML_FAILURE; }
         }
     }
 
@@ -2950,7 +2950,7 @@ static int yaml_parser_unroll_indent(YamlParser *parser, ptrdiff_t column) {
 
     /* In the flow context, do nothing. */
 
-    if (parser->flow_level) return MYYAML_SUCCESS;
+    if (parser->flow_level) {return MYYAML_SUCCESS;}
 
     /* Loop through the indentation levels in the stack. */
 
@@ -2959,7 +2959,7 @@ static int yaml_parser_unroll_indent(YamlParser *parser, ptrdiff_t column) {
 
         TOKEN_INIT(token, YAML_BLOCK_END_TOKEN, parser->mark, parser->mark);
 
-        if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+        if (!ENQUEUE(parser, parser->tokens, token)) {return MYYAML_FAILURE;}
 
         /* Pop the indentation level. */
 
@@ -2983,7 +2983,7 @@ static int yaml_parser_fetch_stream_start(YamlParser *parser) {
 
     /* Initialize the simple key stack. */
 
-    if (!PUSH(parser, parser->simple_keys, simple_key)) return MYYAML_FAILURE;
+    if (!PUSH(parser, parser->simple_keys, simple_key)) {return MYYAML_FAILURE;}
 
     /* A simple key is allowed at the beginning of the stream. */
 
@@ -2997,7 +2997,7 @@ static int yaml_parser_fetch_stream_start(YamlParser *parser) {
 
     STREAM_START_TOKEN_INIT(token, parser->encoding, parser->mark, parser->mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) {return MYYAML_FAILURE;}
 
     return MYYAML_SUCCESS;
 }
@@ -3018,11 +3018,11 @@ static int yaml_parser_fetch_stream_end(YamlParser *parser) {
 
     /* Reset the indentation level. */
 
-    if (!yaml_parser_unroll_indent(parser, -1)) return MYYAML_FAILURE;
+    if (!yaml_parser_unroll_indent(parser, -1)) {return MYYAML_FAILURE;}
 
     /* Reset simple keys. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) {return MYYAML_FAILURE;}
 
     parser->simple_key_allowed = 0;
 
@@ -3030,7 +3030,7 @@ static int yaml_parser_fetch_stream_end(YamlParser *parser) {
 
     STREAM_END_TOKEN_INIT(token, parser->mark, parser->mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) {return MYYAML_FAILURE;}
 
     return MYYAML_SUCCESS;
 }
@@ -3044,17 +3044,17 @@ static int yaml_parser_fetch_directive(YamlParser *parser) {
 
     /* Reset the indentation level. */
 
-    if (!yaml_parser_unroll_indent(parser, -1)) return MYYAML_FAILURE;
+    if (!yaml_parser_unroll_indent(parser, -1)) {return MYYAML_FAILURE;}
 
     /* Reset simple keys. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) {return MYYAML_FAILURE;}
 
     parser->simple_key_allowed = 0;
 
     /* Create the YAML-DIRECTIVE or TAG-DIRECTIVE token. */
 
-    if (!yaml_parser_scan_directive(parser, &token)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_directive(parser, &token)) { return MYYAML_FAILURE; }
 
     /* Append the token to the queue. */
 
@@ -3076,11 +3076,11 @@ static int yaml_parser_fetch_document_indicator(YamlParser *parser, YamlTokenTyp
 
     /* Reset the indentation level. */
 
-    if (!yaml_parser_unroll_indent(parser, -1)) return MYYAML_FAILURE;
+    if (!yaml_parser_unroll_indent(parser, -1)) {return MYYAML_FAILURE;}
 
     /* Reset simple keys. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) {return MYYAML_FAILURE;}
 
     parser->simple_key_allowed = 0;
 
@@ -3100,7 +3100,7 @@ static int yaml_parser_fetch_document_indicator(YamlParser *parser, YamlTokenTyp
 
     /* Append the token to the queue. */
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) {return MYYAML_FAILURE;}
 
     return MYYAML_SUCCESS;
 }
@@ -3115,11 +3115,11 @@ static int yaml_parser_fetch_flow_collection_start(YamlParser *parser, YamlToken
 
     /* The indicators '[' and '{' may start a simple key. */
 
-    if (!yaml_parser_save_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_save_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* Increase the flow level. */
 
-    if (!yaml_parser_increase_flow_level(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_increase_flow_level(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key may follow the indicators '[' and '{'. */
 
@@ -3137,7 +3137,7 @@ static int yaml_parser_fetch_flow_collection_start(YamlParser *parser, YamlToken
 
     /* Append the token to the queue. */
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3152,11 +3152,11 @@ static int yaml_parser_fetch_flow_collection_end(YamlParser *parser, YamlTokenTy
 
     /* Reset any potential simple key on the current flow level. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* Decrease the flow level. */
 
-    if (!yaml_parser_decrease_flow_level(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_decrease_flow_level(parser)) { return MYYAML_FAILURE; }
 
     /* No simple keys after the indicators ']' and '}'. */
 
@@ -3174,7 +3174,7 @@ static int yaml_parser_fetch_flow_collection_end(YamlParser *parser, YamlTokenTy
 
     /* Append the token to the queue. */
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3189,7 +3189,7 @@ static int yaml_parser_fetch_flow_entry(YamlParser *parser) {
 
     /* Reset any potential simple keys on the current flow level. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* Simple keys are allowed after ','. */
 
@@ -3205,7 +3205,7 @@ static int yaml_parser_fetch_flow_entry(YamlParser *parser) {
 
     TOKEN_INIT(token, YAML_FLOW_ENTRY_TOKEN, start_mark, end_mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3229,7 +3229,7 @@ static int yaml_parser_fetch_block_entry(YamlParser *parser) {
 
         /* Add the BLOCK-SEQUENCE-START token if needed. */
 
-        if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_SEQUENCE_START_TOKEN, parser->mark)) return MYYAML_FAILURE;
+        if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_SEQUENCE_START_TOKEN, parser->mark)) { return MYYAML_FAILURE; }
     } else {
         /*
          * It is an error for the '-' indicator to occur in the flow context,
@@ -3240,7 +3240,7 @@ static int yaml_parser_fetch_block_entry(YamlParser *parser) {
 
     /* Reset any potential simple keys on the current flow level. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* Simple keys are allowed after '-'. */
 
@@ -3256,7 +3256,7 @@ static int yaml_parser_fetch_block_entry(YamlParser *parser) {
 
     TOKEN_INIT(token, YAML_BLOCK_ENTRY_TOKEN, start_mark, end_mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3280,12 +3280,12 @@ static int yaml_parser_fetch_key(YamlParser *parser) {
 
         /* Add the BLOCK-MAPPING-START token if needed. */
 
-        if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_MAPPING_START_TOKEN, parser->mark)) return MYYAML_FAILURE;
+        if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_MAPPING_START_TOKEN, parser->mark)) { return MYYAML_FAILURE; }
     }
 
     /* Reset any potential simple keys on the current flow level. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* Simple keys are allowed after '?' in the block context. */
 
@@ -3301,7 +3301,7 @@ static int yaml_parser_fetch_key(YamlParser *parser) {
 
     TOKEN_INIT(token, YAML_KEY_TOKEN, start_mark, end_mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3322,7 +3322,7 @@ static int yaml_parser_fetch_value(YamlParser *parser) {
 
         TOKEN_INIT(token, YAML_KEY_TOKEN, simple_key->mark, simple_key->mark);
 
-        if (!QUEUE_INSERT(parser, parser->tokens, simple_key->token_number - parser->tokens_parsed, token)) return MYYAML_FAILURE;
+        if (!QUEUE_INSERT(parser, parser->tokens, simple_key->token_number - parser->tokens_parsed, token)) { return MYYAML_FAILURE; }
 
         /* In the block context, we may need to add the BLOCK-MAPPING-START
          * token.
@@ -3350,7 +3350,7 @@ static int yaml_parser_fetch_value(YamlParser *parser) {
             }
 
             /* Add the BLOCK-MAPPING-START token if needed. */
-            if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_MAPPING_START_TOKEN, parser->mark)) return MYYAML_FAILURE;
+            if (!yaml_parser_roll_indent(parser, parser->mark.column, -1, YAML_BLOCK_MAPPING_START_TOKEN, parser->mark)) { return MYYAML_FAILURE; }
         }
 
         /* Simple keys after ':' are allowed in the block context. */
@@ -3368,7 +3368,7 @@ static int yaml_parser_fetch_value(YamlParser *parser) {
 
     TOKEN_INIT(token, YAML_VALUE_TOKEN, start_mark, end_mark);
 
-    if (!ENQUEUE(parser, parser->tokens, token)) return MYYAML_FAILURE;
+    if (!ENQUEUE(parser, parser->tokens, token)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3382,7 +3382,7 @@ static int yaml_parser_fetch_anchor(YamlParser *parser, YamlTokenType type) {
 
     /* An anchor or an alias could be a simple key. */
 
-    if (!yaml_parser_save_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_save_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key cannot follow an anchor or an alias. */
 
@@ -3390,7 +3390,7 @@ static int yaml_parser_fetch_anchor(YamlParser *parser, YamlTokenType type) {
 
     /* Create the ALIAS or ANCHOR token and append it to the queue. */
 
-    if (!yaml_parser_scan_anchor(parser, &token, type)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_anchor(parser, &token, type)) { return MYYAML_FAILURE; }
 
     if (!ENQUEUE(parser, parser->tokens, token)) {
         yaml_token_delete(&token);
@@ -3408,7 +3408,7 @@ static int yaml_parser_fetch_tag(YamlParser *parser) {
 
     /* A tag could be a simple key. */
 
-    if (!yaml_parser_save_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_save_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key cannot follow a tag. */
 
@@ -3416,7 +3416,7 @@ static int yaml_parser_fetch_tag(YamlParser *parser) {
 
     /* Create the TAG token and append it to the queue. */
 
-    if (!yaml_parser_scan_tag(parser, &token)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_tag(parser, &token)) { return MYYAML_FAILURE; }
 
     if (!ENQUEUE(parser, parser->tokens, token)) {
         yaml_token_delete(&token);
@@ -3435,7 +3435,7 @@ static int yaml_parser_fetch_block_scalar(YamlParser *parser, int literal) {
 
     /* Remove any potential simple keys. */
 
-    if (!yaml_parser_remove_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_remove_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key may follow a block scalar. */
 
@@ -3443,7 +3443,7 @@ static int yaml_parser_fetch_block_scalar(YamlParser *parser, int literal) {
 
     /* Create the SCALAR token and append it to the queue. */
 
-    if (!yaml_parser_scan_block_scalar(parser, &token, literal)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_block_scalar(parser, &token, literal)) { return MYYAML_FAILURE; }
 
     if (!ENQUEUE(parser, parser->tokens, token)) {
         yaml_token_delete(&token);
@@ -3462,7 +3462,7 @@ static int yaml_parser_fetch_flow_scalar(YamlParser *parser, int single) {
 
     /* A plain scalar could be a simple key. */
 
-    if (!yaml_parser_save_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_save_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key cannot follow a flow scalar. */
 
@@ -3470,7 +3470,7 @@ static int yaml_parser_fetch_flow_scalar(YamlParser *parser, int single) {
 
     /* Create the SCALAR token and append it to the queue. */
 
-    if (!yaml_parser_scan_flow_scalar(parser, &token, single)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_flow_scalar(parser, &token, single)) { return MYYAML_FAILURE; }
 
     if (!ENQUEUE(parser, parser->tokens, token)) {
         yaml_token_delete(&token);
@@ -3489,7 +3489,7 @@ static int yaml_parser_fetch_plain_scalar(YamlParser *parser) {
 
     /* A plain scalar could be a simple key. */
 
-    if (!yaml_parser_save_simple_key(parser)) return MYYAML_FAILURE;
+    if (!yaml_parser_save_simple_key(parser)) { return MYYAML_FAILURE; }
 
     /* A simple key cannot follow a flow scalar. */
 
@@ -3497,7 +3497,7 @@ static int yaml_parser_fetch_plain_scalar(YamlParser *parser) {
 
     /* Create the SCALAR token and append it to the queue. */
 
-    if (!yaml_parser_scan_plain_scalar(parser, &token)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_plain_scalar(parser, &token)) { return MYYAML_FAILURE; }
 
     if (!ENQUEUE(parser, parser->tokens, token)) {
         yaml_token_delete(&token);
@@ -3517,7 +3517,7 @@ static int yaml_parser_scan_to_next_token(YamlParser *parser) {
     while (1) {
         /* Allow the BOM mark to start a line. */
 
-        if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
 
         if (parser->mark.column == 0 && IS_BOM(parser->buffer)) SKIP(parser);
 
@@ -3531,11 +3531,11 @@ static int yaml_parser_scan_to_next_token(YamlParser *parser) {
          *  after '-', '?', or ':' (complex value).
          */
 
-        if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
 
         while (CHECK(parser->buffer, ' ') || ((parser->flow_level || !parser->simple_key_allowed) && CHECK(parser->buffer, '\t'))) {
             SKIP(parser);
-            if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+            if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
         }
 
         /* Eat a comment until a line break. */
@@ -3543,14 +3543,14 @@ static int yaml_parser_scan_to_next_token(YamlParser *parser) {
         if (CHECK(parser->buffer, '#')) {
             while (!IS_BREAKZ(parser->buffer)) {
                 SKIP(parser);
-                if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+                if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
             }
         }
 
         /* If it is a line break, eat it. */
 
         if (IS_BREAK(parser->buffer)) {
-            if (!CACHE(parser, 2)) return MYYAML_FAILURE;
+            if (!CACHE(parser, 2)) { return MYYAML_FAILURE; }
             SKIP_LINE(parser);
 
             /* In the block context, a new line may start a simple key. */
@@ -3728,16 +3728,16 @@ error:
 static int yaml_parser_scan_version_directive_value(YamlParser *parser, YamlMark start_mark, int *major, int *minor) {
     /* Eat whitespaces. */
 
-    if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+    if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
 
     while (IS_BLANK(parser->buffer)) {
         SKIP(parser);
-        if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
     }
 
     /* Consume the major version number. */
 
-    if (!yaml_parser_scan_version_directive_number(parser, start_mark, major)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_version_directive_number(parser, start_mark, major)) { return MYYAML_FAILURE; }
 
     /* Eat '.'. */
 
@@ -3749,7 +3749,7 @@ static int yaml_parser_scan_version_directive_value(YamlParser *parser, YamlMark
 
     /* Consume the minor version number. */
 
-    if (!yaml_parser_scan_version_directive_number(parser, start_mark, minor)) return MYYAML_FAILURE;
+    if (!yaml_parser_scan_version_directive_number(parser, start_mark, minor)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -3772,7 +3772,7 @@ static int yaml_parser_scan_version_directive_number(YamlParser *parser, YamlMar
 
     /* Repeat while the next character is digit. */
 
-    if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+    if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
 
     while (IS_DIGIT(parser->buffer)) {
         /* Check if the number is too long. */
@@ -3785,7 +3785,7 @@ static int yaml_parser_scan_version_directive_number(YamlParser *parser, YamlMar
 
         SKIP(parser);
 
-        if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
     }
 
     /* Check if the number was present. */
@@ -4178,7 +4178,7 @@ static int yaml_parser_scan_uri_escapes(YamlParser *parser, int directive, YamlM
 
         /* Check for a URI-escaped octet. */
 
-        if (!CACHE(parser, 3)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 3)) { return MYYAML_FAILURE; }
 
         if (!(CHECK(parser->buffer, '%') && IS_HEX_AT(parser->buffer, 1) && IS_HEX_AT(parser->buffer, 2))) {
             return yaml_parser_set_scanner_error(parser, directive ? "while parsing a %TAG directive" : "while parsing a tag", start_mark,
@@ -4442,11 +4442,11 @@ static int yaml_parser_scan_block_scalar_breaks(YamlParser *parser, int *indent,
     while (1) {
         /* Eat the indentation spaces. */
 
-        if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
 
         while ((!*indent || (int)parser->mark.column < *indent) && IS_SPACE(parser->buffer)) {
             SKIP(parser);
-            if (!CACHE(parser, 1)) return MYYAML_FAILURE;
+            if (!CACHE(parser, 1)) { return MYYAML_FAILURE; }
         }
 
         if ((int)parser->mark.column > max_indent) max_indent = (int)parser->mark.column;
@@ -4464,8 +4464,8 @@ static int yaml_parser_scan_block_scalar_breaks(YamlParser *parser, int *indent,
 
         /* Consume the line break. */
 
-        if (!CACHE(parser, 2)) return MYYAML_FAILURE;
-        if (!READ_LINE(parser, *breaks)) return MYYAML_FAILURE;
+        if (!CACHE(parser, 2)) { return MYYAML_FAILURE; }
+        if (!READ_LINE(parser, *breaks)) { return MYYAML_FAILURE; }
         *end_mark = parser->mark;
     }
 
@@ -5174,7 +5174,7 @@ static int yaml_parser_parse_stream_start(YamlParser *parser, YamlEvent *event) 
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type != YAML_STREAM_START_TOKEN) {
         return yaml_parser_set_parser_error(parser, "did not find expected <stream-start>", token->start_mark);
@@ -5210,7 +5210,7 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
     } tag_directives = {NULL, NULL};
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     /* Parse extra document end indicators. */
 
@@ -5218,7 +5218,7 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
         while (token->type == YAML_DOCUMENT_END_TOKEN) {
             SKIP_TOKEN(parser);
             token = PEEK_TOKEN(parser);
-            if (!token) return MYYAML_FAILURE;
+            if (!token) { return MYYAML_FAILURE; }
         }
     }
 
@@ -5226,8 +5226,8 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
 
     if (implicit && token->type != YAML_VERSION_DIRECTIVE_TOKEN && token->type != YAML_TAG_DIRECTIVE_TOKEN &&
         token->type != YAML_DOCUMENT_START_TOKEN && token->type != YAML_STREAM_END_TOKEN) {
-        if (!yaml_parser_process_directives(parser, NULL, NULL, NULL)) return MYYAML_FAILURE;
-        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE)) return MYYAML_FAILURE;
+        if (!yaml_parser_process_directives(parser, NULL, NULL, NULL)) { return MYYAML_FAILURE; }
+        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE)) { return MYYAML_FAILURE; }
 
         parser->state = YAML_PARSE_BLOCK_NODE_STATE;
 
@@ -5248,7 +5248,7 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
     else if (token->type != YAML_STREAM_END_TOKEN) {
         YamlMark start_mark, end_mark;
         start_mark = token->start_mark;
-        if (!yaml_parser_process_directives(parser, &version_directive, &tag_directives.start, &tag_directives.end)) return MYYAML_FAILURE;
+        if (!yaml_parser_process_directives(parser, &version_directive, &tag_directives.start, &tag_directives.end)) { return MYYAML_FAILURE; }
 
         token = PEEK_TOKEN(parser);
 
@@ -5311,7 +5311,7 @@ static int yaml_parser_parse_document_content(YamlParser *parser, YamlEvent *eve
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_VERSION_DIRECTIVE_TOKEN || token->type == YAML_TAG_DIRECTIVE_TOKEN || token->type == YAML_DOCUMENT_START_TOKEN ||
         token->type == YAML_DOCUMENT_END_TOKEN || token->type == YAML_STREAM_END_TOKEN) {
@@ -5336,7 +5336,7 @@ static int yaml_parser_parse_document_end(YamlParser *parser, YamlEvent *event) 
     int implicit = 1;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     start_mark = end_mark = token->start_mark;
 
@@ -5403,7 +5403,7 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
     int implicit;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_ALIAS_TOKEN) {
         parser->state = POP(parser, parser->states);
@@ -5647,20 +5647,20 @@ static int yaml_parser_parse_block_sequence_entry(YamlParser *parser, YamlEvent 
 
     if (first) {
         token = PEEK_TOKEN(parser);
-        if (!PUSH(parser, parser->marks, token->start_mark)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->marks, token->start_mark)) { return MYYAML_FAILURE; }
         SKIP_TOKEN(parser);
     }
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_BLOCK_ENTRY_TOKEN) {
         YamlMark mark = token->end_mark;
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_BLOCK_ENTRY_TOKEN && token->type != YAML_BLOCK_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 1, 0);
         } else {
             parser->state = YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE;
@@ -5697,16 +5697,16 @@ static int yaml_parser_parse_indentless_sequence_entry(YamlParser *parser, YamlE
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_BLOCK_ENTRY_TOKEN) {
         YamlMark mark = token->end_mark;
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_BLOCK_ENTRY_TOKEN && token->type != YAML_KEY_TOKEN && token->type != YAML_VALUE_TOKEN &&
             token->type != YAML_BLOCK_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 1, 0);
         } else {
             parser->state = YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE;
@@ -5743,20 +5743,20 @@ static int yaml_parser_parse_block_mapping_key(YamlParser *parser, YamlEvent *ev
 
     if (first) {
         token = PEEK_TOKEN(parser);
-        if (!PUSH(parser, parser->marks, token->start_mark)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->marks, token->start_mark)) { return MYYAML_FAILURE; }
         SKIP_TOKEN(parser);
     }
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_KEY_TOKEN) {
         YamlMark mark = token->end_mark;
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_KEY_TOKEN && token->type != YAML_VALUE_TOKEN && token->type != YAML_BLOCK_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_MAPPING_VALUE_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_MAPPING_VALUE_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 1, 1);
         } else {
             parser->state = YAML_PARSE_BLOCK_MAPPING_VALUE_STATE;
@@ -5799,15 +5799,15 @@ static int yaml_parser_parse_block_mapping_value(YamlParser *parser, YamlEvent *
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_VALUE_TOKEN) {
         YamlMark mark = token->end_mark;
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_KEY_TOKEN && token->type != YAML_VALUE_TOKEN && token->type != YAML_BLOCK_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_MAPPING_KEY_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_BLOCK_MAPPING_KEY_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 1, 1);
         } else {
             parser->state = YAML_PARSE_BLOCK_MAPPING_KEY_STATE;
@@ -5840,19 +5840,19 @@ static int yaml_parser_parse_flow_sequence_entry(YamlParser *parser, YamlEvent *
 
     if (first) {
         token = PEEK_TOKEN(parser);
-        if (!PUSH(parser, parser->marks, token->start_mark)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->marks, token->start_mark)) { return MYYAML_FAILURE; }
         SKIP_TOKEN(parser);
     }
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
         if (!first) {
             if (token->type == YAML_FLOW_ENTRY_TOKEN) {
                 SKIP_TOKEN(parser);
                 token = PEEK_TOKEN(parser);
-                if (!token) return MYYAML_FAILURE;
+                if (!token) { return MYYAML_FAILURE; }
             } else {
                 return yaml_parser_set_parser_error_context(parser, "while parsing a flow sequence", POP(parser, parser->marks),
                                                             "did not find expected ',' or ']'", token->start_mark);
@@ -5877,7 +5877,7 @@ static int yaml_parser_parse_flow_sequence_entry(YamlParser *parser, YamlEvent *
         }
 
         else if (token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 0, 0);
         }
     }
@@ -5904,10 +5904,10 @@ static int yaml_parser_parse_flow_sequence_entry_mapping_key(YamlParser *parser,
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type != YAML_VALUE_TOKEN && token->type != YAML_FLOW_ENTRY_TOKEN && token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
-        if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE)) { return MYYAML_FAILURE; }
         return yaml_parser_parse_node(parser, event, 0, 0);
     } else if (token->type == YAML_FLOW_SEQUENCE_END_TOKEN) {
         YamlMark mark = token->start_mark;
@@ -5931,14 +5931,14 @@ static int yaml_parser_parse_flow_sequence_entry_mapping_value(YamlParser *parse
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type == YAML_VALUE_TOKEN) {
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_FLOW_ENTRY_TOKEN && token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 0, 0);
         }
     }
@@ -5956,7 +5956,7 @@ static int yaml_parser_parse_flow_sequence_entry_mapping_end(YamlParser *parser,
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE;
 
@@ -5987,19 +5987,19 @@ static int yaml_parser_parse_flow_mapping_key(YamlParser *parser, YamlEvent *eve
 
     if (first) {
         token = PEEK_TOKEN(parser);
-        if (!PUSH(parser, parser->marks, token->start_mark)) return MYYAML_FAILURE;
+        if (!PUSH(parser, parser->marks, token->start_mark)) { return MYYAML_FAILURE; }
         SKIP_TOKEN(parser);
     }
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (token->type != YAML_FLOW_MAPPING_END_TOKEN) {
         if (!first) {
             if (token->type == YAML_FLOW_ENTRY_TOKEN) {
                 SKIP_TOKEN(parser);
                 token = PEEK_TOKEN(parser);
-                if (!token) return MYYAML_FAILURE;
+                if (!token) { return MYYAML_FAILURE; }
             } else {
                 return yaml_parser_set_parser_error_context(parser, "while parsing a flow mapping", POP(parser, parser->marks),
                                                             "did not find expected ',' or '}'", token->start_mark);
@@ -6009,16 +6009,16 @@ static int yaml_parser_parse_flow_mapping_key(YamlParser *parser, YamlEvent *eve
         if (token->type == YAML_KEY_TOKEN) {
             SKIP_TOKEN(parser);
             token = PEEK_TOKEN(parser);
-            if (!token) return MYYAML_FAILURE;
+            if (!token) { return MYYAML_FAILURE; }
             if (token->type != YAML_VALUE_TOKEN && token->type != YAML_FLOW_ENTRY_TOKEN && token->type != YAML_FLOW_MAPPING_END_TOKEN) {
-                if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_VALUE_STATE)) return MYYAML_FAILURE;
+                if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_VALUE_STATE)) { return MYYAML_FAILURE; }
                 return yaml_parser_parse_node(parser, event, 0, 0);
             } else {
                 parser->state = YAML_PARSE_FLOW_MAPPING_VALUE_STATE;
                 return yaml_parser_process_empty_scalar(parser, event, token->start_mark);
             }
         } else if (token->type != YAML_FLOW_MAPPING_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 0, 0);
         }
     }
@@ -6045,7 +6045,7 @@ static int yaml_parser_parse_flow_mapping_value(YamlParser *parser, YamlEvent *e
     YamlToken *token;
 
     token = PEEK_TOKEN(parser);
-    if (!token) return MYYAML_FAILURE;
+    if (!token) { return MYYAML_FAILURE; }
 
     if (empty) {
         parser->state = YAML_PARSE_FLOW_MAPPING_KEY_STATE;
@@ -6055,9 +6055,9 @@ static int yaml_parser_parse_flow_mapping_value(YamlParser *parser, YamlEvent *e
     if (token->type == YAML_VALUE_TOKEN) {
         SKIP_TOKEN(parser);
         token = PEEK_TOKEN(parser);
-        if (!token) return MYYAML_FAILURE;
+        if (!token) { return MYYAML_FAILURE; }
         if (token->type != YAML_FLOW_ENTRY_TOKEN && token->type != YAML_FLOW_MAPPING_END_TOKEN) {
-            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_KEY_STATE)) return MYYAML_FAILURE;
+            if (!PUSH(parser, parser->states, YAML_PARSE_FLOW_MAPPING_KEY_STATE)) { return MYYAML_FAILURE; }
             return yaml_parser_parse_node(parser, event, 0, 0);
         }
     }
@@ -6361,7 +6361,7 @@ static int yaml_parser_load_document(YamlParser *parser, YamlEvent *event) {
     parser->document->start_implicit = event->data.document_start.implicit;
     parser->document->start_mark = event->start_mark;
 
-    if (!STACK_INIT(parser, ctx, int *)) return MYYAML_FAILURE;
+    if (!STACK_INIT(parser, ctx, int *)) { return MYYAML_FAILURE; }
     if (!yaml_parser_load_nodes(parser, &ctx)) {
         STACK_DEL(parser, ctx);
         return MYYAML_FAILURE;
@@ -6379,26 +6379,26 @@ static int yaml_parser_load_nodes(YamlParser *parser, struct LoaderCtx_t *ctx) {
     YamlEvent event;
 
     do {
-        if (!yaml_parser_parse(parser, &event)) return MYYAML_FAILURE;
+        if (!yaml_parser_parse(parser, &event)) { return MYYAML_FAILURE; }
 
         switch (event.type) {
             case YAML_ALIAS_EVENT:
-                if (!yaml_parser_load_alias(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_alias(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             case YAML_SCALAR_EVENT:
-                if (!yaml_parser_load_scalar(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_scalar(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             case YAML_SEQUENCE_START_EVENT:
-                if (!yaml_parser_load_sequence(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_sequence(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             case YAML_SEQUENCE_END_EVENT:
-                if (!yaml_parser_load_sequence_end(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_sequence_end(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             case YAML_MAPPING_START_EVENT:
-                if (!yaml_parser_load_mapping(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_mapping(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             case YAML_MAPPING_END_EVENT:
-                if (!yaml_parser_load_mapping_end(parser, &event, ctx)) return MYYAML_FAILURE;
+                if (!yaml_parser_load_mapping_end(parser, &event, ctx)) { return MYYAML_FAILURE; }
                 break;
             default:
                 MYYAML_ASSERT(0); /* Could not happen. */
@@ -6462,8 +6462,8 @@ static int yaml_parser_load_node_add(YamlParser *parser, struct LoaderCtx_t *ctx
 
     switch (parent->type) {
         case YAML_SEQUENCE_NODE:
-            if (!STACK_LIMIT(parser, parent->data.sequence.items, INT_MAX - 1)) return MYYAML_FAILURE;
-            if (!PUSH(parser, parent->data.sequence.items, index)) return MYYAML_FAILURE;
+            if (!STACK_LIMIT(parser, parent->data.sequence.items, INT_MAX - 1)) { return MYYAML_FAILURE; }
+            if (!PUSH(parser, parent->data.sequence.items, index)) { return MYYAML_FAILURE; }
             break;
         case YAML_MAPPING_NODE: {
             YamlNodePair pair;
@@ -6477,8 +6477,8 @@ static int yaml_parser_load_node_add(YamlParser *parser, struct LoaderCtx_t *ctx
 
             pair.key = index;
             pair.value = 0;
-            if (!STACK_LIMIT(parser, parent->data.mapping.pairs, INT_MAX - 1)) return MYYAML_FAILURE;
-            if (!PUSH(parser, parent->data.mapping.pairs, pair)) return MYYAML_FAILURE;
+            if (!STACK_LIMIT(parser, parent->data.mapping.pairs, INT_MAX - 1)) { return MYYAML_FAILURE; }
+            if (!PUSH(parser, parent->data.mapping.pairs, pair)) { return MYYAML_FAILURE; }
 
             break;
         }
@@ -6531,7 +6531,7 @@ static int yaml_parser_load_scalar(YamlParser *parser, YamlEvent *event, struct 
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
-    if (!yaml_parser_register_anchor(parser, index, event->data.scalar.anchor)) return MYYAML_FAILURE;
+    if (!yaml_parser_register_anchor(parser, index, event->data.scalar.anchor)) { return MYYAML_FAILURE; }
 
     return yaml_parser_load_node_add(parser, ctx, index);
 
@@ -6572,12 +6572,12 @@ static int yaml_parser_load_sequence(YamlParser *parser, YamlEvent *event, struc
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
-    if (!yaml_parser_register_anchor(parser, index, event->data.sequence_start.anchor)) return MYYAML_FAILURE;
+    if (!yaml_parser_register_anchor(parser, index, event->data.sequence_start.anchor)) { return MYYAML_FAILURE; }
 
-    if (!yaml_parser_load_node_add(parser, ctx, index)) return MYYAML_FAILURE;
+    if (!yaml_parser_load_node_add(parser, ctx, index)) { return MYYAML_FAILURE; }
 
-    if (!STACK_LIMIT(parser, *ctx, INT_MAX - 1)) return MYYAML_FAILURE;
-    if (!PUSH(parser, *ctx, index)) return MYYAML_FAILURE;
+    if (!STACK_LIMIT(parser, *ctx, INT_MAX - 1)) { return MYYAML_FAILURE; }
+    if (!PUSH(parser, *ctx, index)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 
@@ -6631,12 +6631,12 @@ static int yaml_parser_load_mapping(YamlParser *parser, YamlEvent *event, struct
 
     index = parser->document->nodes.top - parser->document->nodes.start;
 
-    if (!yaml_parser_register_anchor(parser, index, event->data.mapping_start.anchor)) return MYYAML_FAILURE;
+    if (!yaml_parser_register_anchor(parser, index, event->data.mapping_start.anchor)) { return MYYAML_FAILURE; }
 
-    if (!yaml_parser_load_node_add(parser, ctx, index)) return MYYAML_FAILURE;
+    if (!yaml_parser_load_node_add(parser, ctx, index)) { return MYYAML_FAILURE; }
 
-    if (!STACK_LIMIT(parser, *ctx, INT_MAX - 1)) return MYYAML_FAILURE;
-    if (!PUSH(parser, *ctx, index)) return MYYAML_FAILURE;
+    if (!STACK_LIMIT(parser, *ctx, INT_MAX - 1)) { return MYYAML_FAILURE; }
+    if (!PUSH(parser, *ctx, index)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 
@@ -6779,7 +6779,7 @@ static int yaml_emitter_dump_node(YamlEmitter *emitter, int index) {
 
     if (anchor_id) {
         anchor = yaml_emitter_generate_anchor(emitter, anchor_id);
-        if (!anchor) return MYYAML_FAILURE;
+        if (!anchor) { return MYYAML_FAILURE; }
     }
 
     if (emitter->anchors[index - 1].serialized) {
@@ -6867,10 +6867,10 @@ static int yaml_emitter_dump_sequence(YamlEmitter *emitter, YamlNode *node, Yaml
     event.data.sequence_start.implicit = implicit;
     event.data.sequence_start.style = node->data.sequence.style;
 
-    if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
+    if (!yaml_emitter_emit(emitter, &event)) { return MYYAML_FAILURE; }
 
     for (item = node->data.sequence.items.start; item < node->data.sequence.items.top; item++) {
-        if (!yaml_emitter_dump_node(emitter, *item)) return MYYAML_FAILURE;
+        if (!yaml_emitter_dump_node(emitter, *item)) { return MYYAML_FAILURE; }
     }
 
     memset((&event), 0, sizeof(YamlEvent));
@@ -6878,7 +6878,7 @@ static int yaml_emitter_dump_sequence(YamlEmitter *emitter, YamlNode *node, Yaml
     event.start_mark = mark;
     event.end_mark = mark;
 
-    if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
+    if (!yaml_emitter_emit(emitter, &event)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -6904,11 +6904,11 @@ static int yaml_emitter_dump_mapping(YamlEmitter *emitter, YamlNode *node, YamlC
     event.data.mapping_start.implicit = implicit;
     event.data.mapping_start.style = node->data.mapping.style;
 
-    if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
+    if (!yaml_emitter_emit(emitter, &event)) { return MYYAML_FAILURE; }
 
     for (pair = node->data.mapping.pairs.start; pair < node->data.mapping.pairs.top; pair++) {
-        if (!yaml_emitter_dump_node(emitter, pair->key)) return MYYAML_FAILURE;
-        if (!yaml_emitter_dump_node(emitter, pair->value)) return MYYAML_FAILURE;
+        if (!yaml_emitter_dump_node(emitter, pair->key)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_dump_node(emitter, pair->value)) { return MYYAML_FAILURE; }
     }
 
     memset((&event), 0, sizeof(YamlEvent));
@@ -6916,7 +6916,7 @@ static int yaml_emitter_dump_mapping(YamlEmitter *emitter, YamlNode *node, YamlC
     event.start_mark = mark;
     event.end_mark = mark;
 
-    if (!yaml_emitter_emit(emitter, &event)) return MYYAML_FAILURE;
+    if (!yaml_emitter_emit(emitter, &event)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -6986,7 +6986,7 @@ static int yaml_emitter_need_more_events(YamlEmitter *emitter) {
             return MYYAML_FAILURE;
     }
 
-    if (emitter->events.tail - emitter->events.head > accumulate) return MYYAML_FAILURE;
+    if (emitter->events.tail - emitter->events.head > accumulate) { return MYYAML_FAILURE; }
 
     for (event = emitter->events.head; event != emitter->events.tail; event++) {
         switch (event->type) {
@@ -7005,7 +7005,7 @@ static int yaml_emitter_need_more_events(YamlEmitter *emitter) {
             default:
                 break;
         }
-        if (!level) return MYYAML_FAILURE;
+        if (!level) { return MYYAML_FAILURE; }
     }
 
     return MYYAML_SUCCESS;
@@ -7048,7 +7048,7 @@ error:
  */
 
 static int yaml_emitter_increase_indent(YamlEmitter *emitter, int flow, int indentless) {
-    if (!PUSH(emitter, emitter->indents, emitter->indent)) return MYYAML_FAILURE;
+    if (!PUSH(emitter, emitter->indents, emitter->indent)) { return MYYAML_FAILURE; }
 
     if (emitter->indent < 0) {
         emitter->indent = flow ? emitter->best_indent : 0;
@@ -7165,7 +7165,7 @@ static int yaml_emitter_emit_stream_start(YamlEmitter *emitter, YamlEvent *event
         emitter->indention = 1;
 
         if (emitter->encoding != YAML_UTF8_ENCODING) {
-            if (!yaml_emitter_write_bom(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_bom(emitter)) { return MYYAML_FAILURE; }
         }
 
         emitter->state = YAML_EMIT_FIRST_DOCUMENT_START_STATE;
@@ -7188,17 +7188,17 @@ static int yaml_emitter_emit_document_start(YamlEmitter *emitter, YamlEvent *eve
         int implicit;
 
         if (event->data.document_start.version_directive) {
-            if (!yaml_emitter_analyze_version_directive(emitter, *event->data.document_start.version_directive)) return MYYAML_FAILURE;
+            if (!yaml_emitter_analyze_version_directive(emitter, *event->data.document_start.version_directive)) { return MYYAML_FAILURE; }
         }
 
         for (tag_directive = event->data.document_start.tag_directives.start; tag_directive != event->data.document_start.tag_directives.end;
              tag_directive++) {
-            if (!yaml_emitter_analyze_tag_directive(emitter, *tag_directive)) return MYYAML_FAILURE;
-            if (!yaml_emitter_append_tag_directive(emitter, *tag_directive, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_analyze_tag_directive(emitter, *tag_directive)) { return MYYAML_FAILURE; }
+            if (!yaml_emitter_append_tag_directive(emitter, *tag_directive, 0)) { return MYYAML_FAILURE; }
         }
 
         for (tag_directive = default_tag_directives; tag_directive->handle; tag_directive++) {
-            if (!yaml_emitter_append_tag_directive(emitter, *tag_directive, 1)) return MYYAML_FAILURE;
+            if (!yaml_emitter_append_tag_directive(emitter, *tag_directive, 1)) { return MYYAML_FAILURE; }
         }
 
         implicit = event->data.document_start.implicit;
@@ -7209,30 +7209,30 @@ static int yaml_emitter_emit_document_start(YamlEmitter *emitter, YamlEvent *eve
         if ((event->data.document_start.version_directive ||
              (event->data.document_start.tag_directives.start != event->data.document_start.tag_directives.end)) &&
             emitter->open_ended) {
-            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) return MYYAML_FAILURE;
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) { return MYYAML_FAILURE; }
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
         emitter->open_ended = 0;
 
         if (event->data.document_start.version_directive) {
             implicit = 0;
-            if (!yaml_emitter_write_indicator(emitter, "%YAML", 1, 0, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, "%YAML", 1, 0, 0)) { return MYYAML_FAILURE; }
             if (event->data.document_start.version_directive->minor == 1) {
-                if (!yaml_emitter_write_indicator(emitter, "1.1", 1, 0, 0)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indicator(emitter, "1.1", 1, 0, 0)) { return MYYAML_FAILURE; }
             } else {
-                if (!yaml_emitter_write_indicator(emitter, "1.2", 1, 0, 0)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indicator(emitter, "1.2", 1, 0, 0)) { return MYYAML_FAILURE; }
             }
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
 
         if (event->data.document_start.tag_directives.start != event->data.document_start.tag_directives.end) {
             implicit = 0;
             for (tag_directive = event->data.document_start.tag_directives.start; tag_directive != event->data.document_start.tag_directives.end;
                  tag_directive++) {
-                if (!yaml_emitter_write_indicator(emitter, "%TAG", 1, 0, 0)) return MYYAML_FAILURE;
-                if (!yaml_emitter_write_tag_handle(emitter, tag_directive->handle, strlen((char *)tag_directive->handle))) return MYYAML_FAILURE;
-                if (!yaml_emitter_write_tag_content(emitter, tag_directive->prefix, strlen((char *)tag_directive->prefix), 1)) return MYYAML_FAILURE;
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indicator(emitter, "%TAG", 1, 0, 0)) { return MYYAML_FAILURE; }
+                if (!yaml_emitter_write_tag_handle(emitter, tag_directive->handle, strlen((char *)tag_directive->handle))) { return MYYAML_FAILURE; }
+                if (!yaml_emitter_write_tag_content(emitter, tag_directive->prefix, strlen((char *)tag_directive->prefix), 1)) { return MYYAML_FAILURE; }
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
             }
         }
 
@@ -7241,10 +7241,10 @@ static int yaml_emitter_emit_document_start(YamlEmitter *emitter, YamlEvent *eve
         }
 
         if (!implicit) {
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
-            if (!yaml_emitter_write_indicator(emitter, "---", 1, 0, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
+            if (!yaml_emitter_write_indicator(emitter, "---", 1, 0, 0)) { return MYYAML_FAILURE; }
             if (emitter->canonical) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
             }
         }
 
@@ -7260,11 +7260,11 @@ static int yaml_emitter_emit_document_start(YamlEmitter *emitter, YamlEvent *eve
          * is at the end of the stream
          */
         if (emitter->open_ended == 2) {
-            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) { return MYYAML_FAILURE; }
             emitter->open_ended = 0;
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
-        if (!yaml_emitter_flush(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_flush(emitter)) { return MYYAML_FAILURE; }
 
         emitter->state = YAML_EMIT_END_STATE;
 
@@ -7279,7 +7279,7 @@ static int yaml_emitter_emit_document_start(YamlEmitter *emitter, YamlEvent *eve
  */
 
 static int yaml_emitter_emit_document_content(YamlEmitter *emitter, YamlEvent *event) {
-    if (!PUSH(emitter, emitter->states, YAML_EMIT_DOCUMENT_END_STATE)) return MYYAML_FAILURE;
+    if (!PUSH(emitter, emitter->states, YAML_EMIT_DOCUMENT_END_STATE)) { return MYYAML_FAILURE; }
 
     return yaml_emitter_emit_node(emitter, event, 1, 0, 0, 0);
 }
@@ -7290,14 +7290,14 @@ static int yaml_emitter_emit_document_content(YamlEmitter *emitter, YamlEvent *e
 
 static int yaml_emitter_emit_document_end(YamlEmitter *emitter, YamlEvent *event) {
     if (event->type == YAML_DOCUMENT_END_EVENT) {
-        if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         if (!event->data.document_end.implicit) {
-            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0)) { return MYYAML_FAILURE; }
             emitter->open_ended = 0;
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         } else if (!emitter->open_ended)
             emitter->open_ended = 1;
-        if (!yaml_emitter_flush(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_flush(emitter)) { return MYYAML_FAILURE; }
 
         emitter->state = YAML_EMIT_DOCUMENT_START_STATE;
 
@@ -7320,8 +7320,8 @@ static int yaml_emitter_emit_document_end(YamlEmitter *emitter, YamlEvent *event
 
 static int yaml_emitter_emit_flow_sequence_item(YamlEmitter *emitter, YamlEvent *event, int first) {
     if (first) {
-        if (!yaml_emitter_write_indicator(emitter, "[", 1, 1, 0)) return MYYAML_FAILURE;
-        if (!yaml_emitter_increase_indent(emitter, 1, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "[", 1, 1, 0)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_increase_indent(emitter, 1, 0)) { return MYYAML_FAILURE; }
         emitter->flow_level++;
     }
 
@@ -7329,23 +7329,23 @@ static int yaml_emitter_emit_flow_sequence_item(YamlEmitter *emitter, YamlEvent 
         emitter->flow_level--;
         emitter->indent = POP(emitter, emitter->indents);
         if (emitter->canonical && !first) {
-            if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) return MYYAML_FAILURE;
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) { return MYYAML_FAILURE; }
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
-        if (!yaml_emitter_write_indicator(emitter, "]", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "]", 0, 0, 0)) { return MYYAML_FAILURE; }
         emitter->state = POP(emitter, emitter->states);
 
         return MYYAML_SUCCESS;
     }
 
     if (!first) {
-        if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) { return MYYAML_FAILURE; }
     }
 
     if (emitter->canonical || emitter->column > emitter->best_width) {
-        if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
     }
-    if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_SEQUENCE_ITEM_STATE)) return MYYAML_FAILURE;
+    if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_SEQUENCE_ITEM_STATE)) { return MYYAML_FAILURE; }
 
     return yaml_emitter_emit_node(emitter, event, 0, 1, 0, 0);
 }
@@ -7356,8 +7356,8 @@ static int yaml_emitter_emit_flow_sequence_item(YamlEmitter *emitter, YamlEvent 
 
 static int yaml_emitter_emit_flow_mapping_key(YamlEmitter *emitter, YamlEvent *event, int first) {
     if (first) {
-        if (!yaml_emitter_write_indicator(emitter, "{", 1, 1, 0)) return MYYAML_FAILURE;
-        if (!yaml_emitter_increase_indent(emitter, 1, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "{", 1, 1, 0)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_increase_indent(emitter, 1, 0)) { return MYYAML_FAILURE; }
         emitter->flow_level++;
     }
 
@@ -7365,29 +7365,29 @@ static int yaml_emitter_emit_flow_mapping_key(YamlEmitter *emitter, YamlEvent *e
         emitter->flow_level--;
         emitter->indent = POP(emitter, emitter->indents);
         if (emitter->canonical && !first) {
-            if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) return MYYAML_FAILURE;
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) { return MYYAML_FAILURE; }
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
-        if (!yaml_emitter_write_indicator(emitter, "}", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "}", 0, 0, 0)) { return MYYAML_FAILURE; }
         emitter->state = POP(emitter, emitter->states);
 
         return MYYAML_SUCCESS;
     }
 
     if (!first) {
-        if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, ",", 0, 0, 0)) { return MYYAML_FAILURE; }
     }
     if (emitter->canonical || emitter->column > emitter->best_width) {
-        if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
     }
 
     if (!emitter->canonical && yaml_emitter_check_simple_key(emitter)) {
-        if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_SIMPLE_VALUE_STATE)) return MYYAML_FAILURE;
+        if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_SIMPLE_VALUE_STATE)) { return MYYAML_FAILURE; }
 
         return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 1);
     } else {
-        if (!yaml_emitter_write_indicator(emitter, "?", 1, 0, 0)) return MYYAML_FAILURE;
-        if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_VALUE_STATE)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "?", 1, 0, 0)) { return MYYAML_FAILURE; }
+        if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_VALUE_STATE)) { return MYYAML_FAILURE; }
 
         return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 0);
     }
@@ -7399,14 +7399,14 @@ static int yaml_emitter_emit_flow_mapping_key(YamlEmitter *emitter, YamlEvent *e
 
 static int yaml_emitter_emit_flow_mapping_value(YamlEmitter *emitter, YamlEvent *event, int simple) {
     if (simple) {
-        if (!yaml_emitter_write_indicator(emitter, ":", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, ":", 0, 0, 0)) { return MYYAML_FAILURE; }
     } else {
         if (emitter->canonical || emitter->column > emitter->best_width) {
-            if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
         }
-        if (!yaml_emitter_write_indicator(emitter, ":", 1, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, ":", 1, 0, 0)) { return MYYAML_FAILURE; }
     }
-    if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_KEY_STATE)) return MYYAML_FAILURE;
+    if (!PUSH(emitter, emitter->states, YAML_EMIT_FLOW_MAPPING_KEY_STATE)) { return MYYAML_FAILURE; }
     return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 0);
 }
 
@@ -7416,7 +7416,7 @@ static int yaml_emitter_emit_flow_mapping_value(YamlEmitter *emitter, YamlEvent 
 
 static int yaml_emitter_emit_block_sequence_item(YamlEmitter *emitter, YamlEvent *event, int first) {
     if (first) {
-        if (!yaml_emitter_increase_indent(emitter, 0, (emitter->mapping_context && !emitter->indention))) return MYYAML_FAILURE;
+        if (!yaml_emitter_increase_indent(emitter, 0, (emitter->mapping_context && !emitter->indention))) { return MYYAML_FAILURE; }
     }
 
     if (event->type == YAML_SEQUENCE_END_EVENT) {
@@ -7426,9 +7426,9 @@ static int yaml_emitter_emit_block_sequence_item(YamlEmitter *emitter, YamlEvent
         return MYYAML_SUCCESS;
     }
 
-    if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
-    if (!yaml_emitter_write_indicator(emitter, "-", 1, 0, 1)) return MYYAML_FAILURE;
-    if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_SEQUENCE_ITEM_STATE)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_write_indicator(emitter, "-", 1, 0, 1)) { return MYYAML_FAILURE; }
+    if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_SEQUENCE_ITEM_STATE)) { return MYYAML_FAILURE; }
 
     return yaml_emitter_emit_node(emitter, event, 0, 1, 0, 0);
 }
@@ -7439,7 +7439,7 @@ static int yaml_emitter_emit_block_sequence_item(YamlEmitter *emitter, YamlEvent
 
 static int yaml_emitter_emit_block_mapping_key(YamlEmitter *emitter, YamlEvent *event, int first) {
     if (first) {
-        if (!yaml_emitter_increase_indent(emitter, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_increase_indent(emitter, 0, 0)) { return MYYAML_FAILURE; }
     }
 
     if (event->type == YAML_MAPPING_END_EVENT) {
@@ -7449,15 +7449,15 @@ static int yaml_emitter_emit_block_mapping_key(YamlEmitter *emitter, YamlEvent *
         return MYYAML_SUCCESS;
     }
 
-    if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
 
     if (yaml_emitter_check_simple_key(emitter)) {
-        if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_SIMPLE_VALUE_STATE)) return MYYAML_FAILURE;
+        if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_SIMPLE_VALUE_STATE)) { return MYYAML_FAILURE; }
 
         return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 1);
     } else {
-        if (!yaml_emitter_write_indicator(emitter, "?", 1, 0, 1)) return MYYAML_FAILURE;
-        if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_VALUE_STATE)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "?", 1, 0, 1)) { return MYYAML_FAILURE; }
+        if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_VALUE_STATE)) { return MYYAML_FAILURE; }
 
         return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 0);
     }
@@ -7469,12 +7469,12 @@ static int yaml_emitter_emit_block_mapping_key(YamlEmitter *emitter, YamlEvent *
 
 static int yaml_emitter_emit_block_mapping_value(YamlEmitter *emitter, YamlEvent *event, int simple) {
     if (simple) {
-        if (!yaml_emitter_write_indicator(emitter, ":", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, ":", 0, 0, 0)) { return MYYAML_FAILURE; }
     } else {
-        if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
-        if (!yaml_emitter_write_indicator(emitter, ":", 1, 0, 1)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_write_indicator(emitter, ":", 1, 0, 1)) { return MYYAML_FAILURE; }
     }
-    if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_KEY_STATE)) return MYYAML_FAILURE;
+    if (!PUSH(emitter, emitter->states, YAML_EMIT_BLOCK_MAPPING_KEY_STATE)) { return MYYAML_FAILURE; }
 
     return yaml_emitter_emit_node(emitter, event, 0, 0, 1, 0);
 }
@@ -7514,9 +7514,9 @@ static int yaml_emitter_emit_node(YamlEmitter *emitter, YamlEvent *event, int ro
  */
 
 static int yaml_emitter_emit_alias(YamlEmitter *emitter, SHIM(YamlEvent *event)) {
-    if (!yaml_emitter_process_anchor(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_process_anchor(emitter)) { return MYYAML_FAILURE; }
     if (emitter->simple_key_context)
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     emitter->state = POP(emitter, emitter->states);
 
     return MYYAML_SUCCESS;
@@ -7527,11 +7527,11 @@ static int yaml_emitter_emit_alias(YamlEmitter *emitter, SHIM(YamlEvent *event))
  */
 
 static int yaml_emitter_emit_scalar(YamlEmitter *emitter, YamlEvent *event) {
-    if (!yaml_emitter_select_scalar_style(emitter, event)) return MYYAML_FAILURE;
-    if (!yaml_emitter_process_anchor(emitter)) return MYYAML_FAILURE;
-    if (!yaml_emitter_process_tag(emitter)) return MYYAML_FAILURE;
-    if (!yaml_emitter_increase_indent(emitter, 1, 0)) return MYYAML_FAILURE;
-    if (!yaml_emitter_process_scalar(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_select_scalar_style(emitter, event)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_process_anchor(emitter)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_process_tag(emitter)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_increase_indent(emitter, 1, 0)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_process_scalar(emitter)) { return MYYAML_FAILURE; }
     emitter->indent = POP(emitter, emitter->indents);
     emitter->state = POP(emitter, emitter->states);
 
@@ -7543,8 +7543,8 @@ static int yaml_emitter_emit_scalar(YamlEmitter *emitter, YamlEvent *event) {
  */
 
 static int yaml_emitter_emit_sequence_start(YamlEmitter *emitter, YamlEvent *event) {
-    if (!yaml_emitter_process_anchor(emitter)) return MYYAML_FAILURE;
-    if (!yaml_emitter_process_tag(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_process_anchor(emitter)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_process_tag(emitter)) { return MYYAML_FAILURE; }
 
     if (emitter->flow_level || emitter->canonical || event->data.sequence_start.style == YAML_FLOW_SEQUENCE_STYLE ||
         yaml_emitter_check_empty_sequence(emitter)) {
@@ -7561,8 +7561,8 @@ static int yaml_emitter_emit_sequence_start(YamlEmitter *emitter, YamlEvent *eve
  */
 
 static int yaml_emitter_emit_mapping_start(YamlEmitter *emitter, YamlEvent *event) {
-    if (!yaml_emitter_process_anchor(emitter)) return MYYAML_FAILURE;
-    if (!yaml_emitter_process_tag(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_process_anchor(emitter)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_process_tag(emitter)) { return MYYAML_FAILURE; }
 
     if (emitter->flow_level || emitter->canonical || event->data.mapping_start.style == YAML_FLOW_MAPPING_STYLE ||
         yaml_emitter_check_empty_mapping(emitter)) {
@@ -7585,7 +7585,7 @@ static int yaml_emitter_check_empty_document(SHIM(YamlEmitter *emitter)) { retur
  */
 
 static int yaml_emitter_check_empty_sequence(YamlEmitter *emitter) {
-    if (emitter->events.tail - emitter->events.head < 2) return MYYAML_FAILURE;
+    if (emitter->events.tail - emitter->events.head < 2) { return MYYAML_FAILURE; }
 
     return (emitter->events.head[0].type == YAML_SEQUENCE_START_EVENT && emitter->events.head[1].type == YAML_SEQUENCE_END_EVENT);
 }
@@ -7595,7 +7595,7 @@ static int yaml_emitter_check_empty_sequence(YamlEmitter *emitter) {
  */
 
 static int yaml_emitter_check_empty_mapping(YamlEmitter *emitter) {
-    if (emitter->events.tail - emitter->events.head < 2) return MYYAML_FAILURE;
+    if (emitter->events.tail - emitter->events.head < 2) { return MYYAML_FAILURE; }
 
     return (emitter->events.head[0].type == YAML_MAPPING_START_EVENT && emitter->events.head[1].type == YAML_MAPPING_END_EVENT);
 }
@@ -7614,18 +7614,18 @@ static int yaml_emitter_check_simple_key(YamlEmitter *emitter) {
             break;
 
         case YAML_SCALAR_EVENT:
-            if (emitter->scalar_data.multiline) return MYYAML_FAILURE;
+            if (emitter->scalar_data.multiline) { return MYYAML_FAILURE; }
             length +=
                 emitter->anchor_data.anchor_length + emitter->tag_data.handle_length + emitter->tag_data.suffix_length + emitter->scalar_data.length;
             break;
 
         case YAML_SEQUENCE_START_EVENT:
-            if (!yaml_emitter_check_empty_sequence(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_check_empty_sequence(emitter)) { return MYYAML_FAILURE; }
             length += emitter->anchor_data.anchor_length + emitter->tag_data.handle_length + emitter->tag_data.suffix_length;
             break;
 
         case YAML_MAPPING_START_EVENT:
-            if (!yaml_emitter_check_empty_mapping(emitter)) return MYYAML_FAILURE;
+            if (!yaml_emitter_check_empty_mapping(emitter)) { return MYYAML_FAILURE; }
             length += emitter->anchor_data.anchor_length + emitter->tag_data.handle_length + emitter->tag_data.suffix_length;
             break;
 
@@ -7633,7 +7633,7 @@ static int yaml_emitter_check_simple_key(YamlEmitter *emitter) {
             return MYYAML_FAILURE;
     }
 
-    if (length > 128) return MYYAML_FAILURE;
+    if (length > 128) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -7688,7 +7688,7 @@ static int yaml_emitter_select_scalar_style(YamlEmitter *emitter, YamlEvent *eve
 static int yaml_emitter_process_anchor(YamlEmitter *emitter) {
     if (!emitter->anchor_data.anchor) return MYYAML_SUCCESS;
 
-    if (!yaml_emitter_write_indicator(emitter, (emitter->anchor_data.alias ? "*" : "&"), 1, 0, 0)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, (emitter->anchor_data.alias ? "*" : "&"), 1, 0, 0)) { return MYYAML_FAILURE; }
 
     return yaml_emitter_write_anchor(emitter, emitter->anchor_data.anchor, emitter->anchor_data.anchor_length);
 }
@@ -7701,14 +7701,14 @@ static int yaml_emitter_process_tag(YamlEmitter *emitter) {
     if (!emitter->tag_data.handle && !emitter->tag_data.suffix) return MYYAML_SUCCESS;
 
     if (emitter->tag_data.handle) {
-        if (!yaml_emitter_write_tag_handle(emitter, emitter->tag_data.handle, emitter->tag_data.handle_length)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_tag_handle(emitter, emitter->tag_data.handle, emitter->tag_data.handle_length)) { return MYYAML_FAILURE; }
         if (emitter->tag_data.suffix) {
-            if (!yaml_emitter_write_tag_content(emitter, emitter->tag_data.suffix, emitter->tag_data.suffix_length, 0)) return MYYAML_FAILURE;
+            if (!yaml_emitter_write_tag_content(emitter, emitter->tag_data.suffix, emitter->tag_data.suffix_length, 0)) { return MYYAML_FAILURE; }
         }
     } else {
-        if (!yaml_emitter_write_indicator(emitter, "!<", 1, 0, 0)) return MYYAML_FAILURE;
-        if (!yaml_emitter_write_tag_content(emitter, emitter->tag_data.suffix, emitter->tag_data.suffix_length, 0)) return MYYAML_FAILURE;
-        if (!yaml_emitter_write_indicator(emitter, ">", 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, "!<", 1, 0, 0)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_write_tag_content(emitter, emitter->tag_data.suffix, emitter->tag_data.suffix_length, 0)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_write_indicator(emitter, ">", 0, 0, 0)) { return MYYAML_FAILURE; }
     }
 
     return MYYAML_SUCCESS;
@@ -8054,34 +8054,34 @@ static int yaml_emitter_analyze_event(YamlEmitter *emitter, YamlEvent *event) {
 
     switch (event->type) {
         case YAML_ALIAS_EVENT:
-            if (!yaml_emitter_analyze_anchor(emitter, event->data.alias.anchor, 1)) return MYYAML_FAILURE;
+            if (!yaml_emitter_analyze_anchor(emitter, event->data.alias.anchor, 1)) { return MYYAML_FAILURE; }
             return MYYAML_SUCCESS;
 
         case YAML_SCALAR_EVENT:
             if (event->data.scalar.anchor) {
-                if (!yaml_emitter_analyze_anchor(emitter, event->data.scalar.anchor, 0)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_anchor(emitter, event->data.scalar.anchor, 0)) { return MYYAML_FAILURE; }
             }
             if (event->data.scalar.tag && (emitter->canonical || (!event->data.scalar.plain_implicit && !event->data.scalar.quoted_implicit))) {
-                if (!yaml_emitter_analyze_tag(emitter, event->data.scalar.tag)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_tag(emitter, event->data.scalar.tag)) { return MYYAML_FAILURE; }
             }
-            if (!yaml_emitter_analyze_scalar(emitter, event->data.scalar.value, event->data.scalar.length)) return MYYAML_FAILURE;
+            if (!yaml_emitter_analyze_scalar(emitter, event->data.scalar.value, event->data.scalar.length)) { return MYYAML_FAILURE; }
             return MYYAML_SUCCESS;
 
         case YAML_SEQUENCE_START_EVENT:
             if (event->data.sequence_start.anchor) {
-                if (!yaml_emitter_analyze_anchor(emitter, event->data.sequence_start.anchor, 0)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_anchor(emitter, event->data.sequence_start.anchor, 0)) { return MYYAML_FAILURE; }
             }
             if (event->data.sequence_start.tag && (emitter->canonical || !event->data.sequence_start.implicit)) {
-                if (!yaml_emitter_analyze_tag(emitter, event->data.sequence_start.tag)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_tag(emitter, event->data.sequence_start.tag)) { return MYYAML_FAILURE; }
             }
             return MYYAML_SUCCESS;
 
         case YAML_MAPPING_START_EVENT:
             if (event->data.mapping_start.anchor) {
-                if (!yaml_emitter_analyze_anchor(emitter, event->data.mapping_start.anchor, 0)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_anchor(emitter, event->data.mapping_start.anchor, 0)) { return MYYAML_FAILURE; }
             }
             if (event->data.mapping_start.tag && (emitter->canonical || !event->data.mapping_start.implicit)) {
-                if (!yaml_emitter_analyze_tag(emitter, event->data.mapping_start.tag)) return MYYAML_FAILURE;
+                if (!yaml_emitter_analyze_tag(emitter, event->data.mapping_start.tag)) { return MYYAML_FAILURE; }
             }
             return MYYAML_SUCCESS;
 
@@ -8095,7 +8095,7 @@ static int yaml_emitter_analyze_event(YamlEmitter *emitter, YamlEvent *event) {
  */
 
 static int yaml_emitter_write_bom(YamlEmitter *emitter) {
-    if (!FLUSH(emitter)) return MYYAML_FAILURE;
+    if (!FLUSH(emitter)) { return MYYAML_FAILURE; }
 
     *(emitter->buffer.pointer++) = (YamlChar_t)'\xEF';
     *(emitter->buffer.pointer++) = (YamlChar_t)'\xBB';
@@ -8108,11 +8108,11 @@ static int yaml_emitter_write_indent(YamlEmitter *emitter) {
     int indent = (emitter->indent >= 0) ? emitter->indent : 0;
 
     if (!emitter->indention || emitter->column > indent || (emitter->column == indent && !emitter->whitespace)) {
-        if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+        if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
     }
 
     while (emitter->column < indent) {
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     }
 
     emitter->whitespace = 1;
@@ -8129,11 +8129,11 @@ static int yaml_emitter_write_indicator(YamlEmitter *emitter, const char *indica
     STRING_ASSIGN(string, (YamlChar_t *)indicator, indicator_length);
 
     if (need_whitespace && !emitter->whitespace) {
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     }
 
     while (string.pointer != string.end) {
-        if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+        if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
     }
 
     emitter->whitespace = is_whitespace;
@@ -8147,7 +8147,7 @@ static int yaml_emitter_write_anchor(YamlEmitter *emitter, YamlChar_t *value, si
     STRING_ASSIGN(string, value, length);
 
     while (string.pointer != string.end) {
-        if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+        if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
     }
 
     emitter->whitespace = 0;
@@ -8161,11 +8161,11 @@ static int yaml_emitter_write_tag_handle(YamlEmitter *emitter, YamlChar_t *value
     STRING_ASSIGN(string, value, length);
 
     if (!emitter->whitespace) {
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     }
 
     while (string.pointer != string.end) {
-        if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+        if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
     }
 
     emitter->whitespace = 0;
@@ -8179,7 +8179,7 @@ static int yaml_emitter_write_tag_content(YamlEmitter *emitter, YamlChar_t *valu
     STRING_ASSIGN(string, value, length);
 
     if (need_whitespace && !emitter->whitespace) {
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     }
 
     while (string.pointer != string.end) {
@@ -8187,15 +8187,15 @@ static int yaml_emitter_write_tag_content(YamlEmitter *emitter, YamlChar_t *valu
             CHECK(string, '&') || CHECK(string, '=') || CHECK(string, '+') || CHECK(string, '$') || CHECK(string, ',') || CHECK(string, '_') ||
             CHECK(string, '.') || CHECK(string, '~') || CHECK(string, '*') || CHECK(string, '\'') || CHECK(string, '(') || CHECK(string, ')') ||
             CHECK(string, '[') || CHECK(string, ']')) {
-            if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
         } else {
             int width = WIDTH(string);
             unsigned int value;
             while (width--) {
                 value = *(string.pointer++);
-                if (!PUT(emitter, '%')) return MYYAML_FAILURE;
-                if (!PUT(emitter, (value >> 4) + ((value >> 4) < 10 ? '0' : 'A' - 10))) return MYYAML_FAILURE;
-                if (!PUT(emitter, (value & 0x0F) + ((value & 0x0F) < 10 ? '0' : 'A' - 10))) return MYYAML_FAILURE;
+                if (!PUT(emitter, '%')) { return MYYAML_FAILURE; }
+                if (!PUT(emitter, (value >> 4) + ((value >> 4) < 10 ? '0' : 'A' - 10))) { return MYYAML_FAILURE; }
+                if (!PUT(emitter, (value & 0x0F) + ((value & 0x0F) < 10 ? '0' : 'A' - 10))) { return MYYAML_FAILURE; }
             }
         }
     }
@@ -8224,30 +8224,30 @@ static int yaml_emitter_write_plain_scalar(YamlEmitter *emitter, YamlChar_t *val
      * the check for flow_level is already here.
      */
     if (!emitter->whitespace && (length || emitter->flow_level)) {
-        if (!PUT(emitter, ' ')) return MYYAML_FAILURE;
+        if (!PUT(emitter, ' ')) { return MYYAML_FAILURE; }
     }
 
     while (string.pointer != string.end) {
         if (IS_SPACE(string)) {
             if (allow_breaks && !spaces && emitter->column > emitter->best_width && !IS_SPACE_AT(string, 1)) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
                 MOVE(string);
             } else {
-                if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+                if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             }
             spaces = 1;
         } else if (IS_BREAK(string)) {
             if (!breaks && CHECK(string, '\n')) {
-                if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+                if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
             }
-            if (!WRITE_BREAK(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE_BREAK(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 1;
             breaks = 1;
         } else {
             if (breaks) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
             }
-            if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 0;
             spaces = 0;
             breaks = 0;
@@ -8267,33 +8267,33 @@ static int yaml_emitter_write_single_quoted_scalar(YamlEmitter *emitter, YamlCha
 
     STRING_ASSIGN(string, value, length);
 
-    if (!yaml_emitter_write_indicator(emitter, "'", 1, 0, 0)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, "'", 1, 0, 0)) { return MYYAML_FAILURE; }
 
     while (string.pointer != string.end) {
         if (IS_SPACE(string)) {
             if (allow_breaks && !spaces && emitter->column > emitter->best_width && string.pointer != string.start &&
                 string.pointer != string.end - 1 && !IS_SPACE_AT(string, 1)) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
                 MOVE(string);
             } else {
-                if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+                if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             }
             spaces = 1;
         } else if (IS_BREAK(string)) {
             if (!breaks && CHECK(string, '\n')) {
-                if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+                if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
             }
-            if (!WRITE_BREAK(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE_BREAK(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 1;
             breaks = 1;
         } else {
             if (breaks) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
             }
             if (CHECK(string, '\'')) {
-                if (!PUT(emitter, '\'')) return MYYAML_FAILURE;
+                if (!PUT(emitter, '\'')) { return MYYAML_FAILURE; }
             }
-            if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 0;
             spaces = 0;
             breaks = 0;
@@ -8301,9 +8301,9 @@ static int yaml_emitter_write_single_quoted_scalar(YamlEmitter *emitter, YamlCha
     }
 
     if (breaks)
-        if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
 
-    if (!yaml_emitter_write_indicator(emitter, "'", 0, 0, 0)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, "'", 0, 0, 0)) { return MYYAML_FAILURE; }
 
     emitter->whitespace = 0;
     emitter->indention = 0;
@@ -8317,7 +8317,7 @@ static int yaml_emitter_write_double_quoted_scalar(YamlEmitter *emitter, YamlCha
 
     STRING_ASSIGN(string, value, length);
 
-    if (!yaml_emitter_write_indicator(emitter, "\"", 1, 0, 0)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, "\"", 1, 0, 0)) { return MYYAML_FAILURE; }
 
     while (string.pointer != string.end) {
         if (!IS_PRINTABLE(string) || (!emitter->unicode && !IS_ASCII(string)) || IS_BOM(string) || IS_BREAK(string) || CHECK(string, '"') ||
@@ -8340,105 +8340,105 @@ static int yaml_emitter_write_double_quoted_scalar(YamlEmitter *emitter, YamlCha
             }
             string.pointer += width;
 
-            if (!PUT(emitter, '\\')) return MYYAML_FAILURE;
+            if (!PUT(emitter, '\\')) { return MYYAML_FAILURE; }
 
             switch (value) {
                 case 0x00:
-                    if (!PUT(emitter, '0')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, '0')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x07:
-                    if (!PUT(emitter, 'a')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'a')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x08:
-                    if (!PUT(emitter, 'b')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'b')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x09:
-                    if (!PUT(emitter, 't')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 't')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x0A:
-                    if (!PUT(emitter, 'n')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'n')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x0B:
-                    if (!PUT(emitter, 'v')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'v')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x0C:
-                    if (!PUT(emitter, 'f')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'f')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x0D:
-                    if (!PUT(emitter, 'r')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'r')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x1B:
-                    if (!PUT(emitter, 'e')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'e')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x22:
-                    if (!PUT(emitter, '\"')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, '\"')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x5C:
-                    if (!PUT(emitter, '\\')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, '\\')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x85:
-                    if (!PUT(emitter, 'N')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'N')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0xA0:
-                    if (!PUT(emitter, '_')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, '_')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x2028:
-                    if (!PUT(emitter, 'L')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'L')) { return MYYAML_FAILURE; }
                     break;
 
                 case 0x2029:
-                    if (!PUT(emitter, 'P')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, 'P')) { return MYYAML_FAILURE; }
                     break;
 
                 default:
                     if (value <= 0xFF) {
-                        if (!PUT(emitter, 'x')) return MYYAML_FAILURE;
+                        if (!PUT(emitter, 'x')) { return MYYAML_FAILURE; }
                         width = 2;
                     } else if (value <= 0xFFFF) {
-                        if (!PUT(emitter, 'u')) return MYYAML_FAILURE;
+                        if (!PUT(emitter, 'u')) { return MYYAML_FAILURE; }
                         width = 4;
                     } else {
-                        if (!PUT(emitter, 'U')) return MYYAML_FAILURE;
+                        if (!PUT(emitter, 'U')) { return MYYAML_FAILURE; }
                         width = 8;
                     }
                     for (k = (width - 1) * 4; k >= 0; k -= 4) {
                         int digit = (value >> k) & 0x0F;
-                        if (!PUT(emitter, digit + (digit < 10 ? '0' : 'A' - 10))) return MYYAML_FAILURE;
+                        if (!PUT(emitter, digit + (digit < 10 ? '0' : 'A' - 10))) { return MYYAML_FAILURE; }
                     }
             }
             spaces = 0;
         } else if (IS_SPACE(string)) {
             if (allow_breaks && !spaces && emitter->column > emitter->best_width && string.pointer != string.start &&
                 string.pointer != string.end - 1) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
                 if (IS_SPACE_AT(string, 1)) {
-                    if (!PUT(emitter, '\\')) return MYYAML_FAILURE;
+                    if (!PUT(emitter, '\\')) { return MYYAML_FAILURE; }
                 }
                 MOVE(string);
             } else {
-                if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+                if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             }
             spaces = 1;
         } else {
-            if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             spaces = 0;
         }
     }
 
-    if (!yaml_emitter_write_indicator(emitter, "\"", 0, 0, 0)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, "\"", 0, 0, 0)) { return MYYAML_FAILURE; }
 
     emitter->whitespace = 0;
     emitter->indention = 0;
@@ -8453,7 +8453,7 @@ static int yaml_emitter_write_block_scalar_hints(YamlEmitter *emitter, YamlStrin
     if (IS_SPACE(string) || IS_BREAK(string)) {
         indent_hint[0] = '0' + (char)emitter->best_indent;
         indent_hint[1] = '\0';
-        if (!yaml_emitter_write_indicator(emitter, indent_hint, 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, indent_hint, 0, 0, 0)) { return MYYAML_FAILURE; }
     }
 
     emitter->open_ended = 0;
@@ -8482,7 +8482,7 @@ static int yaml_emitter_write_block_scalar_hints(YamlEmitter *emitter, YamlStrin
     }
 
     if (chomp_hint) {
-        if (!yaml_emitter_write_indicator(emitter, chomp_hint, 0, 0, 0)) return MYYAML_FAILURE;
+        if (!yaml_emitter_write_indicator(emitter, chomp_hint, 0, 0, 0)) { return MYYAML_FAILURE; }
     }
 
     return MYYAML_SUCCESS;
@@ -8494,22 +8494,22 @@ static int yaml_emitter_write_literal_scalar(YamlEmitter *emitter, YamlChar_t *v
 
     STRING_ASSIGN(string, value, length);
 
-    if (!yaml_emitter_write_indicator(emitter, "|", 1, 0, 0)) return MYYAML_FAILURE;
-    if (!yaml_emitter_write_block_scalar_hints(emitter, string)) return MYYAML_FAILURE;
-    if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, "|", 1, 0, 0)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_write_block_scalar_hints(emitter, string)) { return MYYAML_FAILURE; }
+    if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
     emitter->indention = 1;
     emitter->whitespace = 1;
 
     while (string.pointer != string.end) {
         if (IS_BREAK(string)) {
-            if (!WRITE_BREAK(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE_BREAK(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 1;
             breaks = 1;
         } else {
             if (breaks) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
             }
-            if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 0;
             breaks = 0;
         }
@@ -8525,9 +8525,9 @@ static int yaml_emitter_write_folded_scalar(YamlEmitter *emitter, YamlChar_t *va
 
     STRING_ASSIGN(string, value, length);
 
-    if (!yaml_emitter_write_indicator(emitter, ">", 1, 0, 0)) return MYYAML_FAILURE;
-    if (!yaml_emitter_write_block_scalar_hints(emitter, string)) return MYYAML_FAILURE;
-    if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+    if (!yaml_emitter_write_indicator(emitter, ">", 1, 0, 0)) { return MYYAML_FAILURE; }
+    if (!yaml_emitter_write_block_scalar_hints(emitter, string)) { return MYYAML_FAILURE; }
+    if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
     emitter->indention = 1;
     emitter->whitespace = 1;
 
@@ -8539,22 +8539,22 @@ static int yaml_emitter_write_folded_scalar(YamlEmitter *emitter, YamlChar_t *va
                     k += WIDTH_AT(string, k);
                 }
                 if (!IS_BLANKZ_AT(string, k)) {
-                    if (!PUT_BREAK(emitter)) return MYYAML_FAILURE;
+                    if (!PUT_BREAK(emitter)) { return MYYAML_FAILURE; }
                 }
             }
-            if (!WRITE_BREAK(emitter, string)) return MYYAML_FAILURE;
+            if (!WRITE_BREAK(emitter, string)) { return MYYAML_FAILURE; }
             emitter->indention = 1;
             breaks = 1;
         } else {
             if (breaks) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
                 leading_spaces = IS_BLANK(string);
             }
             if (!breaks && IS_SPACE(string) && !IS_SPACE_AT(string, 1) && emitter->column > emitter->best_width) {
-                if (!yaml_emitter_write_indent(emitter)) return MYYAML_FAILURE;
+                if (!yaml_emitter_write_indent(emitter)) { return MYYAML_FAILURE; }
                 MOVE(string);
             } else {
-                if (!WRITE(emitter, string)) return MYYAML_FAILURE;
+                if (!WRITE(emitter, string)) { return MYYAML_FAILURE; }
             }
             emitter->indention = 0;
             breaks = 0;
@@ -8962,11 +8962,11 @@ MYYAML_API int yaml_check_utf8(const YamlChar_t *start, size_t length) {
                 : (octet & 0xF0) == 0xE0 ? octet & 0x0F
                 : (octet & 0xF8) == 0xF0 ? octet & 0x07
                                          : 0;
-        if (!width) return MYYAML_FAILURE;
-        if (pointer + width > end) return MYYAML_FAILURE;
+        if (!width) { return MYYAML_FAILURE; }
+        if (pointer + width > end) { return MYYAML_FAILURE; }
         for (k = 1; k < width; k++) {
             octet = pointer[k];
-            if ((octet & 0xC0) != 0x80) return MYYAML_FAILURE;
+            if ((octet & 0xC0) != 0x80) { return MYYAML_FAILURE; }
             value = (value << 6) + (octet & 0x3F);
         }
         if (!((width == 1) || (width == 2 && value >= 0x80) || (width == 3 && value >= 0x800) || (width == 4 && value >= 0x10000)))
@@ -9098,11 +9098,11 @@ MYYAML_API int yaml_event_initialize_alias(YamlEvent *event, const YamlChar_t *a
     YamlChar_t *anchor_copy = NULL;
     YamlMark mark = {0, 0, 0};
 
-    if (!yaml_check_utf8(anchor, strlen((char *)anchor))) return MYYAML_FAILURE;
+    if (!yaml_check_utf8(anchor, strlen((char *)anchor))) { return MYYAML_FAILURE; }
 
     anchor_copy = _myyaml_strdup(anchor);
 
-    if (!anchor_copy) return MYYAML_FAILURE;
+    if (!anchor_copy) { return MYYAML_FAILURE; }
 
     memset((event), 0, sizeof(YamlEvent));
     event->type = YAML_ALIAS_EVENT;
@@ -9574,7 +9574,7 @@ MYYAML_API int yaml_document_append_sequence_item(YamlDocument *document, int se
     MYYAML_ASSERT(item > 0 && document->nodes.start + item <= document->nodes.top);
     /* Valid item id is required. */
 
-    if (!PUSH(&context, document->nodes.start[sequence - 1].data.sequence.items, item)) return MYYAML_FAILURE;
+    if (!PUSH(&context, document->nodes.start[sequence - 1].data.sequence.items, item)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -9599,7 +9599,7 @@ MYYAML_API int yaml_document_append_mapping_pair(YamlDocument *document, int map
     pair.key = key;
     pair.value = value;
 
-    if (!PUSH(&context, document->nodes.start[mapping - 1].data.mapping.pairs, pair)) return MYYAML_FAILURE;
+    if (!PUSH(&context, document->nodes.start[mapping - 1].data.mapping.pairs, pair)) { return MYYAML_FAILURE; }
 
     return MYYAML_SUCCESS;
 }
@@ -9638,10 +9638,10 @@ MYYAML_API int yaml_document_sequence_get_item(YamlDocument *document, int seque
     MYYAML_ASSERT(document);
 
     node = yaml_document_get_node(document, sequence_node_id);
-    if (!node) return MYYAML_FAILURE;
-    if (node->type != YAML_SEQUENCE_NODE) return MYYAML_FAILURE;
+    if (!node) { return MYYAML_FAILURE; }
+    if (node->type != YAML_SEQUENCE_NODE) { return MYYAML_FAILURE; }
 
-    if (index < 0 || node->data.sequence.items.start + index >= node->data.sequence.items.top) return MYYAML_FAILURE;
+    if (index < 0 || node->data.sequence.items.start + index >= node->data.sequence.items.top) { return MYYAML_FAILURE; }
 
     return node->data.sequence.items.start[index];
 }
@@ -9655,8 +9655,8 @@ MYYAML_API int yaml_document_mapping_get_value(YamlDocument *document, int mappi
     MYYAML_ASSERT(key);
 
     node = yaml_document_get_node(document, mapping_node_id);
-    if (!node) return MYYAML_FAILURE;
-    if (node->type != YAML_MAPPING_NODE) return MYYAML_FAILURE;
+    if (!node) { return MYYAML_FAILURE; }
+    if (node->type != YAML_MAPPING_NODE) { return MYYAML_FAILURE; }
 
     pairs = node->data.mapping.pairs.start;
     count = node->data.mapping.pairs.top - node->data.mapping.pairs.start;
@@ -9676,9 +9676,9 @@ MYYAML_API int yaml_document_mapping_get_value(YamlDocument *document, int mappi
 
 /* Find node by path of keys. */
 static int is_decimal_string(const YamlChar_t *s) {
-    if (!s || !*s) return MYYAML_FAILURE;
+    if (!s || !*s) { return MYYAML_FAILURE; }
     while (*s) {
-        if (*s < '0' || *s > '9') return MYYAML_FAILURE;
+        if (*s < '0' || *s > '9') { return MYYAML_FAILURE; }
         s++;
     }
     return MYYAML_SUCCESS;
@@ -9689,31 +9689,31 @@ MYYAML_API int yaml_document_get_node_by_path(YamlDocument *document, const Yaml
     int i;
 
     MYYAML_ASSERT(document);
-    if (!keys || key_count <= 0) return MYYAML_FAILURE;
+    if (!keys || key_count <= 0) { return MYYAML_FAILURE; }
 
     /* Start from root */
     current_id = 0;
     current_id = (yaml_document_get_root_node(document) ? (int)(yaml_document_get_root_node(document) - document->nodes.start + 1) : 0);
-    if (!current_id) return MYYAML_FAILURE;
+    if (!current_id) { return MYYAML_FAILURE; }
 
     for (i = 0; i < key_count; i++) {
         YamlNode *node = yaml_document_get_node(document, current_id);
-        if (!node) return MYYAML_FAILURE;
+        if (!node) { return MYYAML_FAILURE; }
 
         if (node->type == YAML_MAPPING_NODE) {
             /* lookup mapping by scalar key */
             int found_id = yaml_document_mapping_get_value(document, current_id, keys[i], -1);
-            if (!found_id) return MYYAML_FAILURE;
+            if (!found_id) { return MYYAML_FAILURE; }
             current_id = found_id;
             continue;
         }
 
         if (node->type == YAML_SEQUENCE_NODE) {
             /* sequence: key must be decimal index */
-            if (!is_decimal_string(keys[i])) return MYYAML_FAILURE;
+            if (!is_decimal_string(keys[i])) { return MYYAML_FAILURE; }
             int idx = atoi((const char *)keys[i]);
             int item_id = yaml_document_sequence_get_item(document, current_id, idx);
-            if (!item_id) return MYYAML_FAILURE;
+            if (!item_id) { return MYYAML_FAILURE; }
             current_id = item_id;
             continue;
         }
@@ -9837,7 +9837,7 @@ MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length) {
     /* Determine the input encoding if it is not known yet. */
 
     if (!parser->encoding) {
-        if (!yaml_parser_determine_encoding(parser)) return MYYAML_FAILURE;
+        if (!yaml_parser_determine_encoding(parser)) { return MYYAML_FAILURE; }
     }
 
     /* Move the unread characters to the beginning of the buffer. */
@@ -9858,7 +9858,7 @@ MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length) {
         /* Fill the raw buffer if necessary. */
 
         if (!first || parser->raw_buffer.pointer == parser->raw_buffer.last) {
-            if (!yaml_parser_update_raw_buffer(parser)) return MYYAML_FAILURE;
+            if (!yaml_parser_update_raw_buffer(parser)) { return MYYAML_FAILURE; }
         }
         first = 0;
 
@@ -10166,7 +10166,7 @@ MYYAML_API int yaml_parser_scan(YamlParser *parser, YamlToken *token) {
     /* Ensure that the tokens queue contains enough tokens. */
 
     if (!parser->token_available) {
-        if (!yaml_parser_fetch_more_tokens(parser)) return MYYAML_FAILURE;
+        if (!yaml_parser_fetch_more_tokens(parser)) { return MYYAML_FAILURE; }
     }
 
     /* Fetch the next token from the queue. */
@@ -10286,8 +10286,8 @@ MYYAML_API int yaml_emitter_emit(YamlEmitter *emitter, YamlEvent *event) {
     }
 
     while (!yaml_emitter_need_more_events(emitter)) {
-        if (!yaml_emitter_analyze_event(emitter, emitter->events.head)) return MYYAML_FAILURE;
-        if (!yaml_emitter_state_machine(emitter, emitter->events.head)) return MYYAML_FAILURE;
+        if (!yaml_emitter_analyze_event(emitter, emitter->events.head)) { return MYYAML_FAILURE; }
+        if (!yaml_emitter_state_machine(emitter, emitter->events.head)) { return MYYAML_FAILURE; }
         yaml_event_delete(&DEQUEUE(emitter, emitter->events));
     }
 
