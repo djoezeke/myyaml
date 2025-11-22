@@ -11,6 +11,7 @@
       "binaryDir": "build",
       "installDir": "${sourceDir}/build/install",
       "cacheVariables": {
+        "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
         "MYYAML_BUILD_TESTS": "OFF",
         "MYYAML_BUILD_EXAMPLES": "OFF",
@@ -24,6 +25,7 @@
       "installDir": "${sourceDir}/build/install",
       "generator": "MinGW Makefiles",
       "cacheVariables": {
+        "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
         "MYYAML_BUILD_TESTS": "ON",
         "MYYAML_BUILD_EXAMPLES": "ON",

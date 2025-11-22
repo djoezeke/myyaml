@@ -94,6 +94,18 @@
 
 #endif  //__cplusplus
 
+#ifndef MYYAML_SKIP_VERSION_CHECK
+    #if defined(MYYAML_VERSION_MAJOR) && defined(MYYAML_VERSION_MINOR) && defined(MYYAML_VERSION_PATCH)
+        #if MYYAML_VERSION_MAJOR != 0 || MYYAML_VERSION_MINOR != 1 || MYYAML_VERSION_PATCH != 0
+            #warning "Included a different library header (myyaml.h) version!"
+        #endif
+    #endif
+#endif  // MYYAML_SKIP_VERSION_CHECK
+
+#if defined( NDEBUG ) || defined( MYYAML_ENABLE_DEBUG )
+    #warning "Cannot both define NDEBUG and MYYAML_ENABLE_DEBUG"
+#endif
+
 //-----------------------------------------------------------------------------
 // [SECTION] Myyaml Info Check
 //-----------------------------------------------------------------------------
@@ -551,31 +563,26 @@
 
 // clang-format off
 
-#define MYYAML_SUCCESS 1
-#define MYYAML_FAILURE 0
-
-// C++ macros
-#ifdef __cplusplus
-	#define MYYAML_INLINE inline
-	#define MYYAML_LITERAL(T) T
-	#define MYYAML_ZERO_INIT {}
+/** @def MYYAML_ENABLE_DEBUG
+ * Used for input parameter checking and cheap sanity checks. There are lots of
+ * asserts in every part of the code, so this will slow down applications.
+ */
+#if !defined(MYYAML_ENABLE_DEBUG) && !defined(NDEBUG)
+#if defined(NDEBUG)
+#define MYYAML_NDEBUG
 #else
-	#define MYYAML_API
-	#define MYYAML_INLINE static inline
-	/// Used for C literals like (b2Vec2){1.0f, 2.0f} where C++ requires b2Vec2{1.0f, 2.0f}
-	#define MYYAML_LITERAL(T) (T)
-	#define MYYAML_ZERO_INIT {0}
+#define MYYAML_DEBUG
+#endif
 #endif
 
-// see https://github.com/scottt/debugbreak
-#if defined( _MSC_VER )
-#define MYYAML_BREAKPOINT __debugbreak()
-#elif defined( __GNUC__ ) || defined( __clang__ )
-#define MYYAML_BREAKPOINT __builtin_trap()
-#else
-// Unknown compiler
-#include <assert.h>
-#define MYYAML_BREAKPOINT assert( 0 )
+/** @def MYYAML_SANITIZE
+ * Enables expensive checks that can detect issues early. Recommended for
+ * running tests or when debugging issues. This will severely slow down code.
+ */
+#ifdef MYYAML_SANITIZE
+#ifndef MYYAML_DEBUG
+#define MYYAML_DEBUG /* If sanitized mode is enabled, so is debug mode */
+#endif
 #endif
 
 #if !defined( NDEBUG ) || defined( MYYAML_ENABLE_ASSERT )
@@ -600,7 +607,46 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
     #endif // MYYAML_ASSERT
 #else
     #define MYYAML_ASSERT( ... ) ( (void)0 )
+    #define MYYAML_HARD_ASSERT( ... ) ( (void)0 )
+    #define MYYAML_SOFT_ASSERT( ... ) ( (void)0 )
 #endif
+
+#define MYYAML_SUCCESS 1
+#define MYYAML_FAILURE 0
+
+// C++ macros
+#ifdef __cplusplus
+    #define MYYAML_CAST(type, x)       static_cast<type>(x)
+    #define MYYAML_PTRCAST(type, x)    reinterpret_cast<type>(x)
+    #define MYYAML_ABORT     std::abort()
+	#define MYYAML_INLINE inline
+	#define MYYAML_LITERAL(T) T
+	#define MYYAML_ZERO_INIT {}
+#else
+    #define MYYAML_CAST(type, x)       ((type)x)
+    #define MYYAML_PTRCAST(type, x)    ((type)x)
+    #define MYYAML_ABORT     exit(1)
+	#define MYYAML_API
+	#define MYYAML_INLINE static inline
+	/// Used for C literals like (b2Vec2){1.0f, 2.0f} where C++ requires b2Vec2{1.0f, 2.0f}
+	#define MYYAML_LITERAL(T) (T)
+	#define MYYAML_ZERO_INIT {0}
+#endif
+
+// see https://github.com/scottt/debugbreak
+#if defined( _MSC_VER )
+    #define MYYAML_BREAKPOINT __debugbreak()
+#elif defined( __GNUC__ ) || defined( __clang__ )
+    #define MYYAML_BREAKPOINT __builtin_trap()
+#else
+    #if defined( MYYAML_ENABLE_ASSERT )
+        #include <assert.h>
+        #define MYYAML_BREAKPOINT MYYAML_ASSERT(0)
+    #else 
+        #define MYYAML_BREAKPOINT 
+    #endif // MYYAML_ENABLE_ASSERT
+#endif // _MSC_VER
+
 
 /*
  * Byte order marks.
@@ -709,6 +755,35 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
  */
 #define MYYAML_INITIAL_STRING_SIZE 16
 #endif // MYYAML_INITIAL_STRING_SIZE
+
+//-----------------------------------------------------------------------------
+// [SECTION] Memory Management
+//-----------------------------------------------------------------------------
+
+/*
+ * Allocate a dynamic memory block.
+ */
+#define MYYAML_MALLOC(size)  malloc(size ? size : 1)
+
+/*
+ * Free a dynamic memory block.
+ */
+#define MYYAML_FREE(pointer) if (pointer)   \
+    {                                       \
+        free(pointer);                      \
+    }
+
+/*
+ * Reallocate a dynamic memory block.
+ */
+#define MYYAML_REALLOC(pointer, size) if (pointer)  \
+    {                                               \
+        return realloc(pointer, size ? size : 1);   \
+    }                                               \
+    else                                            \
+    {                                               \
+        return malloc(size ? size : 1);             \
+    }
 
 /*
  * String Management Macros.
