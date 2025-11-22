@@ -6193,7 +6193,7 @@ static int yaml_parser_append_tag_directive(YamlParser *parser, YamlTagDirective
 
     for (tag_directive = parser->tag_directives.start; tag_directive != parser->tag_directives.top; tag_directive++) {
         if (strcmp((char *)value.handle, (char *)tag_directive->handle) == 0) {
-            if (allow_duplicates) return MYYAML_SUCCESS;
+            if (allow_duplicates) { return  MYYAML_SUCCESS; }
             return yaml_parser_set_parser_error(parser, "found duplicate %TAG directive", mark);
         }
     }
@@ -6276,11 +6276,11 @@ static int yaml_parser_update_raw_buffer(YamlParser *parser) {
 
     /* Return if the raw buffer is full. */
 
-    if (parser->raw_buffer.start == parser->raw_buffer.pointer && parser->raw_buffer.last == parser->raw_buffer.end) return MYYAML_SUCCESS;
+    if (parser->raw_buffer.start == parser->raw_buffer.pointer && parser->raw_buffer.last == parser->raw_buffer.end) { return  MYYAML_SUCCESS; }
 
     /* Return on EOF. */
 
-    if (parser->eof) return MYYAML_SUCCESS;
+    if (parser->eof) { return  MYYAML_SUCCESS; }
 
     /* Move the remaining bytes in the raw buffer to the beginning. */
 
@@ -6422,7 +6422,7 @@ static int yaml_parser_register_anchor(YamlParser *parser, int index, YamlChar_t
     YamlAliasData data;
     YamlAliasData *alias_data;
 
-    if (!anchor) return MYYAML_SUCCESS;
+    if (!anchor) { return  MYYAML_SUCCESS; }
 
     data.anchor = anchor;
     data.index = index;
@@ -6970,7 +6970,7 @@ static int yaml_emitter_need_more_events(YamlEmitter *emitter) {
     int accumulate = 0;
     YamlEvent *event;
 
-    if (QUEUE_EMPTY(emitter, emitter->events)) return MYYAML_SUCCESS;
+    if (QUEUE_EMPTY(emitter, emitter->events)) { return  MYYAML_SUCCESS; }
 
     switch (emitter->events.head->type) {
         case YAML_DOCUMENT_START_EVENT:
@@ -7021,7 +7021,7 @@ static int yaml_emitter_append_tag_directive(YamlEmitter *emitter, YamlTagDirect
 
     for (tag_directive = emitter->tag_directives.start; tag_directive != emitter->tag_directives.top; tag_directive++) {
         if (strcmp((char *)value.handle, (char *)tag_directive->handle) == 0) {
-            if (allow_duplicates) return MYYAML_SUCCESS;
+            if (allow_duplicates) { return  MYYAML_SUCCESS; }
             return yaml_emitter_set_emitter_error(emitter, "duplicate %TAG directive");
         }
     }
@@ -7686,7 +7686,7 @@ static int yaml_emitter_select_scalar_style(YamlEmitter *emitter, YamlEvent *eve
  */
 
 static int yaml_emitter_process_anchor(YamlEmitter *emitter) {
-    if (!emitter->anchor_data.anchor) return MYYAML_SUCCESS;
+    if (!emitter->anchor_data.anchor) { return  MYYAML_SUCCESS; }
 
     if (!yaml_emitter_write_indicator(emitter, (emitter->anchor_data.alias ? "*" : "&"), 1, 0, 0)) { return MYYAML_FAILURE; }
 
@@ -7698,7 +7698,7 @@ static int yaml_emitter_process_anchor(YamlEmitter *emitter) {
  */
 
 static int yaml_emitter_process_tag(YamlEmitter *emitter) {
-    if (!emitter->tag_data.handle && !emitter->tag_data.suffix) return MYYAML_SUCCESS;
+    if (!emitter->tag_data.handle && !emitter->tag_data.suffix) { return  MYYAML_SUCCESS; }
 
     if (emitter->tag_data.handle) {
         if (!yaml_emitter_write_tag_handle(emitter, emitter->tag_data.handle, emitter->tag_data.handle_length)) { return MYYAML_FAILURE; }
@@ -9828,11 +9828,11 @@ MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length) {
 
     /* If the EOF flag is set and the raw buffer is empty, do nothing. */
 
-    if (parser->eof && parser->raw_buffer.pointer == parser->raw_buffer.last) return MYYAML_SUCCESS;
+    if (parser->eof && parser->raw_buffer.pointer == parser->raw_buffer.last) { return  MYYAML_SUCCESS; }
 
     /* Return if the buffer contains enough characters. */
 
-    if (parser->unread >= length) return MYYAML_SUCCESS;
+    if (parser->unread >= length) { return  MYYAML_SUCCESS; }
 
     /* Determine the input encoding if it is not known yet. */
 
@@ -9865,11 +9865,13 @@ MYYAML_API int yaml_parser_update_buffer(YamlParser *parser, size_t length) {
         /* Decode the raw buffer. */
 
         while (parser->raw_buffer.pointer != parser->raw_buffer.last) {
-            unsigned int value = 0, value2 = 0;
+            unsigned int value = 0;
+            unsigned int value2 = 0;
             int incomplete = 0;
             unsigned char octet;
             unsigned int width = 0;
-            int low, high;
+            int low;
+            int high;
             size_t k;
             size_t raw_unread = parser->raw_buffer.last - parser->raw_buffer.pointer;
 
@@ -10452,7 +10454,7 @@ MYYAML_API int yaml_emitter_close(YamlEmitter *emitter) {
     YamlEvent event;
     YamlMark mark = {0, 0, 0};
 
-    if (emitter->closed) return MYYAML_SUCCESS;
+    if (emitter->closed) { return  MYYAML_SUCCESS; }
 
     memset(&(event), 0, sizeof(YamlEvent));
     event.type = YAML_STREAM_END_EVENT;
@@ -10559,9 +10561,9 @@ MYYAML_API int yaml_emitter_flush(YamlEmitter *emitter) {
         emitter->raw_buffer.last = emitter->raw_buffer.start;
         emitter->raw_buffer.pointer = emitter->raw_buffer.start;
         return MYYAML_SUCCESS;
-    } else {
+    } 
+
         return yaml_emitter_set_writer_error(emitter, "write error");
-    }
 }
 
 #pragma endregion  // Emitter
