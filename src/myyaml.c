@@ -140,7 +140,7 @@
 	 * @brief  Returns the current platform name.
 	 * @return  platform name.
 	 */
-  #define MYYAML_PLATFORM_NAME_IS "Apple"
+    #define MYYAML_PLATFORM_NAME_IS "Apple"
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 	/**
 	* A preprocessor macro that is only defined if compiling for Linux.
@@ -515,6 +515,7 @@
   	#elif MYYAML_COMPILER_SINCE(MSVC, 3, 0, 0)
     	#define MYYAML_DEPRECATED(msg) __attribute__((deprecated))
   	#else
+        #pragma message("MYYAML_DEPRECATED is not supported for your compiler.")
     	#define MYYAML_DEPRECATED(msg)
   	#endif
 #endif
@@ -586,7 +587,7 @@
 #endif
 
 #if !defined( NDEBUG ) || defined( MYYAML_ENABLE_ASSERT )
-MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, int lineNumber );
+// MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, int lineNumber );
 
     #include <assert.h>
 
@@ -595,13 +596,13 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
      * @brief Apply the default assert.
      */
     #ifndef MYYAML_ASSERT
-        #define MYYAML_ASSERT( condition )                                                                                                   \
-            do                                                                                                                           \
-            {                                                                                                                            \
-                if ( !( condition ) && MyInternalAssert( #condition, __FILE__, (int)__LINE__ ) )                                          \
-                    MYYAML_BREAKPOINT;                                                                                                       \
-            }                                                                                                                            \
-            while ( 0 )
+        #define MYYAML_ASSERT( condition ) assert(condition)                                                                                                  
+            // do                                                                                                                           \ 
+            // {                                                                                                                            \ 
+            //     if ( !( condition ) && MyInternalAssert( #condition, __FILE__, (int)__LINE__ ) )                                          \ 
+            //         MYYAML_BREAKPOINT;                                                                                                       \ 
+            // }                                                                                                                            \ 
+            // while ( 0 )
 	#else
 		#define MYYAML_ASSERT(x)
     #endif // MYYAML_ASSERT
@@ -626,7 +627,6 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
     #define MYYAML_CAST(type, x)       ((type)x)
     #define MYYAML_PTRCAST(type, x)    ((type)x)
     #define MYYAML_ABORT     exit(1)
-	#define MYYAML_API
 	// #define MYYAML_INLINE static inline
 	/// Used for C literals like (b2Vec2){1.0f, 2.0f} where C++ requires b2Vec2{1.0f, 2.0f}
 	#define MYYAML_LITERAL(T) (T)
@@ -763,27 +763,17 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
 /*
  * Allocate a dynamic memory block.
  */
-#define MYYAML_MALLOC(size)  malloc(size ? size : 1)
+#define MYYAML_MALLOC(size)  myMalloc(size)
 
 /*
  * Free a dynamic memory block.
  */
-#define MYYAML_FREE(pointer) if (pointer)   \
-    {                                       \
-        free(pointer);                      \
-    }
+#define MYYAML_FREE(pointer) myFree(pointer)
 
 /*
  * Reallocate a dynamic memory block.
  */
-#define MYYAML_REALLOC(pointer, size) if (pointer)  \
-    {                                               \
-        return realloc(pointer, size ? size : 1);   \
-    }                                               \
-    else                                            \
-    {                                               \
-        return malloc(size ? size : 1);             \
-    }
+#define MYYAML_REALLOC(pointer) myRealloc(pointer,size)
 
 /*
  * String Management Macros.
@@ -801,7 +791,7 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
 		 : ((context)->error = YAML_MEMORY_ERROR, 0))
 
 #define STRING_DEL(context, string) \
-	(_myyaml_free((string).start),  \
+	(myFree((string).start),  \
 	 (string).start = (string).pointer = (string).end = 0)
 
 #define STRING_EXTEND(context, string)                                          \
@@ -841,18 +831,18 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
  */
 
 #define MYYAML_BUFFER_INIT(context, buffer, size)                     \
-	(((buffer).start = (YamlChar_t *)_myyaml_malloc(size))     \
+	(((buffer).start = (YamlChar_t *)myMalloc(size))     \
 		 ? ((buffer).last = (buffer).pointer = (buffer).start, \
 			(buffer).end = (buffer).start + (size), 1)         \
 		 : ((context)->error = YAML_MEMORY_ERROR, 0))
 
 #define MYYAML_BUFFER_FREE(context, buffer) \
-	(_myyaml_free((buffer).start),  \
+	(myFree((buffer).start),  \
 	 (buffer).start = (buffer).pointer = (buffer).end = 0)
 
 	 
 #define BUFFER_DEL(context, buffer) \
-	(_myyaml_free((buffer).start),  \
+	(myFree((buffer).start),  \
 	 (buffer).start = (buffer).pointer = (buffer).end = 0)
 
 /*
@@ -1081,14 +1071,14 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
 		 : 0)
 
 #define STACK_INIT(context, stack, type)                                \
-	(((stack).start = (type)_myyaml_malloc(MYYAML_INITIAL_STACK_SIZE *  \
+	(((stack).start = (type)myMalloc(MYYAML_INITIAL_STACK_SIZE *  \
 										   sizeof(*(stack).start)))     \
 		 ? ((stack).top = (stack).start,                                \
 			(stack).end = (stack).start + MYYAML_INITIAL_STACK_SIZE, 1) \
 		 : ((context)->error = YAML_MEMORY_ERROR, 0))
 
 #define STACK_DEL(context, stack) \
-	(_myyaml_free((stack).start), (stack).start = (stack).top = (stack).end = 0)
+	(myFree((stack).start), (stack).start = (stack).top = (stack).end = 0)
 
 #define STACK_EMPTY(context, stack) ((stack).start == (stack).top)
 
@@ -1107,13 +1097,13 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
 #define POP(context, stack) (*(--(stack).top))
 
 #define QUEUE_INIT(context, queue, size, type)                               \
-	(((queue).start = (type)_myyaml_malloc((size) * sizeof(*(queue).start))) \
+	(((queue).start = (type)myMalloc((size) * sizeof(*(queue).start))) \
 		 ? ((queue).head = (queue).tail = (queue).start,                     \
 			(queue).end = (queue).start + (size), 1)                         \
 		 : ((context)->error = YAML_MEMORY_ERROR, 0))
 
 #define QUEUE_DEL(context, queue) \
-	(_myyaml_free((queue).start), \
+	(myFree((queue).start), \
 	 (queue).start = (queue).head = (queue).tail = (queue).end = 0)
 
 #define QUEUE_EMPTY(context, queue) ((queue).head == (queue).tail)
@@ -1296,9 +1286,9 @@ MYYAML_API int MyInternalAssert( const char* condition, const char* fileName, in
 	(document).start_mark = (document_start_mark),                     	\
 	(document).end_mark = (document_end_mark))
 
-#define YAML_MALLOC_STATIC(type) (type *)_myyaml_malloc(sizeof(type))
+#define YAML_MALLOC_STATIC(type) (type *)myMalloc(sizeof(type))
 
-#define YAML_MALLOC(size) (YamlChar_t *)_myyaml_malloc(size)
+#define YAML_MALLOC(size) (YamlChar_t *)myMalloc(size)
 
 // clang-format on
 
@@ -1483,17 +1473,25 @@ extern "C" {
 /*
  * Allocate a dynamic memory block.
  */
-MYYAML_API void *_myyaml_malloc(size_t size);
+MYYAML_API void *myMalloc(size_t size);
 
 /*
  * Reallocate a dynamic memory block.
  */
-MYYAML_API void *_myyaml_realloc(void *ptr, size_t size);
+MYYAML_API void *myRealloc(void *ptr, size_t size);
 
-/*
- * Free a dynamic memory block.
+/**
+ * @brief Deallocates memory
+ * 
+ * This function deallocates the memory being pointed to
+ * using the free function from the C standard library.
+ * 
+ * @note The memory must have been previously allocated using a call
+ * to malloc.
+ * 
+ * @param ptr Pointer to the memory to deallocate
  */
-MYYAML_API void _myyaml_free(void *ptr);
+MYYAML_API void myFree(void* ptr);
 
 /*
  * Duplicate a string.
@@ -1525,7 +1523,7 @@ MYYAML_API int _myyaml_string_initialize(YamlString_t *string) {
 };
 
 MYYAML_API void _myyaml_string_delete(YamlString_t *string) {
-    _myyaml_free(string->start);
+    myFree(string->start);
     string->start = string->pointer = string->end = 0;
 };
 
@@ -1982,11 +1980,11 @@ static int yaml_emitter_write_folded_scalar(YamlEmitter *emitter, YamlChar_t *va
 
 #pragma region C Def
 
-MYYAML_API void *_myyaml_malloc(size_t size) { return malloc(size ? size : 1); };
+MYYAML_API void *myMalloc(size_t size) { return malloc(size ? size : 1); };
 
-MYYAML_API void *_myyaml_realloc(void *ptr, size_t size) { return ptr ? realloc(ptr, size ? size : 1) : malloc(size ? size : 1); };
+MYYAML_API void *myRealloc(void *ptr, size_t size) { return ptr ? realloc(ptr, size ? size : 1) : malloc(size ? size : 1); };
 
-MYYAML_API void _myyaml_free(void *ptr) {
+MYYAML_API void myFree(void *ptr) {
     if (ptr){ free(ptr);}
 };
 
@@ -1997,7 +1995,7 @@ MYYAML_API YamlChar_t *_myyaml_strdup(const YamlChar_t *str) {
 };
 
 MYYAML_API int _myyaml_string_extend(YamlChar_t **start, YamlChar_t **pointer, YamlChar_t **end) {
-    YamlChar_t *new_start = (YamlChar_t *)_myyaml_realloc((void *)*start, (*end - *start) * 2);
+    YamlChar_t *new_start = (YamlChar_t *)myRealloc((void *)*start, (*end - *start) * 2);
 
     if (!new_start) {return MYYAML_FAILURE;}
 
@@ -2030,7 +2028,7 @@ MYYAML_API int _myyaml_stack_extend(void **start, void **top, void **end) {
 
     if ((char *)*end - (char *)*start >= INT_MAX / 2) {return MYYAML_FAILURE;}
 
-    new_start = _myyaml_realloc(*start, ((char *)*end - (char *)*start) * 2);
+    new_start = myRealloc(*start, ((char *)*end - (char *)*start) * 2);
 
     if (!new_start) {return MYYAML_FAILURE;}
 
@@ -2045,7 +2043,7 @@ MYYAML_API int _myyaml_queue_extend(void **start, void **head, void **tail, void
     /* Check if we need to resize the queue. */
 
     if (*start == *head && *tail == *end) {
-        void *new_start = _myyaml_realloc(*start, ((char *)*end - (char *)*start) * 2);
+        void *new_start = myRealloc(*start, ((char *)*end - (char *)*start) * 2);
 
         if (!new_start) {return MYYAML_FAILURE;}
 
@@ -3659,14 +3657,14 @@ int yaml_parser_scan_directive(YamlParser *parser, YamlToken *token) {
         SKIP_LINE(parser);
     }
 
-    _myyaml_free(name);
+    myFree(name);
 
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(prefix);
-    _myyaml_free(handle);
-    _myyaml_free(name);
+    myFree(prefix);
+    myFree(handle);
+    myFree(name);
     return MYYAML_FAILURE;
 }
 
@@ -3859,8 +3857,8 @@ static int yaml_parser_scan_tag_directive_value(YamlParser *parser, YamlMark sta
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(handle_value);
-    _myyaml_free(prefix_value);
+    myFree(handle_value);
+    myFree(prefix_value);
     return MYYAML_FAILURE;
 }
 
@@ -3978,7 +3976,7 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
 
             /* Set the handle to '!'. */
 
-            _myyaml_free(handle);
+            myFree(handle);
             handle = YAML_MALLOC(2);
             if (!handle) { goto error; }
             handle[0] = '!';
@@ -4017,8 +4015,8 @@ static int yaml_parser_scan_tag(YamlParser *parser, YamlToken *token) {
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(handle);
-    _myyaml_free(suffix);
+    myFree(handle);
+    myFree(suffix);
     return MYYAML_FAILURE;
 }
 
@@ -5291,13 +5289,13 @@ static int yaml_parser_parse_document_start(YamlParser *parser, YamlEvent *event
     }
 
 error:
-    _myyaml_free(version_directive);
+    myFree(version_directive);
     while (tag_directives.start != tag_directives.end) {
-        _myyaml_free(tag_directives.end[-1].handle);
-        _myyaml_free(tag_directives.end[-1].prefix);
+        myFree(tag_directives.end[-1].handle);
+        myFree(tag_directives.end[-1].prefix);
         tag_directives.end--;
     }
-    _myyaml_free(tag_directives.start);
+    myFree(tag_directives.start);
     return MYYAML_FAILURE;
 }
 
@@ -5348,8 +5346,8 @@ static int yaml_parser_parse_document_end(YamlParser *parser, YamlEvent *event) 
 
     while (!STACK_EMPTY(parser, parser->tag_directives)) {
         YamlTagDirective tag_directive = POP(parser, parser->tag_directives);
-        _myyaml_free(tag_directive.handle);
-        _myyaml_free(tag_directive.prefix);
+        myFree(tag_directive.handle);
+        myFree(tag_directive.prefix);
     }
 
     parser->state = YAML_PARSE_DOCUMENT_START_STATE;
@@ -5457,7 +5455,7 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
         if (tag_handle) {
             if (!*tag_handle) {
                 tag = tag_suffix;
-                _myyaml_free(tag_handle);
+                myFree(tag_handle);
                 tag_handle = tag_suffix = NULL;
             } else {
                 YamlTagDirective *tag_directive;
@@ -5473,8 +5471,8 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
                         memcpy(tag, tag_directive->prefix, prefix_len);
                         memcpy(tag + prefix_len, tag_suffix, suffix_len);
                         tag[prefix_len + suffix_len] = '\0';
-                        _myyaml_free(tag_handle);
-                        _myyaml_free(tag_suffix);
+                        myFree(tag_handle);
+                        myFree(tag_suffix);
                         tag_handle = tag_suffix = NULL;
                         break;
                     }
@@ -5628,10 +5626,10 @@ static int yaml_parser_parse_node(YamlParser *parser, YamlEvent *event, int bloc
     }
 
 error:
-    _myyaml_free(anchor);
-    _myyaml_free(tag_handle);
-    _myyaml_free(tag_suffix);
-    _myyaml_free(tag);
+    myFree(anchor);
+    myFree(tag_handle);
+    myFree(tag_suffix);
+    myFree(tag);
 
     return MYYAML_FAILURE;
 }
@@ -6169,15 +6167,15 @@ static int yaml_parser_process_directives(YamlParser *parser, YamlVersionDirecti
         STACK_DEL(parser, tag_directives);
     }
 
-    if (!version_directive_ref) _myyaml_free(version_directive);
+    if (!version_directive_ref) myFree(version_directive);
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(version_directive);
+    myFree(version_directive);
     while (!STACK_EMPTY(parser, tag_directives)) {
         YamlTagDirective tag_directive = POP(parser, tag_directives);
-        _myyaml_free(tag_directive.handle);
-        _myyaml_free(tag_directive.prefix);
+        myFree(tag_directive.handle);
+        myFree(tag_directive.prefix);
     }
     STACK_DEL(parser, tag_directives);
     return MYYAML_FAILURE;
@@ -6210,8 +6208,8 @@ static int yaml_parser_append_tag_directive(YamlParser *parser, YamlTagDirective
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(copy.handle);
-    _myyaml_free(copy.prefix);
+    myFree(copy.handle);
+    myFree(copy.prefix);
     return MYYAML_FAILURE;
 }
 
@@ -6340,7 +6338,7 @@ static int yaml_parser_set_composer_error_context(YamlParser *parser, const char
 
 static void yaml_parser_delete_aliases(YamlParser *parser) {
     while (!STACK_EMPTY(parser, parser->aliases)) {
-        _myyaml_free(POP(parser, parser->aliases).anchor);
+        myFree(POP(parser, parser->aliases).anchor);
     }
     STACK_DEL(parser, parser->aliases);
 }
@@ -6430,14 +6428,14 @@ static int yaml_parser_register_anchor(YamlParser *parser, int index, YamlChar_t
 
     for (alias_data = parser->aliases.start; alias_data != parser->aliases.top; alias_data++) {
         if (strcmp((char *)alias_data->anchor, (char *)anchor) == 0) {
-            _myyaml_free(anchor);
+            myFree(anchor);
             return yaml_parser_set_composer_error_context(parser, "found duplicate anchor; first occurrence", alias_data->mark, "second occurrence",
                                                           data.mark);
         }
     }
 
     if (!PUSH(parser, parser->aliases, data)) {
-        _myyaml_free(anchor);
+        myFree(anchor);
         return MYYAML_FAILURE;
     }
 
@@ -6499,12 +6497,12 @@ static int yaml_parser_load_alias(YamlParser *parser, YamlEvent *event, struct L
 
     for (alias_data = parser->aliases.start; alias_data != parser->aliases.top; alias_data++) {
         if (strcmp((char *)alias_data->anchor, (char *)anchor) == 0) {
-            _myyaml_free(anchor);
+            myFree(anchor);
             return yaml_parser_load_node_add(parser, ctx, alias_data->index);
         }
     }
 
-    _myyaml_free(anchor);
+    myFree(anchor);
     return yaml_parser_set_composer_error(parser, "found undefined alias", event->start_mark);
 }
 
@@ -6520,7 +6518,7 @@ static int yaml_parser_load_scalar(YamlParser *parser, YamlEvent *event, struct 
     if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
-        _myyaml_free(tag);
+        myFree(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_SCALAR_TAG);
         if (!tag) { goto error; }
     }
@@ -6536,9 +6534,9 @@ static int yaml_parser_load_scalar(YamlParser *parser, YamlEvent *event, struct 
     return yaml_parser_load_node_add(parser, ctx, index);
 
 error:
-    _myyaml_free(tag);
-    _myyaml_free(event->data.scalar.anchor);
-    _myyaml_free(event->data.scalar.value);
+    myFree(tag);
+    myFree(event->data.scalar.anchor);
+    myFree(event->data.scalar.value);
     return MYYAML_FAILURE;
 }
 
@@ -6559,7 +6557,7 @@ static int yaml_parser_load_sequence(YamlParser *parser, YamlEvent *event, struc
     if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
-        _myyaml_free(tag);
+        myFree(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_SEQUENCE_TAG);
         if (!tag) { goto error; }
     }
@@ -6582,8 +6580,8 @@ static int yaml_parser_load_sequence(YamlParser *parser, YamlEvent *event, struc
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(tag);
-    _myyaml_free(event->data.sequence_start.anchor);
+    myFree(tag);
+    myFree(event->data.sequence_start.anchor);
     return MYYAML_FAILURE;
 }
 
@@ -6618,7 +6616,7 @@ static int yaml_parser_load_mapping(YamlParser *parser, YamlEvent *event, struct
     if (!STACK_LIMIT(parser, parser->document->nodes, INT_MAX - 1)) { goto error; }
 
     if (!tag || strcmp((char *)tag, "!") == 0) {
-        _myyaml_free(tag);
+        myFree(tag);
         tag = _myyaml_strdup((YamlChar_t *)YAML_DEFAULT_MAPPING_TAG);
         if (!tag) { goto error; }
     }
@@ -6641,8 +6639,8 @@ static int yaml_parser_load_mapping(YamlParser *parser, YamlEvent *event, struct
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(tag);
-    _myyaml_free(event->data.mapping_start.anchor);
+    myFree(tag);
+    myFree(event->data.mapping_start.anchor);
     return MYYAML_FAILURE;
 }
 
@@ -6697,9 +6695,9 @@ static void yaml_emitter_delete_document_and_anchors(YamlEmitter *emitter) {
     for (index = 0; emitter->document->nodes.start + index < emitter->document->nodes.top; index++) {
         YamlNode node = emitter->document->nodes.start[index];
         if (!emitter->anchors[index].serialized) {
-            _myyaml_free(node.tag);
+            myFree(node.tag);
             if (node.type == YAML_SCALAR_NODE) {
-                _myyaml_free(node.data.scalar.value);
+                myFree(node.data.scalar.value);
             }
         }
         if (node.type == YAML_SEQUENCE_NODE) {
@@ -6711,7 +6709,7 @@ static void yaml_emitter_delete_document_and_anchors(YamlEmitter *emitter) {
     }
 
     STACK_DEL(emitter, emitter->document->nodes);
-    _myyaml_free(emitter->anchors);
+    myFree(emitter->anchors);
 
     emitter->anchors = NULL;
     emitter->last_anchor_id = 0;
@@ -7038,8 +7036,8 @@ static int yaml_emitter_append_tag_directive(YamlEmitter *emitter, YamlTagDirect
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(copy.handle);
-    _myyaml_free(copy.prefix);
+    myFree(copy.handle);
+    myFree(copy.prefix);
     return MYYAML_FAILURE;
 }
 
@@ -7303,8 +7301,8 @@ static int yaml_emitter_emit_document_end(YamlEmitter *emitter, YamlEvent *event
 
         while (!STACK_EMPTY(emitter, emitter->tag_directives)) {
             YamlTagDirective tag_directive = POP(emitter, emitter->tag_directives);
-            _myyaml_free(tag_directive.handle);
-            _myyaml_free(tag_directive.prefix);
+            myFree(tag_directive.handle);
+            myFree(tag_directive.prefix);
         }
 
         return MYYAML_SUCCESS;
@@ -8784,6 +8782,91 @@ struct Utf32BE {
 extern "C" {
 #endif  // __cplusplus
 
+MYYAML_API  void MyYaml_MetaInfo(YamlDocument *doc){
+
+    yaml_document_initialize(doc, NULL, NULL, NULL, 0, 0);
+
+    /* Build document:
+     * meta:
+     *   name: "YAML for Modern C/C++"
+     *   home: "https://djoezeke.github.io/myyaml"
+     *   repo: "https://github.com/djoezeke/myyaml"
+     *   copyright: "(C) 2025 Sackey Ezekiel Etrue"
+     *   version:
+     *      string: "0.1.0"
+     *      major: 0
+     *      minor: 1
+     *      patch: 0
+     *   compiler:
+     *      family: "GNU GCC"
+     *      version: "14.0.1"
+     *      stdc: "202000L"
+     *      c++: "202302L"
+     *   platform: "Windows"
+     */
+
+    int meta_node = yaml_document_add_mapping(doc, NULL, YAML_BLOCK_MAPPING_STYLE);
+
+    int key_name = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"name", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_home = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"home", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_repo = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"repo", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_copyright = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"copyright", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_platform = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"platform", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    int value_name = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"name", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_home = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"home", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_repo = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"repo", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_copyright = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"copyright", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_platform = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"platform", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    int version_node = yaml_document_add_mapping(doc, NULL, YAML_BLOCK_MAPPING_STYLE);
+
+    int key_version = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"version", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_version_string = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"string", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_version_major = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"major", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_version_minor = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"minor", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_version_patch = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"patch", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    int value_version_string = yaml_document_add_scalar(doc, NULL, (const unsigned char *)MYYAML_VERSION, -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_version_major = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"major", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_version_minor = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"minor", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_version_patch = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"patch", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    yaml_document_append_mapping_pair(doc, version_node, key_version_string, value_version_string);
+    yaml_document_append_mapping_pair(doc, version_node, key_version_major, value_version_major);
+    yaml_document_append_mapping_pair(doc, version_node, key_version_minor, value_version_minor);
+    yaml_document_append_mapping_pair(doc, version_node, key_version_patch, value_version_patch);
+
+    int compiler_node = yaml_document_add_mapping(doc, NULL, YAML_BLOCK_MAPPING_STYLE);
+
+    int key_compiler = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"compiler", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_compiler_family = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"family", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_compiler_version = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"version", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_compiler_stdc = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"stdc", -1, YAML_PLAIN_SCALAR_STYLE);
+    int key_compiler_cpp = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"cpp", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    int value_compiler = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"compiler", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_compiler_family = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"family", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_compiler_version = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"version", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_compiler_stdc = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"stdc", -1, YAML_PLAIN_SCALAR_STYLE);
+    int value_compiler_cpp = yaml_document_add_scalar(doc, NULL, (const unsigned char *)"cpp", -1, YAML_PLAIN_SCALAR_STYLE);
+
+    yaml_document_append_mapping_pair(doc, compiler_node, key_compiler, value_compiler);
+    yaml_document_append_mapping_pair(doc, compiler_node, key_compiler_family, value_compiler_family);
+    yaml_document_append_mapping_pair(doc, compiler_node, key_compiler_version, value_compiler_version);
+    yaml_document_append_mapping_pair(doc, compiler_node, key_compiler_stdc, value_compiler_stdc);
+    yaml_document_append_mapping_pair(doc, compiler_node, key_compiler_cpp, value_compiler_cpp);
+
+    yaml_document_append_mapping_pair(doc, meta_node, key_name, value_name);
+    yaml_document_append_mapping_pair(doc, meta_node, key_home, value_home);
+    yaml_document_append_mapping_pair(doc, meta_node, key_repo, value_repo);
+    yaml_document_append_mapping_pair(doc, meta_node, key_copyright, value_copyright);
+    yaml_document_append_mapping_pair(doc, meta_node, version_node, key_version);
+    yaml_document_append_mapping_pair(doc, meta_node, compiler_node, key_compiler);
+    yaml_document_append_mapping_pair(doc, meta_node, key_platform, value_platform);
+
+};
+
 MYYAML_API void yaml_set_max_nest_level(int max) { MAX_NESTING_LEVEL = max; }
 
 MYYAML_API void yaml_token_delete(YamlToken *token) {
@@ -8791,25 +8874,25 @@ MYYAML_API void yaml_token_delete(YamlToken *token) {
 
     switch (token->type) {
         case YAML_TAG_DIRECTIVE_TOKEN:
-            _myyaml_free(token->data.tag_directive.handle);
-            _myyaml_free(token->data.tag_directive.prefix);
+            myFree(token->data.tag_directive.handle);
+            myFree(token->data.tag_directive.prefix);
             break;
 
         case YAML_ALIAS_TOKEN:
-            _myyaml_free(token->data.alias.value);
+            myFree(token->data.alias.value);
             break;
 
         case YAML_ANCHOR_TOKEN:
-            _myyaml_free(token->data.anchor.value);
+            myFree(token->data.anchor.value);
             break;
 
         case YAML_TAG_TOKEN:
-            _myyaml_free(token->data.tag.handle);
-            _myyaml_free(token->data.tag.suffix);
+            myFree(token->data.tag.handle);
+            myFree(token->data.tag.suffix);
             break;
 
         case YAML_SCALAR_TOKEN:
-            _myyaml_free(token->data.scalar.value);
+            myFree(token->data.scalar.value);
             break;
 
         default:
@@ -9064,15 +9147,15 @@ MYYAML_API int yaml_event_initialize_document_start(YamlEvent *event, YamlVersio
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(version_directive_copy);
+    myFree(version_directive_copy);
     while (!STACK_EMPTY(context, tag_directives_copy)) {
         YamlTagDirective value = POP(context, tag_directives_copy);
-        _myyaml_free(value.handle);
-        _myyaml_free(value.prefix);
+        myFree(value.handle);
+        myFree(value.prefix);
     }
     STACK_DEL(context, tag_directives_copy);
-    _myyaml_free(value.handle);
-    _myyaml_free(value.prefix);
+    myFree(value.handle);
+    myFree(value.prefix);
 
     return MYYAML_FAILURE;
 }
@@ -9159,9 +9242,9 @@ MYYAML_API int yaml_event_initialize_scalar(YamlEvent *event, const YamlChar_t *
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(anchor_copy);
-    _myyaml_free(tag_copy);
-    _myyaml_free(value_copy);
+    myFree(anchor_copy);
+    myFree(tag_copy);
+    myFree(value_copy);
 
     return MYYAML_FAILURE;
 }
@@ -9198,8 +9281,8 @@ MYYAML_API int yaml_event_initialize_sequence_start(YamlEvent *event, const Yaml
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(anchor_copy);
-    _myyaml_free(tag_copy);
+    myFree(anchor_copy);
+    myFree(tag_copy);
 
     return MYYAML_FAILURE;
 }
@@ -9249,8 +9332,8 @@ MYYAML_API int yaml_event_initialize_mapping_start(YamlEvent *event, const YamlC
     return MYYAML_SUCCESS;
 
 error:
-    _myyaml_free(anchor_copy);
-    _myyaml_free(tag_copy);
+    myFree(anchor_copy);
+    myFree(tag_copy);
 
     return MYYAML_FAILURE;
 }
@@ -9275,33 +9358,33 @@ MYYAML_API void yaml_event_delete(YamlEvent *event) {
 
     switch (event->type) {
         case YAML_DOCUMENT_START_EVENT:
-            _myyaml_free(event->data.document_start.version_directive);
+            myFree(event->data.document_start.version_directive);
             for (tag_directive = event->data.document_start.tag_directives.start; tag_directive != event->data.document_start.tag_directives.end;
                  tag_directive++) {
-                _myyaml_free(tag_directive->handle);
-                _myyaml_free(tag_directive->prefix);
+                myFree(tag_directive->handle);
+                myFree(tag_directive->prefix);
             }
-            _myyaml_free(event->data.document_start.tag_directives.start);
+            myFree(event->data.document_start.tag_directives.start);
             break;
 
         case YAML_ALIAS_EVENT:
-            _myyaml_free(event->data.alias.anchor);
+            myFree(event->data.alias.anchor);
             break;
 
         case YAML_SCALAR_EVENT:
-            _myyaml_free(event->data.scalar.anchor);
-            _myyaml_free(event->data.scalar.tag);
-            _myyaml_free(event->data.scalar.value);
+            myFree(event->data.scalar.anchor);
+            myFree(event->data.scalar.tag);
+            myFree(event->data.scalar.value);
             break;
 
         case YAML_SEQUENCE_START_EVENT:
-            _myyaml_free(event->data.sequence_start.anchor);
-            _myyaml_free(event->data.sequence_start.tag);
+            myFree(event->data.sequence_start.anchor);
+            myFree(event->data.sequence_start.tag);
             break;
 
         case YAML_MAPPING_START_EVENT:
-            _myyaml_free(event->data.mapping_start.anchor);
-            _myyaml_free(event->data.mapping_start.tag);
+            myFree(event->data.mapping_start.anchor);
+            myFree(event->data.mapping_start.tag);
             break;
 
         default:
@@ -9380,15 +9463,15 @@ MYYAML_API int yaml_document_initialize(YamlDocument *document, YamlVersionDirec
 
 error:
     STACK_DEL(&context, nodes);
-    _myyaml_free(version_directive_copy);
+    myFree(version_directive_copy);
     while (!STACK_EMPTY(&context, tag_directives_copy)) {
         YamlTagDirective value = POP(&context, tag_directives_copy);
-        _myyaml_free(value.handle);
-        _myyaml_free(value.prefix);
+        myFree(value.handle);
+        myFree(value.prefix);
     }
     STACK_DEL(&context, tag_directives_copy);
-    _myyaml_free(value.handle);
-    _myyaml_free(value.prefix);
+    myFree(value.handle);
+    myFree(value.prefix);
 
     return MYYAML_FAILURE;
 }
@@ -9400,10 +9483,10 @@ MYYAML_API void yaml_document_delete(YamlDocument *document) {
 
     while (!STACK_EMPTY(&context, document->nodes)) {
         YamlNode node = POP(&context, document->nodes);
-        _myyaml_free(node.tag);
+        myFree(node.tag);
         switch (node.type) {
             case YAML_SCALAR_NODE:
-                _myyaml_free(node.data.scalar.value);
+                myFree(node.data.scalar.value);
                 break;
             case YAML_SEQUENCE_NODE:
                 STACK_DEL(&context, node.data.sequence.items);
@@ -9417,12 +9500,12 @@ MYYAML_API void yaml_document_delete(YamlDocument *document) {
     }
     STACK_DEL(&context, document->nodes);
 
-    _myyaml_free(document->version_directive);
+    myFree(document->version_directive);
     for (tag_directive = document->tag_directives.start; tag_directive != document->tag_directives.end; tag_directive++) {
-        _myyaml_free(tag_directive->handle);
-        _myyaml_free(tag_directive->prefix);
+        myFree(tag_directive->handle);
+        myFree(tag_directive->prefix);
     }
-    _myyaml_free(document->tag_directives.start);
+    myFree(document->tag_directives.start);
 
     memset(document, 0, sizeof(YamlDocument));
 }
@@ -9481,8 +9564,8 @@ MYYAML_API int yaml_document_add_scalar(YamlDocument *document, const YamlChar_t
     return document->nodes.top - document->nodes.start;
 
 error:
-    _myyaml_free(tag_copy);
-    _myyaml_free(value_copy);
+    myFree(tag_copy);
+    myFree(value_copy);
 
     return MYYAML_FAILURE;
 }
@@ -9519,7 +9602,7 @@ MYYAML_API int yaml_document_add_sequence(YamlDocument *document, const YamlChar
 
 error:
     STACK_DEL(&context, items);
-    _myyaml_free(tag_copy);
+    myFree(tag_copy);
 
     return MYYAML_FAILURE;
 }
@@ -9556,7 +9639,7 @@ MYYAML_API int yaml_document_add_mapping(YamlDocument *document, const YamlChar_
 
 error:
     STACK_DEL(&context, pairs);
-    _myyaml_free(tag_copy);
+    myFree(tag_copy);
 
     return MYYAML_FAILURE;
 }
@@ -10218,8 +10301,8 @@ MYYAML_API void yaml_parser_delete(YamlParser *parser) {
     STACK_DEL(parser, parser->marks);
     while (!STACK_EMPTY(parser, parser->tag_directives)) {
         YamlTagDirective tag_directive = POP(parser, parser->tag_directives);
-        _myyaml_free(tag_directive.handle);
-        _myyaml_free(tag_directive.prefix);
+        myFree(tag_directive.handle);
+        myFree(tag_directive.prefix);
     }
     STACK_DEL(parser, parser->tag_directives);
 
@@ -10272,11 +10355,11 @@ MYYAML_API void yaml_emitter_delete(YamlEmitter *emitter) {
     STACK_DEL(emitter, emitter->indents);
     while (!STACK_EMPTY(empty, emitter->tag_directives)) {
         YamlTagDirective tag_directive = POP(emitter, emitter->tag_directives);
-        _myyaml_free(tag_directive.handle);
-        _myyaml_free(tag_directive.prefix);
+        myFree(tag_directive.handle);
+        myFree(tag_directive.prefix);
     }
     STACK_DEL(emitter, emitter->tag_directives);
-    _myyaml_free(emitter->anchors);
+    myFree(emitter->anchors);
 
     memset(emitter, 0, sizeof(YamlEmitter));
 }
@@ -10317,7 +10400,7 @@ MYYAML_API int yaml_emitter_dump(YamlEmitter *emitter, YamlDocument *document) {
 
     MYYAML_ASSERT(emitter->opened); /* Emitter should be opened. */
 
-    emitter->anchors = (YamlAnchors *)_myyaml_malloc(sizeof(*(emitter->anchors)) * (document->nodes.top - document->nodes.start));
+    emitter->anchors = (YamlAnchors *)myMalloc(sizeof(*(emitter->anchors)) * (document->nodes.top - document->nodes.start));
     if (!emitter->anchors) { goto error; }
     memset(emitter->anchors, 0, sizeof(*(emitter->anchors)) * (document->nodes.top - document->nodes.start));
 
