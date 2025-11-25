@@ -1,4 +1,4 @@
-#include "../../myyaml.h"
+#include <myyaml/myyaml.h>
 
 #include <stdio.h>
 #include <stdlib.h>

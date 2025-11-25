@@ -45,7 +45,45 @@
 
 <!-- ## About yaml -->
 
-YAML(Yaml Ain't Markup Language) is a light-weight data exchange format. More information about YAML can be obtained at [here]()
+<img align="right" src=".github/readme/YAML_logo.svg" width="200" alt="YAML Logo">
+
+### [Yaml](https://yaml.org) [YAML Ain't Markup Language]
+
+#### A Human-friendly data serialization.
+
+YAML is one of the most popular data serialization languages, and it is used mostly for writing configuration files. The YAML recursive acronym stands for YAML Ain’t Markup Language. This language is designed with flexibility and accessibility in mind, so it’s human-readable and simple to understand. YAML works with all modern programming languages and is widely used in data persistence, internet messaging, cross-language data sharing, and many other places. YAML files either have the extension .yaml or .yml.
+
+More information about YAML can be obtained at [here](https://yaml.org)
+
+<!-- #### Yaml Example.
+
+```yaml
+---
+# A sample yaml file
+name: "Myyaml : Yaml for Modern C/C++"
+author: djoezeke
+published: true
+branches:
+  - main
+  - dev
+tutorial:
+  - yaml:
+      name: "YAML Ain't Markup Language"
+      type: awesome
+      born: 2001
+  - json:
+      name: JavaScript Object Notation
+      type: great
+      born: 2001
+  - toml:
+      name: Tom's Obvious Minimal Language
+      type: great
+      born: 2013
+  - xml:
+      name: Extensible Markup Language
+      type: good
+      born: 1996
+``` -->
 
 <!-- ## Design Goals
 

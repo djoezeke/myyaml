@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../myyaml.hxx"
+#include <myyaml/myyaml.h>
 
 int main(void) {
     FILE *file = fopen("../yaml/fruit.yaml", "rb");

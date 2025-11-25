@@ -1192,6 +1192,16 @@ typedef struct YamlEmitter {
 extern "C" {
 #endif  //__cplusplus
 
+/**
+ * struct version
+ * struct spec
+ * 
+ */
+
+/**
+ * MyYaml_MetaInfo()
+ * MyYaml_License()
+ */
 MYYAML_API  void MyYaml_MetaInfo(YamlDocument *doc);
 
 #pragma region Error
@@ -1425,6 +1435,18 @@ MYYAML_API void yaml_event_delete(YamlEvent *event);
 
 #pragma region Document
 
+
+/**
+ * 
+ * document_get_version(Document * document)
+ * document_set_version(Document * document)
+ * 
+ * document_to_string(Document * document)
+ * Node * document_find(Document * document, char * keypath)
+ * document_remove(Document * document, char * key)
+ * 
+ */
+
 /**
  * Create a YAML document.
  *
@@ -1596,9 +1618,45 @@ MYYAML_API int yaml_document_get_value_length_by_path(YamlDocument *document, co
 
 #pragma endregion  // Document
 
+#pragma region Node
+
+/**
+ * isScalar isMapping isSequence isAlias
+ * 
+ * node_add_anchor_name(Node * node, char * anchor)
+ * node_has_anchor_name(Node * node)
+ * node_get_anchor_name(Node * node)
+ * 
+ * node_add_tag_name(Node * node, char * tag)
+ * node_has_tag_name(Node * node)
+ * node_get_tag_name(Node * node)
+ * 
+ * Node * node_alias_of(Node * node) //create an alias YAML node.
+ * 
+ * node_at(Node * node, int index)
+ * node_contains(Node * node, char * key)
+ * 
+ * node_to_string(Node * node)
+ * 
+ * node_get_type(Node * node)
+ * node_get_type_name(Node * node)
+ * 
+ */
+
+#pragma endregion  // Node
+
 #if !defined(MYYAML_DISABLE_READER) || !MYYAML_DISABLE_READER
 
 #pragma region Reader
+
+/**
+ * 
+ * has_event(Reader * reader)
+ * set_event(Reader * reader, Event * event)
+ * get_event(Reader * reader)
+ * 
+ * 
+ */
 
 /**
  * Initialize a parser.
