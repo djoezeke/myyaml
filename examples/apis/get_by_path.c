@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../myyaml.h"
+#include <myyaml/myyaml.h>
 
 int main(void)
 {

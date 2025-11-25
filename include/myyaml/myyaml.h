@@ -1192,6 +1192,16 @@ typedef struct YamlEmitter {
 extern "C" {
 #endif  //__cplusplus
 
+/**
+ * struct version
+ * struct spec
+ * 
+ */
+
+/**
+ * MyYaml_MetaInfo()
+ * MyYaml_License()
+ */
 MYYAML_API  void MyYaml_MetaInfo(YamlDocument *doc);
 
 #pragma region Error
