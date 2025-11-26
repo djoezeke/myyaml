@@ -2,7 +2,7 @@
   "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 16,
+    "minor": 10,
     "patch": 0
   },
   "configurePresets": [
@@ -21,6 +21,8 @@
     },
     {
       "name": "develop",
+      "displayName": "Myyaml Development",
+      "description": "Build Myyaml in Dev Mode",
       "binaryDir": "build",
       "installDir": "${sourceDir}/build/install",
       "generator": "MinGW Makefiles",
@@ -32,6 +34,12 @@
         "MYYAML_ENABLE_WARNING": "ON",
         "MYYAML_ENABLE_PACKING": "OFF"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Myyaml Shared",
+      "configurePreset": "develop"
     }
   ],
   "testPresets": []
