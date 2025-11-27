@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  build:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        # allow the job to continue on a single axis failure if desired
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.26.4"
+
+      - name: Configure (develop preset)
+        run: |
+          cmake --preset develop
+        working-directory: .
+
+      - name: Build
+        run: |
+          cmake --build debug --config Release -- -j 2
+        working-directory: .
+
+      - name: Run tests
+        if: always()
+        run: |
+          ctest --test-dir debug --output-on-failure -C Release
+        working-directory: .
+
+      - name: clang-format check
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          if command -v clang-format >/dev/null 2>&1; then
+            echo 'Running clang-format check'
+            clang-format --version
+            git diff --quiet || (echo 'Repo not clean before format check'; exit 1)
+            # check formatting (this assumes project contains .clang-format)
+            files=$(git ls-files '*.c' '*.h' '*.cpp' '*.hpp')
+            for f in $files; do
+              clang-format -style=file $f | diff -u $f - || (echo "File $f needs formatting"; exit 1)
+            done
+          else
+            echo 'clang-format not installed; skipping format check'
+          fi
+
+      - name: clang-tidy
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          if command -v clang-tidy >/dev/null 2>&1; then
+            echo 'Running clang-tidy (minimal invocation)'
+            # Minimal run over sources; adapt checks as needed
+            clang-tidy src/myyaml.c -- -Iinclude || true
+          else
+            echo 'clang-tidy not installed; skipping'
+          fi
+        working-directory: .

@@ -50,3 +50,16 @@ Some tests missing? As always, contributions are welcome, feel free to add new t
 ## License
 
 Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more information.
+
+<!-- ### Build & run tests
+
+From repository root:
+
+```bash
+mkdir -p build && cd build
+cmake .. -DBUILD_TESTING=ON
+cmake --build . --target tests
+ctest --output-on-failure
+``` -->
+
+If your environment uses a different test runner binary, run it from `build/tests`.

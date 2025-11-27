@@ -1,3 +1,130 @@
+/* myyaml.c - simplified, structured skeleton
+ * Compatible with C11 and C++11 minimum.
+ * Lightweight, single-file implementation for initial development and tests.
+ */
+
+#include "myyaml/myyaml.h"
+
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+/* Provide a local UNUSED_PARAM if not defined in headers */
+#ifndef UNUSED_PARAM
+#define UNUSED_PARAM(a) (void)(a)
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Memory helpers */
+MYYAML_API void *myMalloc(size_t size) {
+    if (size == 0) return NULL;
+    return malloc(size);
+}
+
+MYYAML_API void *myRealloc(void *ptr, size_t size) {
+    if (!ptr) return myMalloc(size);
+    if (size == 0) { free(ptr); return NULL; }
+    return realloc(ptr, size);
+}
+
+MYYAML_API void myFree(void *ptr) {
+    if (ptr) free(ptr);
+}
+
+MYYAML_API YamlChar_t *_myyaml_strdup(const YamlChar_t *s) {
+    if (!s) return NULL;
+    size_t n = strlen((const char*)s) + 1;
+    YamlChar_t *d = (YamlChar_t*) myMalloc(n);
+    if (!d) return NULL;
+    memcpy(d, s, n);
+    return d;
+}
+
+/* UTF-8 helpers: minimal, safe decoder/encoder */
+MYYAML_API size_t utf8_decode(const char *data, size_t size, uint32_t *rune) {
+    if (!data || size == 0) return 0;
+    unsigned char c = (unsigned char)data[0];
+    if (c < 0x80) {
+        if (rune) *rune = c;
+        return 1;
+    }
+    if ((c & 0xE0) == 0xC0 && size >= 2) {
+        unsigned char c1 = (unsigned char)data[1];
+        if ((c1 & 0xC0) != 0x80) return 0;
+        if (rune) *rune = ((c & 0x1F) << 6) | (c1 & 0x3F);
+        return 2;
+    }
+    if ((c & 0xF0) == 0xE0 && size >= 3) {
+        unsigned char c1 = (unsigned char)data[1];
+        unsigned char c2 = (unsigned char)data[2];
+        if (((c1 & 0xC0) != 0x80) || ((c2 & 0xC0) != 0x80)) return 0;
+        if (rune) *rune = ((c & 0x0F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F);
+        return 3;
+    }
+    if ((c & 0xF8) == 0xF0 && size >= 4) {
+        unsigned char c1 = (unsigned char)data[1];
+        unsigned char c2 = (unsigned char)data[2];
+        unsigned char c3 = (unsigned char)data[3];
+        if (((c1 & 0xC0) != 0x80) || ((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80)) return 0;
+        if (rune) *rune = ((c & 0x07) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+        return 4;
+    }
+    return 0;
+}
+
+MYYAML_API size_t utf8_encode(char *buffer, uint32_t rune) {
+    if (!buffer) return 0;
+    if (rune <= 0x7F) {
+        buffer[0] = (char)rune;
+        return 1;
+    }
+    if (rune <= 0x7FF) {
+        buffer[0] = (char)(0xC0 | (rune >> 6));
+        buffer[1] = (char)(0x80 | (rune & 0x3F));
+        return 2;
+    }
+    if (rune <= 0xFFFF) {
+        buffer[0] = (char)(0xE0 | (rune >> 12));
+        buffer[1] = (char)(0x80 | ((rune >> 6) & 0x3F));
+        buffer[2] = (char)(0x80 | (rune & 0x3F));
+        return 3;
+    }
+    if (rune <= 0x1FFFFF) {
+        buffer[0] = (char)(0xF0 | (rune >> 18));
+        buffer[1] = (char)(0x80 | ((rune >> 12) & 0x3F));
+        buffer[2] = (char)(0x80 | ((rune >> 6) & 0x3F));
+        buffer[3] = (char)(0x80 | (rune & 0x3F));
+        return 4;
+    }
+    return 0;
+}
+
+MYYAML_API int utf8_is_valid(const char *data, size_t size) {
+    size_t i = 0;
+    while (i < size) {
+        uint32_t rune = 0;
+        size_t n = utf8_decode(data + i, size - i, &rune);
+        if (n == 0) return 0;
+        i += n;
+    }
+    return 1;
+}
+
+/* Minimal public API stubs */
+MYYAML_API void MyYaml_MetaInfo(YamlDocument *doc) { UNUSED_PARAM(doc); }
+MYYAML_API void yaml_set_max_nest_level(int max) { UNUSED_PARAM(max); }
+MYYAML_API void yaml_token_delete(YamlToken *token) { UNUSED_PARAM(token); }
+MYYAML_API size_t utf8_decode_wrapper(const char *data, size_t size, uint32_t *rune) { return utf8_decode(data, size, rune); }
+MYYAML_API int yaml_check_utf8(const YamlChar_t *start, size_t length) { return start ? utf8_is_valid((const char*)start, length) : 0; }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 /**
  * @file myyaml.c
  * @brief YAML parser library header for C/C++.

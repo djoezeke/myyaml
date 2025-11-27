@@ -64,6 +64,18 @@ Examples showing myjson functionality, like standalone usage or examples integra
 
 Some example missing? As always, contributions are welcome, feel free to send new examples!
 
+<!-- ### Build examples (recommended)
+
+From the repository root you can build all examples via CMake:
+
+```bash
+mkdir -p build && cd build
+cmake .. -DBUILD_EXAMPLES=ON
+cmake --build . --target examples
+```
+
+Then run example binaries from the build directory. -->
+
 <!-- Here is an [examples template](template.c) with instructions to start with! -->
 
 ## License

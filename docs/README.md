@@ -32,6 +32,12 @@ cd myyaml
 
 > Open URL <http://127.0.0.1:8000/> in your browser to see the documentation.
 
+Quick mkdocs serve (from repo root):
+
+```bash
+python -m mkdocs serve
+```
+
 ### Doxygen
 
 Generating documentation with doxygen:
@@ -39,6 +45,12 @@ Generating documentation with doxygen:
 ```bash
 git clone https://github.com/djoezeke/myyaml.git
 cd myyaml
+```
+
+If Doxyfile is present you can run:
+
+```bash
+doxygen Doxyfile
 ```
 
 Some documentation missing? As always, contributions are welcome, feel free to send new documentation!
