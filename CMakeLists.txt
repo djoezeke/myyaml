@@ -193,7 +193,7 @@ if(MYYAML_BUILD_TESTS)
     # if the target compiler is some version of Microsoft Visual C++ and
     # if this project is the main project.
     if(MSVC AND CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MyYamlUnitTest)
+        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MyyamlUnitTest)
     endif()
 endif()
 
