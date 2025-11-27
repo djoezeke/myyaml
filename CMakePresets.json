@@ -8,39 +8,53 @@
   "configurePresets": [
     {
       "name": "default",
-      "binaryDir": "build",
+      "displayName": "default : Build Library",
+      "description": "Main Mode: Build",
+      "binaryDir": "${sourceDir}/build",
       "installDir": "${sourceDir}/build/install",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
+        "MYYAML_BUILD_DOCS": "OFF",
         "MYYAML_BUILD_TESTS": "OFF",
-        "MYYAML_BUILD_EXAMPLES": "OFF",
-        "MYYAML_ENABLE_WARNING": "OFF",
-        "MYYAML_ENABLE_PACKING": "OFF"
+        "MYYAML_BUILD_EXAMPLES": "OFF"
       }
     },
     {
       "name": "develop",
-      "displayName": "Myyaml Development",
-      "description": "Build Myyaml in Dev Mode",
-      "binaryDir": "build",
+      "displayName": "develop : Build Examples & Test",
+      "description": "Development Mode : Build & Test",
+      "binaryDir": "${sourceDir}/build",
       "installDir": "${sourceDir}/build/install",
       "generator": "MinGW Makefiles",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
-        "MYYAML_BUILD_TESTS": "ON",
-        "MYYAML_BUILD_EXAMPLES": "ON",
-        "MYYAML_ENABLE_WARNING": "ON",
-        "MYYAML_ENABLE_PACKING": "OFF"
+        "MYYAML_BUILD_DOCS": "OFF",
+        "MYYAML_BUILD_TESTS": "OFF",
+        "MYYAML_BUILD_EXAMPLES": "OFF"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "Myyaml Shared",
-      "configurePreset": "develop"
+      "name": "main",
+      "configurePreset": "default",
+      "description": "Build library (Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "dev",
+      "configurePreset": "develop",
+      "description": "Build library (Debug)",
+      "configuration": "Debug"
     }
   ],
-  "testPresets": []
+  "testPresets": [
+    {
+      "name": "ctest",
+      "configurePreset": "develop",
+      "execution": { "stopOnFailure": true }
+    }
+  ]
 }

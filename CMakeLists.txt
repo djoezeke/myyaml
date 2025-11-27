@@ -52,28 +52,17 @@ endif()
 # Configure variables for the library   
 #--------------------------------------------------------------------
 
-# we use the paths from the cmake GNUInstallDirs module as defaults
-# you can override these if you like
-# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
-include(GNUInstallDirs)
-
 set(MYYAML_LIB_NAME "myyaml" CACHE STRING "Base name of library output name")
 
 set(MYYAML_SOURCES src/myyaml.c)
 
 set(MYYAML_TARGET_NAME  ${MYYAML_LIB_NAME})
 
-# Option for building as shared library.
-option(MYYAML_BUILD_SHARED "Build shared library" OFF)
 
-# Option for building the examples
 option(MYYAML_BUILD_EXAMPLES "Build the ${PROJECT_NAME} example applications" ${MYYAML_IS_TOP_LEVEL})
-
-# Option for building the tests
 option(MYYAML_BUILD_TESTS "Build the ${PROJECT_NAME} test programs" ${MYYAML_IS_TOP_LEVEL})
-
-# Option for building the API documentation
 option(MYYAML_BUILD_DOCS "Build the ${PROJECT_NAME} documentation" ${MYYAML_IS_TOP_LEVEL})
+
 option(MYYAML_INSTALL "Generate installation target" ${MYYAML_IS_TOP_LEVEL})
 option(MYYAML_ENABLE_WARNING "Enable warning messages." ${MYYAML_IS_TOP_LEVEL})
 option(MYYAML_ENABLE_PACKING "Enable packing with CPack." ${MYYAML_IS_TOP_LEVEL})
@@ -87,9 +76,17 @@ option(MYYAML_BUILD_CXX11 "Build Myyaml with C++11" OFF)
 option(MYYAML_BUILD_CXX17 "Build Myyaml with C++17" ON)
 option(MYYAML_BUILD_CXX20 "Build Myyaml with C++20" OFF)
 
+# Tooling options
+option(MYYAML_ENABLE_CLANG_TIDY "Enable clang-tidy on targets" ${MYYAML_IS_TOP_LEVEL})
+option(MYYAML_ENABLE_CLANG_FORMAT "Add clang-format target" ${MYYAML_IS_TOP_LEVEL})
+
+# Documentation backend choices
+option(MYYAML_USE_DOXYGEN "Enable building Doxygen docs" ${MYYAML_IS_TOP_LEVEL})
+option(MYYAML_USE_MKDOCS "Enable building MkDocs site (requires python and mkdocs)" OFF)
+
 # Set required C++ standard
-if(MYYAML_BUILD_CXX17)
-    set(CMAKE_C_STANDARD 11)
+if(MYYAML_BUILD_C17)
+    set(CMAKE_C_STANDARD 17)
     set(CMAKE_C_STANDARD_REQUIRED TRUE)
 endif()
 
@@ -123,6 +120,9 @@ set(MYYAML_CMAKE_VERSION_CONFIG_FILE  ${MYYAML_CMAKE_CONFIG_DIR}/${PROJECT_NAME}
 
 if(MYYAML_BUILD_SHARED)
     option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+    message(STATUS "Build shared variant of library.")
+else()
+    message(STATUS "Build static variant of library.")
 endif()
 
 add_library(${MYYAML_LIB_NAME} ${MYYAML_SOURCES})
@@ -145,6 +145,11 @@ else()
 endif()
 
 if(MYJSON_ENABLE_SANITIZERS)
+    string(APPEND CMAKE_CXX_FLAGS " -fno-omit-frame-pointer -fno-sanitize-recover=all -fsanitize=undefined")
+endif()
+
+if(MYYAML_ENABLE_SANITIZERS)
+    string(APPEND CMAKE_C_FLAGS " -fno-omit-frame-pointer -fno-sanitize-recover=all -fsanitize=undefined")
     string(APPEND CMAKE_CXX_FLAGS " -fno-omit-frame-pointer -fno-sanitize-recover=all -fsanitize=undefined")
 endif()
 
@@ -198,8 +203,43 @@ if(MYYAML_BUILD_TESTS)
 endif()
 
 #--------------------------------------------------------------------
+# Clang Integrations
+#--------------------------------------------------------------------
+
+# Optional: enable clang-tidy integration
+if(MYYAML_ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if(CLANG_TIDY_EXE)
+        add_custom_target(clang-tidy
+            COMMAND ${CLANG_TIDY_EXE} --config-file=.clang-tidy ${MYYAML_SOURCES} ${MYYAML_INCLUDE_BUILD_DIR}/*
+            COMMENT "Tidy project sources with clang-tidy"
+        )
+    else()
+        message(WARNING "clang-tidy requested but not found on PATH")
+    endif()
+endif()
+
+# Optional: clang-format target to format sources
+if(MYYAML_ENABLE_CLANG_FORMAT)
+    find_program(CLANG_FORMAT_EXE NAMES clang-format)
+    if(CLANG_FORMAT_EXE)
+        add_custom_target(clang-format
+            COMMAND ${CLANG_FORMAT_EXE} -i --style=file ${MYYAML_SOURCES} ${MYYAML_INCLUDE_BUILD_DIR}/*
+            COMMENT "Format project sources with clang-format"
+        )
+    else()
+        message(WARNING "clang-format requested but not found on PATH")
+    endif()
+endif()
+
+#--------------------------------------------------------------------
 # Install a pkg-config file
 #--------------------------------------------------------------------
+
+# we use the paths from the cmake GNUInstallDirs module as defaults
+# you can override these if you like
+# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+include(GNUInstallDirs)
 
 #--------------------------------------------------------------------
 # Configure package.
