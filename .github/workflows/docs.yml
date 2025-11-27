@@ -3,11 +3,11 @@ name: Publish Documentation
 # publish the documentation on every merge to main branch
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths: [docs/mkdocs/**]
 
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths: [docs/mkdocs/**]
 
   workflow_dispatch:
