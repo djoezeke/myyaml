@@ -26,7 +26,7 @@
       "description": "Development Mode : Build & Test",
       "binaryDir": "${sourceDir}/build",
       "installDir": "${sourceDir}/build/install",
-      "generator": "MinGW Makefiles",
+      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",

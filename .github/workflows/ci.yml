@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [dev, main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build and Test on ${{ matrix.os }}
@@ -36,7 +40,8 @@ jobs:
       - name: Run tests
         if: always()
         run: |
-          ctest --test-dir debug --output-on-failure -C Release
+          # run ctest and capture output to a file for upload on failure
+          ctest --test-dir debug --output-on-failure -C Release 2>&1 | tee ctest-output.txt || true
         working-directory: .
 
       - name: clang-format check
@@ -66,3 +71,9 @@ jobs:
             echo 'clang-tidy not installed; skipping'
           fi
         working-directory: .
+      - name: Upload test log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-log-${{ matrix.os }}.txt
+          path: ctest-output.txt
