@@ -10,14 +10,18 @@
 # Automatically add all .c samples in this folder
 file(GLOB C_SAMPLE_SOURCES "*.c")
 foreach(EXAMPLE_FILE ${C_SAMPLE_SOURCES})
-  get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
-  myyaml_add_example("${EXAMPLE_NAME}" "${EXAMPLE_FILE}" "")
+    get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
+	myyaml_add_example("${EXAMPLE_NAME}"
+						SOURCES "${EXAMPLE_FILE}"
+						DEPENDS Myyaml::MyyamlC)
 endforeach()
 
 
 # Automatically add all .cpp samples in this folder
 file(GLOB CPP_SAMPLE_SOURCES "*.cpp")
 foreach(EXAMPLE_FILE ${CPP_SAMPLE_SOURCES})
-  get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
-  myyaml_add_example("${EXAMPLE_NAME}" "${EXAMPLE_FILE}" "")
+  	get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
+	myyaml_add_example("${EXAMPLE_NAME}"
+						SOURCES "${EXAMPLE_FILE}"
+						DEPENDS Myyaml::Myyaml)
 endforeach()

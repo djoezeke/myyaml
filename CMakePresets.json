@@ -2,59 +2,59 @@
   "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 10,
+    "minor": 16,
     "patch": 0
   },
   "configurePresets": [
     {
       "name": "default",
-      "displayName": "default : Build Library",
-      "description": "Main Mode: Build",
-      "binaryDir": "${sourceDir}/build",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "build",
       "installDir": "${sourceDir}/build/install",
+      "description": "Default build with static library, examples, and tests enabled",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
-        "MYYAML_BUILD_DOCS": "OFF",
-        "MYYAML_BUILD_TESTS": "OFF",
-        "MYYAML_BUILD_EXAMPLES": "OFF"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "MYYAML_BUILD_TESTS": "ON",
+        "MYYAML_BUILD_DEBUG": "OFF",
+        "MYYAML_BUILD_SHARED": "ON",
+        "MYYAML_BUILD_EXAMPLES": "ON"
       }
     },
     {
       "name": "develop",
-      "displayName": "develop : Build Examples & Test",
-      "description": "Development Mode : Build & Test",
-      "binaryDir": "${sourceDir}/build",
-      "installDir": "${sourceDir}/build/install",
+      "hidden": false,
       "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/develop",
+      "installDir": "${sourceDir}/build/install",
+      "description": "Debug build for development with examples and tests enabled",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
-        "MYYAML_BUILD_DOCS": "OFF",
-        "MYYAML_BUILD_TESTS": "OFF",
-        "MYYAML_BUILD_EXAMPLES": "OFF"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "MYYAML_BUILD_TESTS": "ON",
+        "MYYAML_BUILD_DEBUG": "ON",
+        "MYYAML_BUILD_SHARED": "ON",
+        "MYYAML_BUILD_EXAMPLES": "ON"
       }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "main",
-      "configurePreset": "default",
-      "description": "Build library (Release)",
-      "configuration": "Release"
-    },
-    {
-      "name": "dev",
-      "configurePreset": "develop",
-      "description": "Build library (Debug)",
-      "configuration": "Debug"
     }
   ],
   "testPresets": [
     {
-      "name": "ctest",
+      "name": "default",
+      "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "develop",
       "configurePreset": "develop",
-      "execution": { "stopOnFailure": true }
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }
