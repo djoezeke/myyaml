@@ -1,63 +1,136 @@
-//-------------------------------------------------------------------------
-// [SECTION] INCLUDES
-//-------------------------------------------------------------------------
+/**
+ * @file myyamlc.cpp
+ * @author Sackey Ezekiel Etrue (djoezeke)
+ * @see https://www.github.com/djoezeke/myyaml
+ * @copyright Copyright (c) 2025 Sackey Ezekiel Etrue
+ *
+ * Developed by Sackey Ezekiel Etrue and every direct or indirect contributors to the GitHub.
+ * See LICENSE for copyright and licensing details (standard MIT License).
+ *
+ * SECTIONS: Index of this file
+ *
+ *  [SECTION] Include Mess
+ *  [SECTION] Macro Defines
+ *
+ *  Details:
+ *
+ *  [SECTION] Forward Declarations
+ *  [SECTION] Flags & Enumerations
+ *  [SECTION] Data Structures
+ *  [SECTION] Functions Declarations
+ *  [SECTION] Functions Definitions
+ *
+ *  Myyaml:
+ *
+ *  [SECTION] Functions Definitions
+ *
+ * DOCUMENTATION:
+ *
+ * CONTRIBUTORS:
+ *
+ * TODO:
+ *
+ * HELP:
+ *    - See links below.
+ *    - Read top of myyaml.h for more details and comments.
+ *
+ *  Has only had a few tests run, may have issues.
+ *
+ *  If having issues compiling/linking/running raise an issue (https://github.com/djoezeke/myyaml/issues).
+ *  Please post in https://github.com/djoezeke/myyaml/discussions if you cannot find a solution in resources above.
+ *
+ * RESOURCES:
+ * - Homepage ................... https://github.com/djoezeke/myyaml
+ * - Releases & changelog ....... https://github.com/djoezeke/myyaml/releases
+ * - Issues & support ........... https://github.com/djoezeke/myyaml/issues
+ *
+ */
+
+// clang-format off
+
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+    #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+// clang-format on
+
+//-----------------------------------------------------------------------------
+// [SECTION] Include Mess
+//-----------------------------------------------------------------------------
 
 #include <myyaml/myyaml.h>
 #include <myyaml/myyaml.hpp>
 
 //-------------------------------------------------------------------------
-// [SECTION] Defines
+// [SECTION] Macro Defines
 //-----------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------
-// [SECTION] Internal
-//-----------------------------------------------------------------------------
-
-#pragma region Internal
+#pragma region Detail
 
 //-----------------------------------------------------------------------------
-// [SECTION] Cpp Internal
+// [SECTION] Forward Declarations
 //-----------------------------------------------------------------------------
 
-namespace myyaml {};  // namespace myyaml
+/** Enumerations */
+
+/** Structures */
+
+/** Scalars */
 
 //-----------------------------------------------------------------------------
-// [SECTION] C Internal Structures
+// [SECTION] Flags & Enumerations
 //-----------------------------------------------------------------------------
 
-#ifdef __cplusplus
-extern "C" {
-#endif  //__cplusplus
+/**
+ * @defgroup enum Flags & Enumerations
+ * @brief Detail enum types and flags.
+ * @{
+ */
 
-#ifdef __cplusplus
-};
-#endif  //__cplusplus
+/** @} */
 
 //-----------------------------------------------------------------------------
-// [SECTION] C Internal Functions
+// [SECTION] Data Structures
 //-----------------------------------------------------------------------------
 
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
+/**
+ * @defgroup struct Data Structures
+ * @brief Detail types and data structures.
+ * @{
+ */
 
-#ifdef __cplusplus
-};
-#endif  // __cplusplus
+/** @} */
 
-#pragma endregion  // Internal
+//-----------------------------------------------------------------------------
+// [SECTION] Function Declarations
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// [SECTION] Function Definations
+//-----------------------------------------------------------------------------
+
+#pragma endregion // Detail
 
 #pragma region Myyaml
 
 #ifdef __cplusplus
-extern "C" {
-#endif  //__cplusplus
+extern "C"
+{
+#endif // __cplusplus
+
+    //-----------------------------------------------------------------------------
+    // [SECTION] Function Definations
+    //-----------------------------------------------------------------------------
 
 #ifdef __cplusplus
 };
-#endif  //__cplusplus
+#endif // __cplusplus
 
-#pragma endregion  // Myyaml
+#pragma endregion // Myyaml
+
+/**
+ * HISTORY: Version History
+ */
 
 /**
  * LICENSE: MIT License
