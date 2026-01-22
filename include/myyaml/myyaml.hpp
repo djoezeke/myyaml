@@ -763,14 +763,21 @@ namespace myyaml
         enum class token_t;
         enum class error_t;
         enum class event_t;
-        enum class value_t;
         enum class break_t; /** Line break types. */
+
+        enum class scalar_style_t;
+        enum class mapping_style_t;
+        enum class sequence_style_t;
+
+        enum class parser_state_t;
+        enum class emitter_state_t;
 
         /** Structures */
 
         struct mark; /** The pointer position. */
         struct event;
         struct token;
+        struct tag_directive;
 
         // input
         class lexer;
@@ -864,12 +871,34 @@ namespace myyaml
 
         enum class token_t
         {
-            unknown,
+            none,                 /** An empty token. */
+            tag,                  /** A TAG token. */
+            key,                  /** A KEY token. */
+            value,                /** A VALUE token. */
+            alias,                /** An ALIAS token. */
+            anchor,               /** An ANCHOR token. */
+            scalar,               /** A SCALAR token. */
+            block_end,            /** A BLOCK-END token. */
+            stream_end,           /** A STREAM-END token. */
+            flow_entry,           /** A FLOW-ENTRY token. */
+            block_entry,          /** A BLOCK-ENTRY token. */
+            stream_start,         /** A STREAM-START token. */
+            document_end,         /** A DOCUMENT-END token. */
+            tag_directive,        /** A TAG-DIRECTIVE token. */
+            document_start,       /** A DOCUMENT-START token. */
+            flow_mapping_end,     /** A FLOW-MAPPING-END token. */
+            version_directive,    /** A VERSION-DIRECTIVE token. */
+            flow_sequence_end,    /** A FLOW-SEQUENCE-END token. */
+            flow_mapping_start,   /** A FLOW-MAPPING-START token. */
+            block_mapping_start,  /** A BLOCK-MAPPING-START token. */
+            flow_sequence_start,  /** A FLOW-SEQUENCE-START token. */
+            block_sequence_start, /** A BLOCK-SEQUENCE-START token. */
+
         };
 
         enum class error_t
         {
-            unknown,
+            none,
             lexer,
             parser,
             reader,
@@ -881,12 +910,18 @@ namespace myyaml
 
         enum class event_t
         {
-            unknown,
-        };
+            none,           /** An empty event. */
+            alias,          /** An ALIAS event. */
+            scalar,         /** A SCALAR event. */
+            stream_end,     /** A STREAM-END event. */
+            mapping_end,    /** A MAPPING-END event. */
+            sequence_end,   /** A SEQUENCE-END event. */
+            stream_start,   /** A STREAM-START event. */
+            document_end,   /** A DOCUMENT-END event. */
+            mapping_start,  /** A MAPPING-START event. */
+            document_start, /** A DOCUMENT-START event. */
+            sequence_start, /** A SEQUENCE-START event. */
 
-        enum class value_t
-        {
-            unknown,
         };
 
         enum class break_t
@@ -895,6 +930,84 @@ namespace myyaml
             cr,  /** Use CR for line breaks (Mac style). */
             ln,  /** Use LN for line breaks (Unix style). */
             crln /** Use CR LN for line breaks (DOS style). */
+
+        };
+
+        enum class scalar_style_t
+        {
+            any,           /** Let the emitter choose the style. */
+            plain,         /** The plain scalar style. */
+            folded,        /** The folded scalar style. */
+            literal,       /** The literal scalar style. */
+            single_quoted, /** The single-quoted scalar style. */
+            double_quoted, /** The double-quoted scalar style. */
+
+        };
+
+        enum class mapping_style_t
+        {
+            any,   /** Let the emitter choose the style. */
+            flow,  /** The flow mapping style. */
+            block, /** The block mapping style. */
+        };
+
+        enum class sequence_style_t
+        {
+            any,   /** Let the emitter choose the style. */
+            flow,  /** The flow sequence style. */
+            block, /** The block sequence style. */
+        };
+
+        enum class parser_state_t
+        {
+
+            end,                               /** Expect nothing. */
+            flow_node,                         /** Expect a flow node. */
+            block_node,                        /** Expect a block node. */
+            document_end,                      /** Expect DOCUMENT-END. */
+            stream_start,                      /** Expect STREAM-START. */
+            document_start,                    /** Expect DOCUMENT-START. */
+            document_content,                  /** Expect the content of a document. */
+            flow_mapping_key,                  /** Expect a key of a flow mapping. */
+            block_mapping_key,                 /** Expect a block mapping key. */
+            flow_mapping_value,                /** Expect a value of a flow mapping. */
+            flow_sequency_entry,               /** Expect an entry of a flow sequence. */
+            block_mapping_value,               /** Expect a block mapping value. */
+            block_sequency_entry,              /** Expect an entry of a block sequence. */
+            flow_mapping_first_key,            /** Expect the first key of a flow mapping. */
+            block_mapping_first_key,           /** Expect the first key of a block mapping. */
+            implicit_document_start,           /** Expect the beginning of an implicit document. */
+            flow_mapping_empty_value,          /** Expect an empty value of a flow mapping. */
+            indentless_sequence_entry,         /** Expect an entry of an indentless sequence. */
+            flow_sequency_first_entry,         /** Expect the first entry of a flow sequence. */
+            block_sequency_first_entry,        /** Expect the first entry of a block sequence. */
+            flow_sequency_entry_mapping_key,   /** Expect a key of an ordered mapping. */
+            flow_sequency_entry_mapping_end,   /** Expect the and of an ordered mapping entry. */
+            flow_sequency_entry_mapping_value, /** Expect a value of an ordered mapping. */
+            block_node_or_indentless_sequence, /** Expect a block node or indentless sequence. */
+
+        };
+
+        enum class emitter_state_t
+        {
+            end,                        /** Expect nothing. */
+            stream_start,               /** Expect STREAM-START. */
+            document_end,               /** Expect DOCUMENT-END. */
+            document_start,             /** Expect DOCUMENT-START or STREAM-END. */
+            document_content,           /** Expect the content of a document. */
+            flow_mapping_key,           /** Expect a key of a flow mapping. */
+            block_mapping_key,          /** Expect the key of a block mapping. */
+            flow_mapping_value,         /** Expect a value of a flow mapping. */
+            flow_sequency_item,         /** Expect an item of a flow sequence. */
+            block_sequency_item,        /** Expect an item of a block sequence. */
+            block_mapping_value,        /** Expect a value of a block mapping. */
+            first_document_start,       /** Expect the first DOCUMENT-START or STREAM-END. */
+            flow_mapping_first_key,     /** Expect the first key of a flow mapping. */
+            block_mapping_first_key,    /** Expect the first key of a block mapping. */
+            flow_sequency_first_item,   /** Expect the first item of a flow sequence. */
+            flow_mapping_simple_value,  /** Expect a value for a simple key of a flow mapping. */
+            block_sequency_first_item,  /** Expect the first item of a block sequence. */
+            block_mapping_simple_value, /** Expect a value for a simple key of a block mapping. */
 
         };
 
@@ -919,21 +1032,154 @@ namespace myyaml
 
         struct event
         {
-            event_t type{event_t::unknown}; /** The event type. */
-            mark start{};                   /** The beginning of the token. */
-            mark end{};                     /** The end of the token. */
+            event_t type{event_t::none}; /** The event type. */
+
+            /** The event data. */
+            union
+            {
+                /** The stream parameters (for @c YAML_STREAM_START_EVENT). */
+                struct
+                {
+                    /** The document encoding. */
+                    myyaml::encoding encoding;
+                } stream_start;
+
+                /** The document parameters (for @c YAML_DOCUMENT_START_EVENT). */
+                struct
+                {
+                    myyaml::version *version_directive; /** The version directive. */
+
+                    /** The list of tag directives. */
+                    struct
+                    {
+                        tag_directive *start; /** The beginning of the tag directives list. */
+                        tag_directive *end;   /** The end of the tag directives list. */
+
+                    } tag_directives;
+
+                    int implicit; /** Is the document indicator implicit? */
+
+                } document_start;
+
+                /** The document end parameters (for @c YAML_DOCUMENT_END_EVENT). */
+                struct
+                {
+                    int implicit; /** Is the document end indicator implicit? */
+
+                } document_end;
+
+                /** The alias parameters (for @c YAML_ALIAS_EVENT). */
+                struct
+                {
+                    char *anchor; /** The anchor. */
+
+                } alias;
+
+                /** The scalar parameters (for @c YAML_SCALAR_EVENT). */
+                struct
+                {
+                    scalar_style_t style; /** The scalar style. */
+                    int quoted_implicit;  /** Is the tag optional for any non-plain
+                                             style? */
+                    int plain_implicit;   /** Is the tag optional for the plain style? */
+                    char *anchor;         /** The anchor. */
+                    char *value;          /** The scalar value. */
+                    char *tag;            /** The tag. */
+                    size_t length;        /** The length of the scalar value. */
+
+                } scalar;
+
+                /** The sequence parameters (for @c YAML_SEQUENCE_START_EVENT). */
+                struct
+                {
+                    sequence_style_t style; /** The sequence style. */
+                    char *anchor;           /** The anchor. */
+                    char *tag;              /** The tag. */
+                    int implicit;           /** Is the tag optional? */
+
+                } sequence_start;
+
+                /** The mapping parameters (for @c YAML_MAPPING_START_EVENT). */
+                struct
+                {
+                    mapping_style_t style; /** The mapping style. */
+                    char *anchor;          /** The anchor. */
+                    char *tag;             /** The tag. */
+                    int implicit;          /** Is the tag optional? */
+                } mapping_start;
+
+            } data;
+
+            mark start{}; /** The beginning of the token. */
+            mark end{};   /** The end of the token. */
         };
 
         struct token
         {
-            token_t type{token_t::unknown}; /** The token type. */
+            token_t type{token_t::none}; /** The token type. */
+            /** The token data. */
             union
             {
-                char *value;
+                /** The stream start (for @c YAML_STREAM_START_TOKEN). */
+                struct
+                {
+                    /** The stream encoding. */
+                    myyaml::encoding encoding;
+                } stream_start;
 
-            } value;
+                /** The alias (for @c YAML_ALIAS_TOKEN). */
+                struct
+                {
+                    char *value; /** The alias value. */
+                } alias;
+
+                /** The anchor (for @c YAML_ANCHOR_TOKEN). */
+                struct
+                {
+                    char *value; /** The anchor value. */
+                } anchor;
+
+                /** The tag (for @c YAML_TAG_TOKEN). */
+                struct
+                {
+                    char *handle; /** The tag handle. */
+                    char *suffix; /** The tag suffix. */
+                } tag;
+
+                /** The scalar value (for @c YAML_SCALAR_TOKEN). */
+                struct
+                {
+                    char *value;          /** The scalar value. */
+                    size_t length;        /** The length of the scalar value. */
+                    scalar_style_t style; /** The scalar style. */
+                } scalar;
+
+                /** The version directive (for @c YAML_VERSION_DIRECTIVE_TOKEN). */
+                struct
+                {
+                    int major; /** The major version number. */
+                    int minor; /** The minor version number. */
+
+                } version_directive;
+
+                /** The tag directive (for @c YAML_TAG_DIRECTIVE_TOKEN). */
+                struct
+                {
+                    char *handle; /** The tag handle. */
+                    char *prefix; /** The tag prefix. */
+
+                } tag_directive;
+
+            } data;
+
             mark start{}; /** The beginning of the token. */
             mark end{};   /** The end of the token. */
+        };
+
+        struct tag_directive
+        {
+            char *handle; /** The tag handle. */
+            char *prefix; /** The tag prefix. */
         };
 
         /** @} group structs */
@@ -1463,7 +1709,10 @@ namespace myyaml
 
     enum class node_t
     {
-        unknown,
+        none,     /** An empty node. */
+        scalar,   /** A scalar node. */
+        mapping,  /** A mapping node. */
+        sequence, /** A sequence node. */
     };
 
     /** @} */
