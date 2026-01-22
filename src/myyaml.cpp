@@ -48,9 +48,46 @@
 
 #include <myyaml/myyaml.hpp>
 
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>  //
+#include <stdlib.h> //
+#include <string.h> //
+
 //-------------------------------------------------------------------------
 // [SECTION] Defines
 //-----------------------------------------------------------------------------
+
+// clang-format off
+
+/** Byte order marks. */
+
+#ifndef MYYAML_BOM_UTF8
+    #define MYYAML_BOM_UTF8 "\xef\xbb\xbf"
+#endif // MYYAML_BOM_UTF8
+
+#ifndef MYYAML_BOM_UTF16LE
+    #define MYYAML_BOM_UTF16LE "\xff\xfe"
+#endif // MYYAML_BOM_UTF16LE
+
+#ifndef MYYAML_BOM_UTF16BE
+    #define MYYAML_BOM_UTF16BE "\xfe\xff"
+#endif // MYYAML_BOM_UTF16BE
+
+#ifndef MYYAML_BOM_UTF32LE
+    #define MYYAML_BOM_UTF32LE "\xff\xfe\x00\x00"
+#endif // MYYAML_BOM_UTF32LE
+
+#ifndef MYYAML_BOM_UTF32BE
+    #define MYYAML_BOM_UTF32BE "\x00\x00\xfe\xff"
+#endif // MYYAML_BOM_UTF32BE
+
+// clang-format on
 
 #pragma region Detail
 
@@ -393,6 +430,13 @@ namespace myyaml
     //-----------------------------------------------------------------------------
     // [SECTION] Functions Definitions
     //-----------------------------------------------------------------------------
+    // - operator<<()
+    // - operator>>()
+    //-----------------------------------------------------------------------------
+
+    std::ostream &operator<<(std::ostream &stream, const yaml &node) {};
+
+    std::istream &operator>>(std::istream &stream, const yaml &node) {};
 
 }; // namespace myyaml
 
@@ -412,13 +456,17 @@ namespace myyaml
         // [SECTION] Functions Definitions : Literals
         //-----------------------------------------------------------------------------
 
-        inline yaml operator""_yaml(const char *string, std::size_t size) {};
+        inline yaml MYYAML_QUOTE_OPERATOR(const char *string, std::size_t size) {};
 
-        inline yaml operator""_yaml(const char8_t *string, std::size_t size) {};
+#if MYYAML_HAS_CHAR8_T
 
-        inline yaml operator""_yaml(const char16_t *string, std::size_t size) {};
+        inline yaml MYYAML_QUOTE_OPERATOR(const char8_t *string, std::size_t size) {};
 
-        inline yaml operator""_yaml(const char32_t *string, std::size_t size) {};
+#endif // MYYAML_HAS_CHAR8_T
+
+        inline yaml MYYAML_QUOTE_OPERATOR(const char16_t *string, std::size_t size) {};
+
+        inline yaml MYYAML_QUOTE_OPERATOR(const char32_t *string, std::size_t size) {};
 
     }; // namespace literals
 

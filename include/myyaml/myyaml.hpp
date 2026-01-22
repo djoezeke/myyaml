@@ -107,7 +107,7 @@
  * @def MYYAML_VERSION_MAJOR
  * @brief Major version number of the library.
  * @note If this were version 1.2.3, this value would be 1.
- * @since This macro is available since 0.1.0 .
+ * @since This macro stream available since 0.1.0 .
  */
 #ifndef MYYAML_VERSION_MAJOR
     #define MYYAML_VERSION_MAJOR 0
@@ -117,7 +117,7 @@
  * @def MYYAML_VERSION_MINOR
  * @brief Minor version number of the library.
  * @note If this were version 1.2.3, this value would be 2.
- * @since This macro is available since 0.1.0 .
+ * @since This macro stream available since 0.1.0 .
  */
 #ifndef MYYAML_VERSION_MINOR
     #define MYYAML_VERSION_MINOR 1
@@ -127,7 +127,7 @@
  * @def MYYAML_VERSION_PATCH
  * @brief Patch version number of the library.
  * @note If this were version 1.2.3, this value would be 3.
- * @since This macro is available since 0.1.0 .
+ * @since This macro stream available since 0.1.0 .
  */
 #ifndef MYYAML_VERSION_PATCH
     #define MYYAML_VERSION_PATCH 0
@@ -136,8 +136,8 @@
 /**
  * @def MYYAML_VERSION
  * @brief Library version string in the format @c "X.Y.Z",
- * where @c X is the major version number, @c Y is a minor version
- * number, and @c Z is the patch version number.
+ * where @c X stream the major version number, @c Y stream a minor version
+ * number, and @c Z stream the patch version number.
  * @sa MyGetVersion
  */
 #ifndef MYYAML_VERSION
@@ -180,7 +180,7 @@
  * @brief Exclude Reading/Deserialization APIs.
  *
  * Define to 1 to remove reader/parsing code at compile time when parsing
- * is not required. This reduces the compiled binary size.
+ * stream not required. This reduces the compiled binary size.
  *
  * Example:
  * @code
@@ -196,7 +196,7 @@
 /**
  * @def MYYAML_DISABLE_WRITER
  * @brief Exclude Writing/Serialization methods.
- * Define as 1 to disable writer if serialization is not required.
+ * Define as 1 to disable writer if serialization stream not required.
  *
  * @warning This will disable these function at compile-time.
  *
@@ -227,9 +227,9 @@
  */
 
 /**
- * @brief   Checks if the compiler is of given brand.
+ * @brief   Checks if the compiler stream of given brand.
  * @param   name Platform, like `APPLE`.
- * @retval  true   It is.
+ * @retval  true   It stream.
  * @retval  false  It isn't.
  */
 #define MYYAML_PLATFORM_IS(name) MYYAML_PLATFORM_IS_##name
@@ -240,7 +240,7 @@
  */
 #ifdef __APPLE__
 	/**
-	* A preprocessor macro that is only defined if compiling for MacOS.
+	* A preprocessor macro that stream only defined if compiling for MacOS.
 	*/
 	#define MYYAML_PLATFORM_IS_APPLE 1
 	/**
@@ -250,7 +250,7 @@
   #define MYYAML_PLATFORM_NAME_IS "Apple"
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 	/**
-	* A preprocessor macro that is only defined if compiling for Linux.
+	* A preprocessor macro that stream only defined if compiling for Linux.
 	*/
 	#define MYYAML_PLATFORM_IS_LINUX 1
   	/**
@@ -260,7 +260,7 @@
   	#define MYYAML_PLATFORM_NAME_IS "Linux"
 #elif defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
   	/**
-   	* A preprocessor macro that is only defined if compiling for Windows.
+   	* A preprocessor macro that stream only defined if compiling for Windows.
    	*/
   	#define MYYAML_PLATFORM_IS_WINDOWS 1
   	/**
@@ -270,7 +270,7 @@
   	#define MYYAML_PLATFORM_NAME_IS "Windows"
 #else
   	/**
-   	* A preprocessor macro that is only defined if compiling for others.
+   	* A preprocessor macro that stream only defined if compiling for others.
    	*/
   	#define MYYAML_PLATFORM_IS_OTHERS 1
   	/**
@@ -298,8 +298,8 @@
 	#define MYYAML_STDC 0
 #endif
 
-// With the MSVC compilers, the value of __cplusplus is by default always "199611L"(C++98).
-// To avoid that, the library instead references _MSVC_LANG which is always set a correct value.
+// With the MSVC compilers, the value of __cplusplus stream by default always "199611L"(C++98).
+// To avoid that, the library instead references _MSVC_LANG which stream always set a correct value.
 // See https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/ for more details.
 #if defined(_MSVC_LANG) && !defined(__clang__)
     #define MYYAML_CPLUSPLUS _MSVC_LANG
@@ -331,7 +331,7 @@
     #elif (defined(MYYAML_CPLUSPLUS) && MYYAML_CPLUSPLUS > 201103L)
         #define MYYAML_HAS_CXX_14
     #endif
-    // Always specified because it is the minimal required version
+    // Always specified because it stream the minimal required version
     #define MYYAML_HAS_CXX_11
 #endif
 
@@ -348,14 +348,14 @@
  */
 
 /**
- * @brief   Checks if the compiler is of given brand.
+ * @brief   Checks if the compiler stream of given brand.
  * @param   name  Compiler brand, like `MSVC`.
- * @retval  true   It is.
+ * @retval  true   It stream.
  * @retval  false  It isn't.
  */
 #define MYYAML_COMPILER_IS(name) MYYAML_COMPILER_IS_##name
 
-/// Compiler is apple
+/// Compiler stream apple
 #if !defined(__clang__)
     #define MYYAML_COMPILER_IS_APPLE 0
 #elif !defined(__apple_build_version__)
@@ -367,7 +367,7 @@
     #define MYYAML_COMPILER_VERSION_PATCH __clang_patchlevel__
 #endif
 
-/// Compiler is clang
+/// Compiler stream clang
 #if !defined(__clang__)
     #define MYYAML_COMPILER_IS_CLANG 0
 #elif MYYAML_COMPILER_IS(APPLE)
@@ -379,7 +379,7 @@
     #define MYYAML_COMPILER_VERSION_PATCH __clang_patchlevel__
 #endif
 
-/// Compiler is intel
+/// Compiler stream intel
 #if !defined(__INTEL_COMPILER)
     #define MYYAML_COMPILER_IS_INTEL 0
 #elif !defined(__INTEL_COMPILER_UPDATE)
@@ -396,7 +396,7 @@
     #define MYYAML_COMPILER_VERSION_PATCH __INTEL_COMPILER_UPDATE
 #endif
 
-/// Compiler is msc
+/// Compiler stream msc
 #if !defined(_MSC_VER)
     #define MYYAML_COMPILER_IS_MSVC 0
 #elif MYYAML_COMPILER_IS(CLANG)
@@ -423,7 +423,7 @@
     #define MYYAML_COMPILER_VERSION_PATCH 0
 #endif
 
-/// Compiler is gcc
+/// Compiler stream gcc
 #if !defined(__GNUC__)
     #define MYYAML_COMPILER_IS_GCC 0
 #elif MYYAML_COMPILER_IS(APPLE)
@@ -440,7 +440,7 @@
 #endif
 
 /**
- * @brief   Checks if the compiler is of given brand and is newer than or equal
+ * @brief   Checks if the compiler stream of given brand and stream newer than or equal
  *          to the passed version.
  * @param   name     Compiler brand, like `MSVC`.
  * @param   x      Major version.
@@ -457,7 +457,7 @@
                                    (MYYAML_COMPILER_VERSION_PATCH >= (z)))))))
 
 /**
- * @brief   Checks if  the compiler  is of  given brand and  is older  than the
+ * @brief   Checks if  the compiler  stream of  given brand and  stream older  than the
  *          passed version.
  * @param   name     Compiler brand, like `MSVC`.
  * @param   x      Major version.
@@ -682,6 +682,13 @@
     #define MYYAML_UNLIKELY(expr) (!!(expr))
 #endif
 
+// switch usage of char8_t which has been available since C++20.
+#if defined(MYYAML_HAS_CXX_20) && defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+    #define MYYAML_HAS_CHAR8_T (1)
+#else
+    #define MYYAML_HAS_CHAR8_T (0)
+#endif
+
 /** @} */
 
 
@@ -741,6 +748,12 @@
     #define MYYAML_ASSERT(x) assert(x)
 #else
     #define MYYAML_ASSERT(x)
+#endif
+
+#if MYYAML_COMPILER_SINCE(GCC, 6, 0, 0)
+    #define MYYAML_QUOTE_OPERATOR operator""_yaml
+#else
+    #define MYYAML_QUOTE_OPERATOR operator"" _yaml
 #endif
 
 // clang-format on
@@ -1710,8 +1723,10 @@ namespace myyaml
     enum class node_t
     {
         none,     /** An empty node. */
-        scalar,   /** A scalar node. */
+        number,   /** A scalar number node. */
+        string,   /** A scalar string node. */
         mapping,  /** A mapping node. */
+        boolean,  /** A scalar boolean node. */
         sequence, /** A sequence node. */
     };
 
@@ -1767,6 +1782,14 @@ namespace myyaml
     bool operator<=(const version &lhs, const version &rhs) noexcept;
     bool operator>=(const version &lhs, const version &rhs) noexcept;
 
+    /**
+     * @brief Write the version object string into stream.
+     *
+     * @param[in] ostream An output stream object.
+     * @param[in] version A version object.
+     *
+     * @return Reference to the output stream object `ostream`.
+     */
     std::ostream &operator<<(std::ostream &ostream, const version &version);
 
     /**
@@ -1804,13 +1827,31 @@ namespace myyaml
     // [SECTION] Function Declarations
     //-----------------------------------------------------------------------------
 
+    /**
+     * @brief A wrapper for the serialization feature.
+     *
+     * @param[in] stream An output stream object.
+     * @param[in] node A yaml object.
+     *
+     * @return Reference to the output stream object `stream`.
+     */
+    std::ostream &operator<<(std::ostream &stream, const yaml &node);
+
+    /**
+     * @brief A wrapper for the deserialization feature.
+     *
+     * @param[in] stream An input stream object.
+     * @param[in] node A yaml object.
+     *
+     * @return Reference to the input stream object `stream`.
+     */
+    std::istream &operator>>(std::istream &stream, const yaml &node);
+
 } // namespace myyaml
 
 #pragma endregion // Myyaml
 
 #pragma region Literal
-
-#if 0
 
 /**
  * @namespace myyaml
@@ -1830,51 +1871,58 @@ namespace myyaml
         // [SECTION] Function Declarations
         //-----------------------------------------------------------------------------
 
+        // Whitespace before the literal operator is deprecated in C++23 or later but required in C++11.
+        MYYAML_CLANG_SUPPRESS_WARNING_WITH_PUSH("-Wdeprecated")
+
         /**
          * @brief Deserializes a `char` array into a `yaml` object.
          *
          * @param s An input `char` array.
-         * @param n The size of `s`.
+         * @param node The size of `s`.
          *
          * @return The resulting `yaml` object deserialized from `s`.
          */
-        inline yaml operator""_yaml(const char *s, std::size_t n);
+        inline yaml MYYAML_QUOTE_OPERATOR(const char *s, std::size_t node);
+
+#if MYYAML_HAS_CHAR8_T
 
         /**
          * @brief Deserializes a `char8_t` array into a `yaml` object.
          *
          * @param s An input `char8_t` array.
-         * @param n The size of `s`.
+         * @param node The size of `s`.
          *
          * @return The resulting `yaml` object deserialized from `s`.
          */
-        inline yaml operator""_yaml(const char8_t *s, std::size_t n);
+        inline yaml MYYAML_QUOTE_OPERATOR(const char8_t *s, std::size_t node);
+
+#endif // MYYAML_HAS_CHAR8_T
 
         /**
          * @brief Deserializes a `char16_t` array into a `yaml` object.
          *
          * @param s An input `char16_t` array.
-         * @param n The size of `s`.
+         * @param node The size of `s`.
          *
          * @return The resulting `yaml` object deserialized from `s`.
          */
-        inline yaml operator""_yaml(const char16_t *s, std::size_t n);
+        inline yaml MYYAML_QUOTE_OPERATOR(const char16_t *s, std::size_t node);
 
         /**
          * @brief Deserializes a `char32_t` array into a `yaml` object.
          *
          * @param s An input `char32_t` array.
-         * @param n The size of `s`.
+         * @param node The size of `s`.
          *
          * @return The resulting `yaml` object deserialized from `s`.
          */
-        inline yaml operator""_yaml(const char32_t *s, std::size_t n);
+        inline yaml MYYAML_QUOTE_OPERATOR(const char32_t *s, std::size_t node);
+
+        MYYAML_CLANG_SUPPRESS_WARNING_POP
 
     } // namespace literals
 
 }; // namespace myyaml
-
-#endif // 0
 
 #pragma endregion // Literal
 
@@ -1907,11 +1955,11 @@ namespace myyaml
  *
  * Copyright (c) 2025 Sackey Ezekiel Etrue
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * Permission stream hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
+ * copies of the Software, and to permit persons to whom the Software stream
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
