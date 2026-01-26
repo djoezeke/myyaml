@@ -1,0 +1,63 @@
+---
+# Explicitly disable specific groups of checks
+Checks: "*,
+  -llvmlibc-*,
+  -llvm-header-guard,
+  -altera-struct-pack-align,
+  -hicpp-deprecated-headers,
+  -fuchsia-overloaded-operator,
+  -modernize-deprecated-headers,
+  -cppcoreguidelines-macro-usage,
+  -hicpp-special-member-functions,
+  -modernize-use-trailing-return-type,
+  -modernize-concat-nested-namespaces,
+  -readability-redundant-access-specifiers,
+  -cppcoreguidelines-special-member-functions,
+  "
+
+HeaderFilterRegex: '<my(\w{3,4})\/my\1\.h.*>'
+ImplementationFileExtensions: ["cpp"]
+HeaderFileExtensions: ["h", "hpp"]
+WarningsAsErrors: "*"
+FormatStyle: "file"
+UseColor: true
+
+# Configure specific options for individual checks
+# NOTE :
+#   `readability-identifier-naming.*` identifiers
+#   naming convetions might change later if seen fits.
+
+CheckOptions:
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: lower_case
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.UnionCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.PublicMemberPrefix
+    value: ""
+  - key: readability-identifier-naming.ClassMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.TypeAliasCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+...

@@ -1,12 +1,50 @@
-# Visual Studio Coding Style.
+# Reference: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+# default values:
+#     https://github.com/llvm/llvm-project/blob/main/clang/lib/Format/Format.cpp
+#
+# Uses the Visual Studio Coding Style.
+
+---
 BasedOnStyle: LLVM
-UseTab: Never
+Standard: Cpp11
+Language: Cpp
+
+# Indentation
+AccessModifierOffset: -4
+IndentCaseLabels: false
 IndentWidth: 4
 TabWidth: 4
-BreakBeforeBraces: Allman
-AllowShortIfStatementsOnASingleLine: false
-IndentCaseLabels: false
+UseTab: Never
+
 ColumnLimit: 0
-AccessModifierOffset: -4
-NamespaceIndentation: All
+
+# Line endings
+UseCRLF: false
+
+# Braces
+BreakBeforeBraces: Allman
+
+# Namespaces
 FixNamespaceComments: false
+NamespaceIndentation: All
+
+# Sorting
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Priority: 1
+    Regex: '<my(\w{3,4})\/my\1\.h.*>'
+  - Priority: 2
+    Regex: '<catch2/.*\.hpp>'
+  - Priority: 3
+    Regex: "^<(.+)>$"
+SortIncludes: true
+SortUsingDeclarations: true
+
+# Allow
+AllowShortIfStatementsOnASingleLine: false
+
+# Qualifiers (const, volatile, static, etc)
+QualifierAlignment: Custom
+QualifierOrder: ["static", "inline", "constexpr", "const", "volatile", "type"]
+
+---
