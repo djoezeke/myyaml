@@ -67,7 +67,7 @@ jobs:
           echo "ARTIFACT=${ART_NAME}" >> $GITHUB_ENV
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           # Recompute artifact name same as Create zip artifact step
           name: myyaml-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.variant }}.zip
