@@ -291,7 +291,7 @@ The open-source community for their invaluable libraries, tutorials, and support
 
 ## 📄 License
 
-This project is protected under the [MIT](LICENSE) License.
+Myyaml is licensed under the [MIT](LICENSE) License. License, see [LICENSE](./LICENSE) for more information.
 
 <!-- <picture>
   <source
@@ -311,3 +311,50 @@ This project is protected under the [MIT](LICENSE) License.
     src="https://api.star-history.com/svg?repos=myyaml/djoezeke&type=Date"
   />
 </picture> -->
+
+---
+
+## Quick start — build, test, style, docs
+
+These short commands get you from a fresh clone to a tested build and local docs site.
+
+1. Configure & build (recommended out-of-source):
+
+```bash
+mkdir -p build && cd build
+cmake .. -DMYYAML_INSTALL=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build . -- -j$(nproc || 2)
+```
+
+2. Run tests (from project root):
+
+```bash
+cmake --build build --target tests
+# or run the test binary directly (platform dependent)
+```
+
+3. Run style & static checks (requires clang-format/clang-tidy):
+
+```bash
+clang-format -i $(git ls-files '*.c' '*.cpp' '*.h' '*.hpp')
+# Generate compile_commands.json via CMake: -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+clang-tidy -p build $(git ls-files '*.c' '*.cpp')
+```
+
+4. Generate docs locally (mkdocs or doxygen):
+
+```bash
+# MkDocs (if enabled)
+python -m mkdocs serve
+
+# Doxygen (if configured)
+doxygen Doxyfile
+```
+
+If you plan to contribute, run the style checks and unit tests before creating a PR.
+
+## Contributing & CI notes
+
+- CI runs builds for shared/static variants and uploads artifacts for releases.
+- The repository includes `.clang-format` and `.clang-tidy` configuration; follow them to minimize review noise.
+- See `.github/workflows/` for CI and `release.yml` for packaging/release behavior.

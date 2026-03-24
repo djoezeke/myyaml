@@ -1,0 +1,48 @@
+# ===================================================================
+# Copyright © 2025 Sackey Ezekiel Etrue
+# Distributed under the terms of the MIT license.
+# ===================================================================
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_license//rules:license.bzl", "license")
+
+#===========================
+# Build C++ Library        #
+#===========================
+
+cc_library(
+	name = "myyaml",
+	srcs = [
+		"src/myyaml.cpp",
+	],
+	hdrs = glob(["include/myyaml/*.hpp"]),
+	visibility = ["//visibility:public"],
+	includes = ["include"],
+)
+
+#===========================
+# Build C Library          #
+#===========================
+
+cc_library(
+	name = "myyamlc",
+	srcs = [
+		"src/myyamlc.cpp",
+	],
+	hdrs = glob(["include/myyaml/*.h", "include/myyaml/*.hpp"]),
+	visibility = ["//visibility:public"],
+    includes = ["src/"],
+    linkstatic = True,
+	includes = ["include"],
+    deps = [":myyaml"],
+)
+
+# Packaging – create a zip with headers and libraries
+genrule(
+	name = "dist_zip",
+	srcs = ["README.md", "LICENSE"],
+	outs = ["myyaml-${PROJECT_VERSION}.zip"],
+	cmd = "zip -r $@ include src README.md LICENSE || true",
+)
+
+# ===================================================================

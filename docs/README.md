@@ -1,4 +1,9 @@
-# Documentation
+# [MYYAML](https://djoezeke.github.io/myyaml) [ DOCUMENTATION ]
+
+This folder contains code for documentations.
+
+> [!NOTE]
+> Myyaml is still in development.
 
 Note on documentation: The source files contain links to the online documentation at https://djoezeke.github.io/myyaml.
 
@@ -27,6 +32,12 @@ cd myyaml
 
 > Open URL <http://127.0.0.1:8000/> in your browser to see the documentation.
 
+Quick mkdocs serve (from repo root):
+
+```bash
+python -m mkdocs serve
+```
+
 ### Doxygen
 
 Generating documentation with doxygen:
@@ -35,3 +46,15 @@ Generating documentation with doxygen:
 git clone https://github.com/djoezeke/myyaml.git
 cd myyaml
 ```
+
+If Doxyfile is present you can run:
+
+```bash
+doxygen Doxyfile
+```
+
+Some documentation missing? As always, contributions are welcome, feel free to send new documentation!
+
+## License
+
+Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more information.

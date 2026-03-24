@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-package:
+    name: Build matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        variant: [shared, static]
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.26.4"
+
+      - name: Configure
+        run: |
+          BUILD_DIR=build-${{ matrix.os }}-${{ matrix.variant }}
+          mkdir -p ${BUILD_DIR}
+          if [ "${{ matrix.variant }}" = "shared" ]; then
+            cmake -S . -B ${BUILD_DIR} -DMYYAML_INSTALL=ON -DMYYAML_BUILD_SHARED=ON -DCMAKE_BUILD_TYPE=Release
+          else
+            cmake -S . -B ${BUILD_DIR} -DMYYAML_INSTALL=ON -DMYYAML_BUILD_SHARED=OFF -DCMAKE_BUILD_TYPE=Release
+          fi
+
+      - name: Build
+        run: |
+          BUILD_DIR=build-${{ matrix.os }}-${{ matrix.variant }}
+          cmake --build ${BUILD_DIR} --config Release -- -j 2
+
+      - name: Install to staging
+        run: |
+          BUILD_DIR=build-${{ matrix.os }}-${{ matrix.variant }}
+          INSTALL_DIR=install-${{ matrix.os }}-${{ matrix.variant }}
+          rm -rf ${INSTALL_DIR}
+          cmake --install ${BUILD_DIR} --prefix ${PWD}/${INSTALL_DIR}
+
+      - name: Create zip artifact
+        run: |
+          INSTALL_DIR=install-${{ matrix.os }}-${{ matrix.variant }}
+          ART_NAME=myyaml-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.variant }}.zip
+          cd ${INSTALL_DIR}
+          if command -v zip >/dev/null 2>&1; then
+            zip -r ../${ART_NAME} .
+          else
+            python -m zipfile -c ../${ART_NAME} .
+          fi
+          cd ..
+          echo "ARTIFACT=${ART_NAME}" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Recompute artifact name same as Create zip artifact step
+          name: myyaml-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.variant }}.zip
+          path: myyaml-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.variant }}.zip
+
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: build-and-package
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded artifacts
+        run: |
+          ls -la artifacts
+
+      - name: Compute checksums
+        run: |
+          cd artifacts
+          for z in *.zip; do
+            [ -f "$z" ] || continue
+            sha256sum "$z" | awk '{print $1}' > "$z".sha256
+          done
+
+      - name: Import GPG key and sign artifacts
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        run: |
+          cd artifacts
+          echo "Importing GPG key"
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          for z in *.zip; do
+            [ -f "$z" ] || continue
+            echo "Signing $z"
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --output "$z".asc --detach-sign "$z"
+          done
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Create GitHub release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload assets
+        run: |
+          set -e
+          UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}
+          cd artifacts
+          for f in *; do
+            [ -f "$f" ] || continue
+            echo "Uploading $f"
+            gh release upload "${{ github.ref_name }}" "$f" --clobber || \
+              (curl -sS -X POST "$UPLOAD_URL?name=$(basename "$f")" --data-binary "@$f" -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/octet-stream")
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

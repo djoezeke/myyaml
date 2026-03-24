@@ -12,7 +12,7 @@ IF(NOT DOXYGEN_FOUND)
 ELSE()
     file(GLOB SOURCES ${CMAKE_CURRENT_LIST_DIR}/../include/*)
     set(README_DOC ${CMAKE_CURRENT_LIST_DIR}/../README.md)
-    list(APPEND SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/myyaml.c)
+    list(APPEND SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/myyaml.c ${CMAKE_CURRENT_LIST_DIR}/../src/myyamlc.c)
 
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in
 	  ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile)
@@ -29,5 +29,9 @@ ELSE()
     add_custom_target(doc ALL DEPENDS html)
     
     # TODO: Add documentation install 
+    if(MYYAML_INSTALL)
+        if(MYYAML_INSTALL_DOCS)
+        endif()
+    endif()
 
 ENDIF()

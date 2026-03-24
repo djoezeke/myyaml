@@ -1,0 +1,108 @@
+version: 1
+
+labels:
+  - label: "Documentation"
+    files:
+      - "README.md"
+
+  - label: "Documentation"
+    files:
+      - "docs/.*"
+
+  - label: "MkDocs"
+    files:
+      - "docs/mkdocs/.*"
+
+  - label: "Examples"
+    files:
+      - "examples/.*"
+
+  - label: "Tests"
+    files:
+      - "tests/.*"
+
+  - label: "C"
+    files:
+      - "tests/c/.*"
+
+  - label: "Cxx"
+    files:
+      - "tests/cxx/.*"
+
+  - label: "C"
+    files:
+      - ".*myyaml.h"
+
+  - label: "Cxx"
+    files:
+      - ".*myyaml.hpp"
+
+  - label: "C"
+    files:
+      - ".*myyamlc.cpp"
+
+  - label: "Cxx"
+    files:
+      - ".*myyaml.cpp"
+
+  - label: "Build"
+    files:
+      - ".*CMakeLists.txt"
+
+  - label: "Build"
+    files:
+      - ".*meson.build"
+
+  - label: "Build"
+    files:
+      - ".*meson_option.txt"
+
+  - label: "Build"
+    files:
+      - ".*BUILD.bazel"
+
+  - label: "Build"
+    files:
+      - ".*MODULE.bazel"
+
+  - label: "CMake"
+    files:
+      - ".*CMakeLists.txt"
+
+  - label: "CMake"
+    files:
+      - ".*CMakePresets.json"
+
+  - label: "CMake"
+    files:
+      - "cmake/.*"
+
+  - label: "Meson"
+    files:
+      - ".*meson.build"
+
+  - label: "Meson"
+    files:
+      - ".*meson_option.txt"
+
+  - label: "Bazel"
+    files:
+      - ".*BUILD.bazel"
+
+  - label: "Bazel"
+    files:
+      - ".*MODULE.bazel"
+
+  - label: "CI"
+    files:
+      - "github/workflows/.*"
+
+  - label: "Small"
+    size-below: 10
+
+  - label: "Meduim"
+    size-above: 9
+    size-below: 100
+
+  - label: "Large"
+    size-above: 100

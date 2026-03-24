@@ -8,31 +8,53 @@
   "configurePresets": [
     {
       "name": "default",
+      "hidden": false,
+      "generator": "Ninja",
       "binaryDir": "build",
       "installDir": "${sourceDir}/build/install",
+      "description": "Default build with static library, examples, and tests enabled",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
-        "MYYAML_BUILD_TESTS": "OFF",
-        "MYYAML_BUILD_EXAMPLES": "OFF",
-        "MYYAML_ENABLE_WARNING": "OFF",
-        "MYYAML_ENABLE_PACKING": "OFF"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "MYYAML_BUILD_TESTS": "ON",
+        "MYYAML_BUILD_DEBUG": "OFF",
+        "MYYAML_BUILD_SHARED": "ON",
+        "MYYAML_BUILD_EXAMPLES": "ON"
       }
     },
     {
       "name": "develop",
-      "binaryDir": "build",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/develop",
       "installDir": "${sourceDir}/build/install",
-      "generator": "MinGW Makefiles",
+      "description": "Debug build for development with examples and tests enabled",
       "cacheVariables": {
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "MYYAML_BUILD_TESTS": "ON",
-        "MYYAML_BUILD_EXAMPLES": "ON",
-        "MYYAML_ENABLE_WARNING": "ON",
-        "MYYAML_ENABLE_PACKING": "OFF"
+        "MYYAML_BUILD_DEBUG": "ON",
+        "MYYAML_BUILD_SHARED": "ON",
+        "MYYAML_BUILD_EXAMPLES": "ON"
       }
     }
   ],
-  "testPresets": []
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "develop",
+      "configurePreset": "develop",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
 }

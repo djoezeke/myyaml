@@ -1,113 +1,50 @@
 # Reference: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 # default values:
-# https://github.com/llvm/llvm-project/blob/main/clang/lib/Format/Format.cpp
-# Uses the built-in Google style as a base.
+#     https://github.com/llvm/llvm-project/blob/main/clang/lib/Format/Format.cpp
+#
+# Uses the Visual Studio Coding Style.
+
 ---
-BasedOnStyle: Google
-Standard: Latest
+BasedOnStyle: LLVM
+Standard: Cpp11
 Language: Cpp
 
 # Indentation
 AccessModifierOffset: -4
-BitFieldColonSpacing: Both
-ContinuationIndentWidth: 4
-IndentCaseLabels: true
-IndentCaseBlocks: false
-IndentExternBlock: Indent
-IndentPPDirectives: None
-IndentRequires: true
+IndentCaseLabels: false
 IndentWidth: 4
-IndentWrappedFunctionNames: true
 TabWidth: 4
 UseTab: Never
 
-# Alignment
-AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: Consecutive
-AlignConsecutiveBitFields: Consecutive
-AlignConsecutiveDeclarations: Consecutive
-AlignConsecutiveMacros: Consecutive
-AlignEscapedNewlines: Left
-AlignOperands: Align
-AlignTrailingComments: true
+ColumnLimit: 0
 
-# Allow
-AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortEnumsOnASingleLine: true
-AllowShortBlocksOnASingleLine: Never
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-
-# Break
-AlwaysBreakAfterDefinitionReturnType: None
-AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: MultiLine
-
-# Never format includes
-IncludeBlocks: Preserve
+# Line endings
+UseCRLF: false
 
 # Braces
-BreakBeforeBraces: Custom
-BraceWrapping:
-    AfterCaseLabel: true
-    AfterClass: true
-    AfterControlStatement: Always
-    AfterEnum: true
-    AfterFunction: true
-    AfterNamespace: true
-    AfterStruct: true
-    AfterUnion: true
-    AfterExternBlock: true
-    BeforeCatch: false
-    BeforeElse: true
-    BeforeLambdaBody: true
-    BeforeWhile: false
-    IndentBraces: false
-    SplitEmptyFunction: true
-    SplitEmptyRecord: true
-    SplitEmptyNamespace: true
+BreakBeforeBraces: Allman
 
 # Namespaces
-CompactNamespaces: false
-FixNamespaceComments: true
-NamespaceIndentation: None
-
-# Derive
-DeriveLineEnding: false
-DerivePointerAlignment: false
-
-# Empty lines
-EmptyLineBeforeAccessModifier: Always
-KeepEmptyLinesAtTheStartOfBlocks: true
-MaxEmptyLinesToKeep: 2
-
-DisableFormat: false
-IncludeBlocks: Preserve
-ColumnLimit: 150
-IndentWidth: 4
-TabWidth: 4
+FixNamespaceComments: false
+NamespaceIndentation: All
 
 # Sorting
 IncludeBlocks: Regroup
 IncludeCategories:
   - Priority: 1
-    Regex: '^<myyaml\/'
+    Regex: '<my(\w{3,4})\/my\1\.h.*>'
   - Priority: 2
-    Regex: '^<(catch2)'
+    Regex: '<catch2/.*\.hpp>'
   - Priority: 3
-    Regex: '^<(.+)>$'
+    Regex: "^<(.+)>$"
 SortIncludes: true
 SortUsingDeclarations: true
 
-# Line endings
-UseCRLF: false
+# Allow
+AllowShortIfStatementsOnASingleLine: false
 
 # Qualifiers (const, volatile, static, etc)
 QualifierAlignment: Custom
-QualifierOrder: ['static', 'inline', 'constexpr', 'const', 'volatile', 'type']
+QualifierOrder: ["static", "inline", "constexpr", "const", "volatile", "type"]
 
 ---
