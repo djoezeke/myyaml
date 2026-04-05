@@ -3,9 +3,12 @@
 # Distributed under the terms of the MIT license.
 # ===================================================================
 
-alias(
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
 	name = "basic_cpp",
-	actual = "//examples/apis:basic_cpp",
+	srcs = ["Basic.cpp"],
+	deps = ["//:myyaml"],
 	visibility = ["//visibility:public"],
 )
 

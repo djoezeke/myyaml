@@ -4,8 +4,6 @@
 # ===================================================================
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_license//rules:license.bzl", "license")
-
 #===========================
 # Build C++ Library        #
 #===========================
@@ -15,9 +13,11 @@ cc_library(
 	srcs = [
 		"src/myyaml.cpp",
 	],
-	hdrs = glob(["include/myyaml/*.hpp"]),
+	hdrs = glob(["include/myyaml/*.h", "include/myyaml/*.hpp"]),
+    linkstatic = True,
 	visibility = ["//visibility:public"],
 	includes = ["include"],
+	copts = ["-std=c++17"],
 )
 
 #===========================
@@ -30,19 +30,11 @@ cc_library(
 		"src/myyamlc.cpp",
 	],
 	hdrs = glob(["include/myyaml/*.h", "include/myyaml/*.hpp"]),
-	visibility = ["//visibility:public"],
-    includes = ["src/"],
     linkstatic = True,
+	visibility = ["//visibility:public"],
 	includes = ["include"],
-    deps = [":myyaml"],
-)
-
-# Packaging – create a zip with headers and libraries
-genrule(
-	name = "dist_zip",
-	srcs = ["README.md", "LICENSE"],
-	outs = ["myyaml-${PROJECT_VERSION}.zip"],
-	cmd = "zip -r $@ include src README.md LICENSE || true",
+	copts = ["-std=c++17"],
+	deps = [":myyaml"],
 )
 
 # ===================================================================

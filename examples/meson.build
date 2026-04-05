@@ -15,9 +15,10 @@ if myyaml_build_examples
     foreach example : myyaml_examples
 
 		exe = executable(
-            example, example,
-            include_directories: incdir,
-            link_with: [myyaml_lib],
+                        example,
+                        'apis/' + example,
+                        include_directories: myyaml_include_dirs,
+                        dependencies: [myyaml_dep],
             install: false
         )
         
@@ -31,10 +32,11 @@ if myyaml_build_examples
 
     foreach example : myyamlc_examples
 
-		exe = executable(example + 'c',
+		exe = executable(
+                        example + 'c',
             'apis/' + example,
-            include_directories: incdir,
-            link_with: [myyamlc_lib], 
+                        include_directories: myyaml_include_dirs,
+                        dependencies: [myyamlc_dep],
             install: false
         )
 

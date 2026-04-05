@@ -3,15 +3,16 @@
 # Distributed under the terms of the MIT license.
 # ===================================================================
 
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
 #===========================
 # C++ Library Tests        #
 #===========================
 
 cc_test(
 	name = "myyaml_test",
-	srcs = ["cxx/Version.test.cpp"],
-	deps = [":myyaml", "//vendor/Catch2:catch2_main"],
-	includes = ["include"],
+	srcs = ["cxx/Main.test.cpp"],
+	deps = ["//:myyaml", "//tests/vendor/Catch2:catch2_main"],
 )
 
 #===========================
@@ -20,9 +21,8 @@ cc_test(
 
 cc_test(
 	name = "myyamlc_test",
-	srcs = ["c/Version.test.cpp"],
-	deps = [":myyamlc", "//vendor/Catch2:catch2_main"],
-	includes = ["include"],
+	srcs = ["c/Main.test.cpp"],
+	deps = ["//:myyamlc", "//tests/vendor/Catch2:catch2_main"],
 )
 
 # ===================================================================

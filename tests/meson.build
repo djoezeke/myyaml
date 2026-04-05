@@ -4,42 +4,49 @@
 # ===================================================================
 
 if myyaml_build_tests
+	catch2_include_dirs = include_directories('vendor/Catch2/src')
+
+	catch2_dep = dependency(
+		'catch2-with-main',
+        fallback: ['Catch2', 'catch2_with_main_dep'],
+		required: true
+	)
 
     #===========================
     # C++ Library Tests        #
     #===========================
 
 	myyaml_test_sources = [
-		'cxx/Version.test.cpp'
+		'cxx/Main.test.cpp',
 	]
 
 	myyaml_test_exe = executable(
-		myyaml_test, 
+		'myyaml_cpp_tests', 
 		myyaml_test_sources,
-		include_directories: myyaml_include_dirs,
-		link_with: [myyaml_lib], 
+		include_directories: [myyaml_include_dirs, catch2_include_dirs],
+		dependencies: [myyaml_dep, catch2_dep], 
 		install: false
 	)
 
-	test(myyaml_test, myyaml_test_exe)
+	test('myyaml_cpp_tests', myyaml_test_exe)
 
     #===========================
     # C Library Tests          #
     #===========================
 
 	myyamlc_test_sources = [
-		'c/Version.test.cpp'
+		'c/Main.test.cpp'
 	]
 
 	myyamlc_test_exe = executable(
-		myyamlc_test, 
+		'myyaml_c_tests', 
 		myyamlc_test_sources,
-		include_directories: myyaml_include_dirs,
-		link_with: [myyamlc_lib], 
+		include_directories: [myyaml_include_dirs, catch2_include_dirs],
+		dependencies: [myyamlc_dep, catch2_dep], 
 		install: false
 	)
 
-	test(myyamlc_test, myyamlc_test_exe)
+	test('myyaml_c_tests', myyamlc_test_exe)
 
 endif
 

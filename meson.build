@@ -8,14 +8,14 @@
 #--------------------------------------------------------------------
 
 project('myyaml',
-	'cpp',
+	['c', 'cpp'],
 	version : '0.1.0',
 	license : 'MIT',
 	default_options : [
 		'buildtype=release',
 		'default_library=static',
-		'cpp_std=c++17'
-		]
+		],
+  	subproject_dir: 'tests/vendor'
 )
 
 compiler = meson.get_compiler('cpp')
@@ -34,6 +34,8 @@ myyaml_is_subproject = meson.is_subproject()
 myyaml_include_dirs = include_directories('include')
 myyaml_build_tests = get_option('myyaml_build_tests') and not myyaml_is_subproject
 myyaml_build_examples = get_option('myyaml_build_examples') and not myyaml_is_subproject
+myyaml_install = get_option('myyaml_install') and not myyaml_is_subproject
+myyaml_build_c_api = get_option('myyaml_build_c_api')
 
 src_files = []
 
@@ -45,24 +47,38 @@ src_files = []
 # Build C++ Library        #
 #===========================
 
-myyaml_lib = static_library(
+myyaml_lib = library(
 	'myyaml',
 	'src/myyaml.cpp',
 	include_directories : myyaml_include_dirs,
-	install : true,
+	install : myyaml_install,
 )
 
 #===========================
 # Build C Library          #
 #===========================
 
-myyamlc_lib = static_library(
-	'myyamlc', 
-	'src/myyamlc.cpp',
-	include_directories : myyaml_include_dirs,
+myyaml_dep = declare_dependency(
 	link_with : myyaml_lib,
-	install : true,
+	include_directories : myyaml_include_dirs,
 )
+
+myyamlc_dep = myyaml_dep
+
+if myyaml_build_c_api
+	myyamlc_lib = library(
+		'myyamlc', 
+		'src/myyamlc.cpp',
+		include_directories : myyaml_include_dirs,
+		link_with : myyaml_lib,
+		install : myyaml_install,
+	)
+
+	myyamlc_dep = declare_dependency(
+		link_with : myyamlc_lib,
+		include_directories : myyaml_include_dirs,
+	)
+endif
 
 #--------------------------------------------------------------------
 # Add Project subdirectories.
@@ -82,15 +98,23 @@ endif
 
 if not meson.is_subproject()
 
-	install_headers('include/myyaml/myyaml.h', subdir : 'myyaml')
-	install_headers('include/myyaml/myyaml.hpp', subdir : 'myyaml')
+	if myyaml_install
+		install_headers('include/myyaml/myyaml.h', subdir : 'myyaml')
+		install_headers('include/myyaml/myyaml.hpp', subdir : 'myyaml')
+	endif
 
 	pkgc = import('pkgconfig')
+	pkg_libraries = [myyaml_lib]
+	if myyaml_build_c_api
+		pkg_libraries += [myyamlc_lib]
+	endif
 	pkgc.generate(
 		name : meson.project_name(),
 		version: meson.project_version(),
 		description: 'YAML for Modern C/C++',
 		url: 'https://github.com/djoezeke/myyaml',
+		libraries: pkg_libraries,
+		subdirs : 'myyaml',
 	)
 
 endif

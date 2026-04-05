@@ -1,3 +1,31 @@
-option('myyaml_install', type: 'boolean', value: true, description: 'Install the library')
-option('myyaml_build_tests', type: 'boolean', value: false, description: 'Build Tests (default: false)')
-option('myyaml_build_examples', type: 'boolean', value: false, description: 'Build Examples (default: false)')
+
+option('myyaml_install',
+  type: 'boolean',
+  value: true,
+  description: 'Install library and headers'
+)
+
+option('myyaml_cpp_std',
+  type: 'combo',
+  choices: ['c++11', 'c++14', 'c++17', 'c++20', 'c++23'],
+  value: 'c++17',
+  description: 'C++ standard to use for compilation'
+)
+
+option('myyaml_build_tests',
+  type: 'boolean',
+  value: true,
+  description: 'Build test suite'
+)
+
+option('myyaml_build_examples',
+  type: 'boolean',
+  value: false,
+  description: 'Build examples'
+)
+
+option('myyaml_build_c_api',
+  type: 'boolean',
+  value: true,
+  description: 'Build C API wrapper'
+)
