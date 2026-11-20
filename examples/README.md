@@ -1,83 +1,61 @@
 # [MYYAML](https://djoezeke.github.io/myyaml) [ EXAMPLES ]
 
-This folder contains code examples for the C and C++ APIs.
+This folder contains compilable examples for the C and C++ APIs.
 
 > [!NOTE]
 > Myyaml is still in development.
 
-The purpose of Examples is to showcase integration, let you try Myyaml, and guide you toward
-integrating Myyaml in your own application.
+The purpose of the examples is to show typical parsing, mutation and emission
+workflows and to provide a starting point for integrating Myyaml into an
+application.
 
-## Getting Started
+## Getting started
 
-Integration in a typical existing application, should take no time.
+Include the C++ header:
 
 ```cpp
-#include <myyaml/myyaml>
+#include <myyaml/myyaml.hpp>
 ```
 
-Main resource:
+or the C header:
 
-- Read **[Documentation](https://djoezeke.github.io/myyaml/)** for detailed on how to integrate Myyaml.
-
-Additional resources:
-
-<!-- ## Building the Examples
-
-The examples assume you have already built the `myjson` library in `../src`.
-
-### With Make
-
-```bash
-make # builds all api examples and tests.
-make examples  # builds all examples.
-make examples/loading # builds one examples (e.g `make examples/loading`
+```c
+#include <myyaml/myyaml.h>
 ```
 
-### With CMake
+## Build the examples
 
-To build the examples with cmake, run the following commands from the root of the repository:
+From the repository root:
 
-```bash
-cd examples/c
-mkdir build
-cd build
-cmake ..
-cmake --build .
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMYYAML_BUILD_EXAMPLES=ON
+cmake --build build
 ```
 
-This will produce binaries for each example: one that links with a shared Myyaml library, and one that is linked with static Myyaml library. The binaries linked with the static library have the postfix **\_s**.
+The CMake target names are derived from the file names:
 
-To run a single example, execute it from the `build` directory:
-
-```bash
-./loading
+```sh
+./build/examples/apis/Basic
+./build/examples/apis/BasicC
 ```
 
-## API EXAMPLES COLLECTION [TOTAL: 1]
+## Available examples
 
-Examples showing myjson functionality, like standalone usage or examples integrating external libraries.
+| Example        | API | Demonstrates                                           |
+| -------------- | --- | ------------------------------------------------------ |
+| `apis/Basic.cpp`  | C++ | Parse, read, mutate, dump with block/flow style and error handling |
+| `apis/BasicC.c`   | C   | Parse, read, build a document, dump with options and free resources |
 
-| Example                  | Version created | Version updated | Original Developer                                  |
-| ------------------------ | :-------------: | :-------------: | :-------------------------------------------------- |
-| [loading](api/loading.c) |      0.1.0      |      0.1.0      | [Sackey Ezekiel Etrue](https://github.com/djoezeke) | -->
+More usage snippets are included in the
+[documentation](../docs/mkdocs/docs/usage.md), including parsing from files and
+streams, non-throwing parse results, parser limits and the C API.
 
-Some example missing? As always, contributions are welcome, feel free to send new examples!
-
-<!-- ### Build examples (recommended)
-
-From the repository root you can build all examples via CMake:
-
-```bash
-mkdir -p build && cd build
-cmake .. -DBUILD_EXAMPLES=ON
-cmake --build . --target examples
-```
-
-Then run example binaries from the build directory. -->
-
-<!-- Here is an [examples template](template.c) with instructions to start with! -->
+Some examples missing? As always, contributions are welcome, feel free to send
+new examples!
 
 ## License
 
-Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more information.
+Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more
+information.

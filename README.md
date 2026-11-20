@@ -26,6 +26,7 @@
   - [🤖 Usage](#-usage)
   <!-- - [🤖 Example](#-example) -->
   - [🧪 Testing](#-testing)
+  - [⚡ Benchmarking](#-benchmarking)
   <!-- - [🧪 Benchmarking](#-benchmarking) -->
 - [📌 Project Roadmap](#-project-roadmap)
 - [ Support](#-support)
@@ -206,6 +207,166 @@ Myyaml uses following software, tools and services:
 
 </details> -->
 
+## 🤖 Usage
+
+The full guides live in the [documentation](docs/mkdocs/docs/usage.md), with
+the C API in [docs/mkdocs/docs/c-api.md](docs/mkdocs/docs/c-api.md).
+
+### Parse YAML (C++)
+
+```cpp
+#include <myyaml/myyaml.hpp>
+
+#include <iostream>
+
+int main()
+{
+    myyaml::yaml config = myyaml::yaml::parse(
+        "name: demo\n"
+        "enabled: true\n"
+        "retries: 3\n"
+        "features: [parse, emit]\n"
+        "servers:\n"
+        "  - host: primary\n"
+        "    port: 8080\n");
+
+    std::cout << config["name"].as_string() << '\n';
+    std::cout << config["retries"].as_integer() << '\n';
+
+    for (const myyaml::yaml &server : config["servers"].as_sequence())
+    {
+        std::cout << server["host"].as_string() << ':' << server["port"].as_integer() << '\n';
+    }
+}
+```
+
+`yaml::parse()` throws `myyaml::parse_error` for invalid YAML and
+`myyaml::encoding_error` for invalid UTF-8/UTF-16/UTF-32. Use
+`yaml::try_parse()` when exceptions are not appropriate:
+
+```cpp
+const myyaml::parse_result result = myyaml::yaml::try_parse("a: [1, 2\n");
+if (!result)
+{
+    std::cerr << result.error << " at line " << result.line
+              << ", column " << result.column << '\n';
+}
+```
+
+### Emit YAML (C++)
+
+```cpp
+myyaml::yaml document = myyaml::yaml::make_mapping({
+    {"name", "demo"},
+    {"ports", myyaml::yaml::make_sequence({8080, 8081})},
+    {"enabled", true},
+});
+
+myyaml::dump_options options;
+options.sort_keys = true;      // deterministic output
+options.indent = 2;            // 1..8
+options.trailing_newline = true;
+
+std::cout << document.dump(options);
+document.dump(std::cout);      // stream overload with default options
+```
+
+Strings that would be parsed as another scalar type, or that contain YAML
+syntax, are quoted automatically. Multi-line strings use literal block scalars.
+The emitter rejects invalid UTF-8 instead of writing corrupt output.
+
+### Parse and emit (C)
+
+```c
+#include <myyaml/myyaml.h>
+#include <stdio.h>
+
+int main(void)
+{
+    myyaml_document *document = myyaml_parse("name: demo\nitems: [1, 2]\n");
+    if (document == NULL)
+    {
+        fprintf(stderr, "%s\n", myyaml_last_error());
+        return 1;
+    }
+
+    const myyaml_node *root = myyaml_const_root(document);
+    const myyaml_node *items = myyaml_node_get(root, "items");
+    printf("items: %zu\n", myyaml_node_size(items));
+
+    char *text = myyaml_dump(document);
+    if (text != NULL)
+    {
+        puts(text);
+        myyaml_free_string(text);
+    }
+    myyaml_free(document);
+    return 0;
+}
+```
+
+C API documents are released with `myyaml_free()` and emitted strings with
+`myyaml_free_string()`. Node handles are valid until the document is modified
+or released; see the [C API guide](docs/mkdocs/docs/c-api.md) for ownership and
+error-state details.
+
+### Parser limits
+
+```cpp
+myyaml::parse_options options;
+options.max_depth = 64;                 // default 128
+options.max_input_size = 1024 * 1024;   // default 16 MiB
+options.max_nodes = 100000;             // default 1,000,000
+options.allow_duplicate_keys = false;   // default
+
+myyaml::yaml document = myyaml::yaml::parse(untrusted_text, options);
+```
+
+Compilable examples live in [`examples/apis/Basic.cpp`](examples/apis/Basic.cpp)
+and [`examples/apis/BasicC.c`](examples/apis/BasicC.c).
+
+## 🧪 Testing
+
+The unit tests use [Catch2](https://github.com/catchorg/Catch2) and cover both
+the C++ and C APIs, including valid documents, invalid arguments, parser
+limits and emitter errors.
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMYYAML_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+## ⚡ Benchmarking
+
+The microbenchmarks also use Catch2's benchmarking support:
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMYYAML_BUILD_BENCHMARKS=ON
+cmake --build build
+
+# Full run with Catch2's default sample count
+./build/benchmarks/myyaml-benchmarks
+
+# Faster run, or select one group
+./build/benchmarks/myyaml-benchmarks --benchmark-samples 10
+./build/benchmarks/myyaml-benchmarks "[parser]"
+./build/benchmarks/myyaml-benchmarks "[emitter]"
+./build/benchmarks/myyaml-benchmarks "[roundtrip]"
+./build/benchmarks/myyaml-benchmarks "[c-api]"
+
+# Run the benchmark suite through CTest with a reduced sample count
+ctest --test-dir build -L benchmark
+```
+
+See [benchmarks/README.md](benchmarks/README.md) for the scenario list and
+methodology. Known limitations are tracked in [REVIEW.md](REVIEW.md); planned
+improvements are in [IMPROVE.md](IMPROVE.md).
+
 ## Support
 
 🤔 If you have a **question**, please check if it is already answered in the [**FAQ**](https://djoezeke.github.io/myyaml/faq/) or the [**Q&A**](https://github.com/djoezeke/myyaml/discussions/categories/q-a) section. If not, please [**ask a new question**](https://github.com/djoezeke/myyaml/discussions/new) there.
@@ -321,16 +482,15 @@ These short commands get you from a fresh clone to a tested build and local docs
 1. Configure & build (recommended out-of-source):
 
 ```bash
-mkdir -p build && cd build
-cmake .. -DMYYAML_INSTALL=OFF -DCMAKE_BUILD_TYPE=Release
-cmake --build . -- -j$(nproc || 2)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+  -DMYYAML_INSTALL=OFF -DMYYAML_BUILD_TESTS=ON
+cmake --build build --parallel
 ```
 
 2. Run tests (from project root):
 
 ```bash
-cmake --build build --target tests
-# or run the test binary directly (platform dependent)
+ctest --test-dir build --output-on-failure
 ```
 
 3. Run style & static checks (requires clang-format/clang-tidy):
@@ -344,8 +504,8 @@ clang-tidy -p build $(git ls-files '*.c' '*.cpp')
 4. Generate docs locally (mkdocs or doxygen):
 
 ```bash
-# MkDocs (if enabled)
-python -m mkdocs serve
+# MkDocs (if installed)
+python -m mkdocs serve -f docs/mkdocs/mkdocs.yml
 
 # Doxygen (if configured)
 doxygen Doxyfile

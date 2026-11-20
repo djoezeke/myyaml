@@ -95,3 +95,6 @@ plugins:
 # Page tree
 nav:
   - Introduction: index.md
+  - Usage: usage.md
+  - C API: c-api.md
+  - Tests & Benchmarks: benchmarks.md

@@ -8,15 +8,13 @@
 # TODO: Enable Code Coverage
 
 #--------------------------------------------------------------------
-# Basic Test Configures   
+# Test helper
 #--------------------------------------------------------------------
 
-# Check that all required submodules are there
-set(
-  GIT_TEST_SUBMODULES
-  Catch2
-)
+# Catch2 and the Catch CMake integration are provided by the top-level
+# CMakeLists.txt when either tests or benchmarks are enabled.
 
+<<<<<<< Updated upstream
 # foreach (submodule IN ITEMS ${GIT_TEST_SUBMODULES})
 #   if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/${submodule}/.git")
 #   message( FATAL_ERROR "Required CMake submodule `${submodule}' not found. This \
@@ -71,14 +69,15 @@ file(GLOB CPP_TEST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/cxx/*.test.cpp")
 
 # add a new target which is a test
 # example: myyaml_add_test(main-tests main.test.cpp ... Myyaml::Myyaml )
+=======
+# example: myyaml_add_test(myyaml-cpp-tests "cxx/Main.test.cpp" Myyaml::Myyaml)
+>>>>>>> Stashed changes
 function(myyaml_add_test target SOURCES DEPENDS)
 
-    # set a source group for the source files
     source_group("" FILES ${SOURCES})
-
-    # create the target
     add_executable(${target} ${SOURCES})
 
+<<<<<<< Updated upstream
     # set the target's folder (for IDEs that support it, e.g. Visual Studio)
     set_target_properties(${target} PROPERTIES FOLDER "Tests")
 
@@ -107,18 +106,24 @@ function(myyaml_add_test target SOURCES DEPENDS)
     endif()
 
     # Enable support for UTF-8 characters in source code
+=======
+    target_link_libraries(${target} PRIVATE ${DEPENDS} Catch2::Catch2WithMain)
+    set_target_properties(${target} PROPERTIES FOLDER "Tests")
+
+>>>>>>> Stashed changes
     if(MSVC)
         target_compile_options(${target} PRIVATE /utf-8)
     endif()
 
-    # Add the test
-    catch_discover_tests(${target} WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+    catch_discover_tests(${target}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endfunction()
 
 #--------------------------------------------------------------------
-# Manually or Recursively add Tests
+# Tests
 #--------------------------------------------------------------------
 
+<<<<<<< Updated upstream
 myyaml_add_test(myyaml-c-tests "${C_TEST_SRC}" "Myyaml::Myyaml")
 myyaml_add_test(myyaml-cpp-tests "${CPP_TEST_SRC}" "Myyaml::MyyamlC")
 
@@ -137,3 +142,16 @@ myyaml_add_test(myyaml-cpp-tests "${CPP_TEST_SRC}" "Myyaml::MyyamlC")
 # endforeach()
 
 # TODO: Add Convenience for building and running tests in a single command
+=======
+file(GLOB CPP_TEST_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/cxx/*.test.cpp")
+if(CPP_TEST_SRC)
+    myyaml_add_test(myyaml-cpp-tests "${CPP_TEST_SRC}" Myyaml::Myyaml)
+endif()
+
+if(TARGET Myyaml::MyyamlC)
+    file(GLOB C_TEST_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/c/*.test.cpp")
+    if(C_TEST_SRC)
+        myyaml_add_test(myyaml-c-tests "${C_TEST_SRC}" Myyaml::MyyamlC)
+    endif()
+endif()
+>>>>>>> Stashed changes

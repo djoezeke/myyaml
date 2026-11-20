@@ -1,65 +1,69 @@
 # [MYYAML](https://djoezeke.github.io/myyaml) [ TESTS ]
 
-This folder contains code tests for the C and C++ APIs.
+This folder contains the Catch2 unit tests for the C and C++ APIs.
 
 > [!NOTE]
 > Myyaml is still in development.
 
-<!-- ## Building the Tests
+## Building the tests
 
-The examples assume you have already built the `myjson` library in `../src`.
+Catch2 is vendored in `tests/vendor/Catch2`. If the submodule is not present,
+CMake fetches Catch2 automatically with `FetchContent`.
 
-### With Make
-
-```bash
-make # builds all api examples and tests.
-make examples  # builds all examples.
-make examples/loading # builds one examples (e.g `make examples/loading`
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMYYAML_BUILD_TESTS=ON
+cmake --build build
 ```
 
-### With CMake
+From the repository root, run the suite with:
 
-To build the examples with cmake, run the following commands from the root of the repository:
-
-```bash
-cd examples/c
-mkdir build
-cd build
-cmake ..
-cmake --build .
+```sh
+ctest --test-dir build --output-on-failure
 ```
 
-This will produce binaries for each example: one that links with a shared Myyaml library, and one that is linked with static Myyaml library. The binaries linked with the static library have the postfix **\_s**.
+The two test executables can also be invoked directly:
 
-To run a single example, execute it from the `build` directory:
-
-```bash
-./loading
+```sh
+./build/tests/myyaml-cpp-tests
+./build/tests/myyaml-c-tests
 ```
 
-## API EXAMPLES COLLECTION [TOTAL: 1]
+Catch2 filters select individual tests or tags:
 
-Tests showing myjson functionality, like standalone usage or examples integrating external libraries.
+```sh
+./build/tests/myyaml-cpp-tests "[emit]"
+./build/tests/myyaml-cpp-tests "block scalars"
+./build/tests/myyaml-c-tests "[c][errors]"
+```
 
-| Example                  | Version created | Version updated | Original Developer                                  |
-| ------------------------ | :-------------: | :-------------: | :-------------------------------------------------- |
-| [loading](api/loading.c) |      0.1.0      |      0.1.0      | [Sackey Ezekiel Etrue](https://github.com/djoezeke) | -->
+## Layout
 
-Some tests missing? As always, contributions are welcome, feel free to add new tests!
+| Path             | Contents                                                |
+| ---------------- | ------------------------------------------------------- |
+| `cxx/Main.test.cpp` | C++ API tests: parsing, emitting, mutation, options, I/O, encoding and errors |
+| `c/Main.test.cpp`   | C API tests: parsing, node access, mutation, ownership, limits and errors     |
+| `vendor/Catch2`     | Catch2 submodule (unit tests and benchmarks)            |
+
+The tests cover:
+
+- Valid block and flow documents, scalar inference, quoted and block scalars,
+  comments, directives, document markers, anchors/aliases and tags.
+- Emitter options, round trips, tricky strings, invalid UTF-8 and stream
+  failures.
+- Invalid arguments, malformed YAML, duplicate keys, parser limits, aliases
+  and non-throwing error reporting.
+- C API handle ownership, invalid arguments, type mismatches, dump options and
+  embedded NUL bytes.
+
+Microbenchmarks live in [`../benchmarks`](../benchmarks) and use the same
+Catch2 dependency.
+
+Some tests missing? As always, contributions are welcome, feel free to add new
+tests!
 
 ## License
 
-Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more information.
-
-<!-- ### Build & run tests
-
-From repository root:
-
-```bash
-mkdir -p build && cd build
-cmake .. -DBUILD_TESTING=ON
-cmake --build . --target tests
-ctest --output-on-failure
-``` -->
-
-If your environment uses a different test runner binary, run it from `build/tests`.
+Myyaml is licensed under the MIT License, see [LICENSE](../LICENSE) for more
+information.
